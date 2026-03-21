@@ -1,29 +1,92 @@
 # Fantasy Baseball Draft Rankings
 ### Tampa's Finest — ESPN League (10-team H2H Each Category)
 
-A data-driven draft ranking system built on 10 years of league history.
+A data-driven, season-by-season fantasy baseball system built on 10 years of league history.
+Designed for draft prep, in-season management, and future seasons.
 
-## How It Works
+---
 
-**Step 1 — Derive category weights from league history**
-
-Rather than using generic fantasy rankings, this system learns which statistical categories actually predict winning *in this specific league*. It analyzes 10 years of standings data and computes the Spearman correlation between each category and overall win percentage.
-
-```
-python3 category_weights.py
-```
-
-Output: `output/category_weights.json`
-
-**Step 2 — Rank players using weighted z-scores**
-
-Pulls player projections, calculates how far above/below average each player is in each category (z-score), then weights those scores using the league-derived weights from Step 1.
+## Repository Structure
 
 ```
-python3 player_rankings.py
+FantasyBaseball/
+├── seasons/
+│   ├── 2016/ … 2025/              Historical seasons
+│   │   ├── standings.csv          Final standings + season category totals
+│   │   ├── matchups.csv           Weekly category W/L results (needs ESPN fetch)
+│   │   ├── rosters.csv            End-of-season rosters (needs ESPN fetch)
+│   │   └── draft_results.csv      Pick-by-pick draft order (needs ESPN fetch)
+│   └── 2026/                      Current season
+│       ├── projections/
+│       │   ├── steamer_batters.csv   → download from FanGraphs
+│       │   └── steamer_pitchers.csv  → download from FanGraphs
+│       ├── draft_results.csv         → fill in after draft night (Mar 24)
+│       └── matchups.csv              → updated weekly during season
+│
+├── analysis/
+│   ├── category_weights.py        Derives category weights from history
+│   └── player_rankings.py         Ranks players via weighted z-scores
+│
+├── scripts/
+│   └── fetch_espn_history.py      Pulls matchups/rosters/drafts via ESPN API
+│
+├── data/
+│   └── fbb10yr.xlsx               Original 10-year standings (source of truth)
+│
+└── output/
+    ├── category_weights.json      Derived weights + correlations
+    └── draft_rankings.csv         Final ranked cheat sheet
 ```
 
-Output: `output/draft_rankings.csv`
+---
+
+## Quick Start
+
+```bash
+pip install -r requirements.txt
+
+# Step 1: derive category weights from league history
+python3 analysis/category_weights.py
+
+# Step 2: generate draft rankings
+python3 analysis/player_rankings.py
+```
+
+---
+
+## Getting Better Data (Recommended Before Draft)
+
+### 1 — Add 2026 Steamer Projections (biggest upgrade)
+
+Download free CSVs from FanGraphs and drop them in `seasons/2026/projections/`:
+
+| File | URL |
+|---|---|
+| `steamer_batters.csv` | fangraphs.com → Projections → Steamer → Batters → Export |
+| `steamer_pitchers.csv` | fangraphs.com → Projections → Steamer → Pitchers → Export |
+
+Then re-run `python3 analysis/player_rankings.py`.
+
+### 2 — Pull ESPN Historical Data (biggest analytical upgrade)
+
+Fetches weekly matchup W/L by category, rosters, and draft history for all available seasons.
+This unlocks direct H2H category correlation instead of relying on season totals.
+
+**Get your ESPN cookies:**
+1. Log in at espn.com in Chrome/Safari
+2. Open DevTools → Application → Cookies → espn.com
+3. Copy `espn_s2` and `SWID`
+
+```bash
+export ESPN_S2="AExxxxxxxxx..."
+export ESPN_SWID="{XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX}"
+
+python3 scripts/fetch_espn_history.py          # pulls all available years
+python3 analysis/category_weights.py           # re-derives weights (now H2H-based)
+python3 analysis/player_rankings.py            # re-ranks players
+```
+
+---
 
 ## League Settings
 
@@ -31,56 +94,54 @@ Output: `output/draft_rankings.csv`
 |---|---|
 | Teams | 10 |
 | Format | Head-to-Head Each Category |
-| Draft | Snake, Mar 24 2026 |
-| Roster | 24 players (18 starters, 6 bench, 2 IL) |
+| Draft | Snake, Mar 24 2026 @ 8:30 PM EDT |
+| Roster | 24 total: C, 1B, 2B, 3B, SS, OF×3, UTIL \| SP×5, RP×2, P×2 \| 6 bench, 2 IL |
 
-**Batting categories (8):** H, R, HR, TB, RBI, BB, SB, AVG
+**Batting (8):** H · R · HR · TB · RBI · BB · SB · AVG
 
-**Pitching categories (8):** K, QS, W, L, SV, HD, ERA, WHIP
+**Pitching (8):** K · QS · W · L · SV · HD · ERA · WHIP
 
-## Category Weights (derived from 10 years of league data)
+---
 
-| Rank | Category | Weight | Notes |
-|---|---|---|---|
-| 1 | TB | 10.2% | Most predictive of winning |
-| 2 | R | 9.6% | |
-| 3 | K | 8.9% | |
-| 4 | WHIP | 7.8% | Lower = better |
-| 5 | QS | 7.7% | |
-| 6 | W | 7.6% | |
-| 7 | H | 7.4% | |
-| 8 | RBI | 7.0% | |
-| 9 | HR | 6.7% | |
-| 10 | ERA | 6.1% | Lower = better |
-| 11 | AVG | 5.2% | |
-| 12 | BB | 5.1% | |
-| 13 | SB | 4.1% | |
-| 14 | HD | 4.0% | Only 6 seasons of data |
-| 15 | L | 1.5% | Lower = better |
-| 16 | SV | 1.1% | Weakest predictor |
+## Category Weights (current — standings-based)
 
-## Data
+Derived via Spearman correlation between within-year category rank and win PCT.
+Will be updated to direct H2H-based weights after running `fetch_espn_history.py`.
 
-- `data/fbb10yr.xlsx` — 10 years of Tampa's Finest league standings (2016–2025)
-- `output/category_weights.json` — derived category weights + correlations
-- `output/draft_rankings.csv` — final ranked player cheat sheet
+| Category | Weight | Notes |
+|---|---|---|
+| TB | 10.2% | Most predictive |
+| R | 9.6% | |
+| K | 8.9% | |
+| WHIP | 7.8% | Lower = better |
+| QS | 7.7% | |
+| W | 7.6% | |
+| H | 7.4% | |
+| RBI | 7.0% | |
+| HR | 6.7% | |
+| ERA | 6.1% | Lower = better |
+| AVG | 5.2% | |
+| BB | 5.1% | |
+| SB | 4.1% | |
+| HD | 4.0% | 6 seasons of data |
+| L | 1.5% | Lower = better |
+| SV | 1.1% | Weakest predictor |
 
-**Note on data quality:** 2019 AVG values are corrupted in the source file and are excluded from the AVG correlation. All other years are clean.
-
-**Note on projections:** Player rankings currently use 2025 FanGraphs stats. Re-run `player_rankings.py` after adding 2026 Steamer projection CSVs to `data/`.
+---
 
 ## Roadmap
 
-- [ ] Add 2026 Steamer projections (download from FanGraphs)
-- [ ] Add ESPN ADP data to surface value picks (high z-score, low ADP)
-- [ ] Pull weekly matchup history via ESPN API for direct H2H category analysis
-- [ ] Add position-by-position rankings (best available by position)
-- [ ] Add playoff-weighted category analysis
+- [ ] Add 2026 Steamer projections CSVs (`seasons/2026/projections/`)
+- [ ] Run `fetch_espn_history.py` to populate weekly matchup/roster/draft data
+- [ ] Re-derive weights using direct H2H matchup evidence
+- [ ] Add ESPN ADP to surface value picks (high z-score, low ADP)
+- [ ] Add position-by-position rankings
+- [ ] Track 2026 draft results and weekly matchups during the season
 
-## Setup
+---
 
-```bash
-pip3 install -r requirements.txt
-python3 category_weights.py
-python3 player_rankings.py
-```
+## Data Notes
+
+- `seasons/2019/standings.csv` — AVG column is corrupted in source (shows ~6.3 instead of ~0.263); excluded from AVG correlation
+- ESPN API history is available from 2019 onwards; 2016–2018 standings are from the manually maintained Excel file
+- CG (Complete Games) was a scoring category in 2016–2019, replaced by HD in 2020

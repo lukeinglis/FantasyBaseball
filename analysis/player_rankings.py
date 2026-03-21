@@ -28,9 +28,10 @@ except ImportError:
     PYBASEBALL_AVAILABLE = False
     print("pybaseball not installed — run: pip3 install pybaseball")
 
-WEIGHTS_PATH = "output/category_weights.json"
-OUTPUT_CSV = "output/draft_rankings.csv"
-OUTPUT_HTML = "output/draft_rankings.html"
+WEIGHTS_PATH      = "output/category_weights.json"
+PROJECTIONS_DIR   = "seasons/2026/projections"
+OUTPUT_CSV        = "output/draft_rankings.csv"
+OUTPUT_HTML       = "output/draft_rankings.html"
 
 # Roster config: Tampa's Finest
 # 10 teams, 24 roster spots (18 starters: C,1B,2B,3B,SS,OF×3,UTIL,SP×5,RP×2,P×2 + 6 bench)
@@ -78,25 +79,55 @@ def load_weights():
 
 
 def fetch_projections():
-    """Fetch 2026 Steamer projections via pybaseball."""
-    print("Fetching 2026 Steamer projections...")
+    """
+    Load 2026 Steamer projections.
+
+    Priority:
+      1. seasons/2026/projections/steamer_batters.csv   (manually downloaded from FanGraphs)
+      2. seasons/2026/projections/steamer_pitchers.csv
+      3. pybaseball live fetch (falls back to 2025 actuals if 2026 not yet available)
+
+    To get Steamer 2026 CSVs from FanGraphs:
+      https://www.fangraphs.com/projections.aspx?pos=all&stats=bat&type=steamer
+      -> Export Data button -> save as seasons/2026/projections/steamer_batters.csv
+      https://www.fangraphs.com/projections.aspx?pos=all&stats=pit&type=steamer
+      -> Export Data button -> save as seasons/2026/projections/steamer_pitchers.csv
+    """
+    import os
+    batter_csv  = os.path.join(PROJECTIONS_DIR, "steamer_batters.csv")
+    pitcher_csv = os.path.join(PROJECTIONS_DIR, "steamer_pitchers.csv")
+
+    if os.path.exists(batter_csv) and os.path.exists(pitcher_csv):
+        print("Loading 2026 Steamer projections from local CSV files...")
+        batters  = pd.read_csv(batter_csv)
+        pitchers = pd.read_csv(pitcher_csv)
+        print(f"  {len(batters)} batters, {len(pitchers)} pitchers (Steamer 2026)")
+        return batters, pitchers, 2026
+
+    print("Local Steamer CSVs not found — fetching via pybaseball...")
+    print(f"  (Add CSVs to {PROJECTIONS_DIR}/ for true 2026 projections)")
 
     try:
-        # Try 2026 first
-        batters = batting_stats(2026, qual=10, ind=1)
+        batters  = batting_stats(2026, qual=10, ind=1)
         pitchers = pitching_stats(2026, qual=1, ind=1)
         year_used = 2026
     except Exception as e:
-        print(f"  2026 not available ({e}), trying 2025...")
+        print(f"  2026 not available ({e}), using 2025 actuals...")
         try:
-            batters = batting_stats(2025, qual=50, ind=1)
+            batters  = batting_stats(2025, qual=50, ind=1)
             pitchers = pitching_stats(2025, qual=10, ind=1)
             year_used = 2025
         except Exception as e2:
-            print(f"  Failed to fetch projections: {e2}")
+            print(f"  Failed: {e2}")
             return None, None, None
 
-    print(f"  Fetched {len(batters)} batters, {len(pitchers)} pitchers ({year_used} data)")
+    # Cache to disk so future runs are instant
+    os.makedirs(PROJECTIONS_DIR, exist_ok=True)
+    batters.to_csv(batter_csv, index=False)
+    pitchers.to_csv(pitcher_csv, index=False)
+    print(f"  Cached to {PROJECTIONS_DIR}/")
+
+    print(f"  {len(batters)} batters, {len(pitchers)} pitchers ({year_used})")
     return batters, pitchers, year_used
 
 
