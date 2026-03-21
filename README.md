@@ -6,16 +6,40 @@ Designed for draft prep, in-season management, and future seasons.
 
 ---
 
+## Inglis War Room
+
+Interactive dashboard for draft prep, opponent scouting, and league history.
+
+```bash
+pip3 install -r requirements.txt
+streamlit run app.py
+```
+
+Then open **http://localhost:8501** in your browser.
+
+Your dad can access it on the same WiFi at **http://10.0.0.182:8501** (no setup needed on his end).
+
+| Page | What's there |
+|---|---|
+| Draft Board | Full ranked cheat sheet — filter by position, search by name, download CSV |
+| Category Intel | What actually predicts winning in this league; key draft takeaways |
+| Opponent Scouting | Per-team draft tendencies — when they take SP/C/RP, recurring targets |
+| League History | Year-by-year champions, standings, 10-year finish heatmap |
+| Owner Records | All-time leaderboard, owner deep dive, finish trends |
+
+---
+
 ## Repository Structure
 
 ```
 FantasyBaseball/
+├── app.py                         Inglis War Room (Streamlit dashboard)
 ├── seasons/
 │   ├── 2016/ … 2025/              Historical seasons
 │   │   ├── standings.csv          Final standings + season category totals
-│   │   ├── matchups.csv           Weekly category W/L results (needs ESPN fetch)
-│   │   ├── rosters.csv            End-of-season rosters (needs ESPN fetch)
-│   │   └── draft_results.csv      Pick-by-pick draft order (needs ESPN fetch)
+│   │   ├── matchups.csv           Weekly category W/L results
+│   │   ├── rosters.csv            End-of-season rosters
+│   │   └── draft_results.csv      Pick-by-pick draft order
 │   └── 2026/                      Current season
 │       ├── projections/
 │       │   ├── steamer_batters.csv   → download from FanGraphs
@@ -25,17 +49,26 @@ FantasyBaseball/
 │
 ├── analysis/
 │   ├── category_weights.py        Derives category weights from history
-│   └── player_rankings.py         Ranks players via weighted z-scores
+│   ├── player_rankings.py         Ranks players via weighted z-scores
+│   └── draft_analysis.py          Builds opponent draft tendency profiles
 │
 ├── scripts/
-│   └── fetch_espn_history.py      Pulls matchups/rosters/drafts via ESPN API
+│   ├── fetch_espn_history.py      Pulls matchups/rosters/drafts via ESPN API
+│   └── build_owner_profiles.py    Builds owners/ directory from ESPN API
+│
+├── owners/
+│   ├── README.md                  All-time owner leaderboard
+│   ├── owners.csv                 Master owner table
+│   └── {owner}.md                 Per-owner profile with season history
 │
 ├── data/
-│   └── fbb10yr.xlsx               Original 10-year standings (source of truth)
+│   ├── fbb10yr.xlsx               Original 10-year standings (source of truth)
+│   └── owner_history.csv          Raw ESPN owner data
 │
 └── output/
     ├── category_weights.json      Derived weights + correlations
-    └── draft_rankings.csv         Final ranked cheat sheet
+    ├── draft_rankings.csv         Final ranked cheat sheet
+    └── draft_profiles.csv         Per-team draft tendency summary
 ```
 
 ---
@@ -43,13 +76,19 @@ FantasyBaseball/
 ## Quick Start
 
 ```bash
-pip install -r requirements.txt
+pip3 install -r requirements.txt
 
 # Step 1: derive category weights from league history
 python3 analysis/category_weights.py
 
 # Step 2: generate draft rankings
 python3 analysis/player_rankings.py
+
+# Step 3: build opponent draft profiles
+python3 analysis/draft_analysis.py
+
+# Step 4: launch the War Room
+streamlit run app.py
 ```
 
 ---
@@ -103,39 +142,40 @@ python3 analysis/player_rankings.py            # re-ranks players
 
 ---
 
-## Category Weights (current — standings-based)
+## Category Weights (H2H matchup-derived)
 
-Derived via Spearman correlation between within-year category rank and win PCT.
-Will be updated to direct H2H-based weights after running `fetch_espn_history.py`.
+Derived via Spearman correlation between per-category win% and overall matchup win%, across 60 team-seasons (2019–2025, excluding 2020).
 
 | Category | Weight | Notes |
 |---|---|---|
-| TB | 10.2% | Most predictive |
-| R | 9.6% | |
-| K | 8.9% | |
-| WHIP | 7.8% | Lower = better |
-| QS | 7.7% | |
-| W | 7.6% | |
-| H | 7.4% | |
-| RBI | 7.0% | |
-| HR | 6.7% | |
-| ERA | 6.1% | Lower = better |
-| AVG | 5.2% | |
-| BB | 5.1% | |
-| SB | 4.1% | |
-| HD | 4.0% | 6 seasons of data |
-| L | 1.5% | Lower = better |
-| SV | 1.1% | Weakest predictor |
+| TB | 11.4% | Most predictive |
+| HR | 10.8% | |
+| R | 10.0% | |
+| RBI | 9.9% | |
+| H | 8.3% | |
+| W | 7.2% | |
+| K | 7.0% | |
+| WHIP | 6.2% | Lower = better |
+| QS | 6.0% | |
+| ERA | 5.7% | Lower = better |
+| SB | 4.6% | |
+| BB | 3.5% | |
+| AVG | 3.4% | |
+| L | 3.3% | Lower = better |
+| HD | 2.5% | 2020+ only |
+| SV | 0.2% | Weakest predictor — do not reach for closers |
 
 ---
 
 ## Roadmap
 
+- [x] Pull ESPN history (matchups/rosters/drafts) for 2019–2025
+- [x] Re-derive weights using direct H2H matchup evidence
+- [x] Build opponent draft tendency profiles
+- [x] Build owner directory with per-owner season history
+- [x] Inglis War Room dashboard (Streamlit)
 - [ ] Add 2026 Steamer projections CSVs (`seasons/2026/projections/`)
-- [ ] Run `fetch_espn_history.py` to populate weekly matchup/roster/draft data
-- [ ] Re-derive weights using direct H2H matchup evidence
 - [ ] Add ESPN ADP to surface value picks (high z-score, low ADP)
-- [ ] Add position-by-position rankings
 - [ ] Track 2026 draft results and weekly matchups during the season
 
 ---
