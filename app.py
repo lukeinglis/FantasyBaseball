@@ -148,15 +148,24 @@ if page == "Draft Board":
     st.markdown("---")
 
     # ── Main table ──
-    bat_cols  = ["Overall_Rank", "Name", "Team", "Pos", "z_total",
-                 "H", "R", "HR", "TB", "RBI", "BB", "SB", "AVG"]
-    pit_cols  = ["Overall_Rank", "Name", "Team", "Pos", "z_total",
-                 "K", "QS", "W", "L", "SV", "HD", "ERA", "WHIP"]
-    show_cols = bat_cols if player_type == "Batters" else (pit_cols if player_type == "Pitchers" else
-                ["Overall_Rank", "Name", "Team", "Pos", "Type", "z_total"])
-
+    has_espn = "espn_rank" in df.columns
+    rank_cols = ["Overall_Rank", "espn_rank"] if has_espn else ["Overall_Rank"]
+    bat_cols  = rank_cols + ["Name", "Team", "Pos", "z_total",
+                             "H", "R", "HR", "TB", "RBI", "BB", "SB", "AVG"]
+    pit_cols  = rank_cols + ["Name", "Team", "Pos", "z_total",
+                             "K", "QS", "W", "L", "SV", "HD", "ERA", "WHIP"]
+    all_cols  = rank_cols + ["Name", "Team", "Pos", "Type", "z_total"]
+    show_cols = bat_cols if player_type == "Batters" else (pit_cols if player_type == "Pitchers" else all_cols)
     show_cols = [c for c in show_cols if c in df.columns]
     display_df = df[show_cols].reset_index(drop=True)
+
+    if has_espn:
+        display_df["rank_diff"] = display_df["Overall_Rank"] - display_df["espn_rank"]
+        display_df = display_df.rename(columns={
+            "Overall_Rank": "War Room #",
+            "espn_rank":    "ESPN #",
+            "rank_diff":    "Diff (WR-ESPN)",
+        })
 
     # Colour z_total column
     def colour_z(val):
@@ -173,24 +182,68 @@ if page == "Draft Board":
         else:
             return "background-color: #d8f3dc"
 
-    styled = display_df.style.applymap(colour_z, subset=["z_total"])
+    def colour_diff(val):
+        if not isinstance(val, (int, float)):
+            return ""
+        if val <= -20:   return "background-color: #1a472a; color: white"  # we rank much higher
+        elif val <= -5:  return "background-color: #40916c; color: white"
+        elif val >= 20:  return "background-color: #9d0208; color: white"  # ESPN ranks much higher
+        elif val >= 5:   return "background-color: #e85d04; color: white"
+        return ""
+
+    z_col = [c for c in display_df.columns if c == "z_total"]
+    diff_col = [c for c in display_df.columns if "Diff" in c]
+    styled = display_df.style.applymap(colour_z, subset=z_col)
+    if diff_col:
+        styled = styled.applymap(colour_diff, subset=diff_col)
     st.dataframe(styled, use_container_width=True, height=650)
 
-    st.caption(f"Showing {len(df)} players · Green shading = higher z-score (better value)")
+    if has_espn:
+        st.caption(f"Showing {len(df)} players · **War Room #** = our z-score rank · **ESPN #** = ESPN's draft rank · **Diff** = negative means we value higher than ESPN")
+    else:
+        st.caption(f"Showing {len(df)} players · Green shading = higher z-score (better value)")
+
+    # ── Value vs ESPN scatter ──
+    if has_espn and len(df) > 0:
+        st.markdown("---")
+        st.subheader("Our Rank vs ESPN Rank")
+        scatter_df = df[df["espn_rank"] < 500].copy()
+        scatter_df["value_gap"] = scatter_df["Overall_Rank"] - scatter_df["espn_rank"]
+        scatter_df["label"] = scatter_df.apply(
+            lambda r: r["Name"] if abs(r["value_gap"]) >= 20 else "", axis=1
+        )
+        fig_scatter = go.Figure()
+        # Add diagonal reference line
+        max_rank = min(scatter_df[["Overall_Rank","espn_rank"]].max().max(), 300)
+        fig_scatter.add_trace(go.Scatter(x=[1, max_rank], y=[1, max_rank],
+                                         mode="lines", line=dict(dash="dash", color="grey"),
+                                         name="Equal ranking", showlegend=False))
+        fig_scatter.add_trace(go.Scatter(
+            x=scatter_df["espn_rank"], y=scatter_df["Overall_Rank"],
+            mode="markers+text", text=scatter_df["label"],
+            textposition="top center", textfont=dict(size=9),
+            marker=dict(
+                color=scatter_df["value_gap"],
+                colorscale=[[0,"#1a472a"],[0.5,"#aaa"],[1,"#9d0208"]],
+                size=7, showscale=True,
+                colorbar=dict(title="We rank<br>higher ← → ESPN<br>ranks higher")
+            ),
+            hovertemplate="<b>%{text}</b><br>ESPN: #%{x}<br>War Room: #%{y}<extra></extra>",
+            name="Players"
+        ))
+        fig_scatter.update_layout(
+            xaxis_title="ESPN Rank", yaxis_title="War Room Rank",
+            height=450, margin=dict(t=20),
+        )
+        fig_scatter.update_yaxes(autorange="reversed")
+        fig_scatter.update_xaxes(autorange="reversed")
+        st.plotly_chart(fig_scatter, use_container_width=True)
+        st.caption("Points above the diagonal = we rank them higher than ESPN · Points below = ESPN ranks them higher · Labels = biggest disagreements (≥20 spots)")
 
     # ── Download ──
     csv = df.to_csv(index=False).encode()
     st.download_button("Download filtered rankings (CSV)", csv, "war_room_rankings.csv", "text/csv")
 
-    # ── z-score scatter ──
-    st.markdown("---")
-    st.subheader("Value Distribution")
-    fig = px.histogram(rankings, x="z_total", color="Type",
-                       nbins=50, barmode="overlay",
-                       color_discrete_map={"BAT": "#2d6a4f", "PIT": "#1d3557"},
-                       labels={"z_total": "Composite Z-Score", "count": "Players"})
-    fig.update_layout(height=300, margin=dict(t=20))
-    st.plotly_chart(fig, use_container_width=True)
 
 
 # ════════════════════════════════════════════════════════════════════════════

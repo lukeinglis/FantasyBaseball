@@ -270,6 +270,15 @@ def combine_and_output(batters_ranked, pitchers_ranked):
     combined.index += 1
     combined.index.name = "Overall_Rank"
 
+    # Merge ESPN ADP if available
+    adp_path = "seasons/2026/adp/espn_adp.csv"
+    if os.path.exists(adp_path):
+        adp = pd.read_csv(adp_path)[["Name", "espn_rank", "espn_rank_roto", "espn_auction"]]
+        combined = combined.merge(adp, on="Name", how="left")
+        combined["espn_rank"] = combined["espn_rank"].fillna(999).astype(int)
+        n_matched = combined["espn_rank"].lt(999).sum()
+        print(f"  Merged ESPN ADP: {n_matched}/{len(combined)} players matched")
+
     os.makedirs("output", exist_ok=True)
     combined.to_csv(OUTPUT_CSV)
     print(f"  Saved: {OUTPUT_CSV}")
