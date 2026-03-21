@@ -40,6 +40,14 @@ BATTING_CATS  = ["H", "R", "HR", "TB", "RBI", "BB", "SB", "AVG"]
 PITCHING_CATS = ["K", "QS", "W", "L", "SV", "HD", "ERA", "WHIP"]
 ALL_CATS      = BATTING_CATS + PITCHING_CATS
 
+# ESPN API stat key -> our category name
+ESPN_CAT_MAP = {
+    "H": "H", "R": "R", "HR": "HR", "TB": "TB",
+    "RBI": "RBI", "B_BB": "BB", "SB": "SB", "AVG": "AVG",
+    "K": "K", "QS": "QS", "W": "W", "L": "L",
+    "SV": "SV", "HLD": "HD", "ERA": "ERA", "WHIP": "WHIP",
+}
+
 
 def get_credentials(args):
     espn_s2 = args.espn_s2 or os.environ.get("ESPN_S2")
@@ -78,9 +86,38 @@ def fetch_matchups(league, year):
     """
     Pull week-by-week category W/L results.
     Returns a DataFrame with one row per team per week.
+
+    ESPN API provides per-category results in home_stats/away_stats:
+      { 'H': {'value': 30.0, 'result': 'WIN'}, 'K': {'value': 63.0, 'result': 'LOSS'}, ... }
     """
     rows = []
     n_weeks = league.settings.reg_season_count
+
+    def result_to_int(r):
+        """WIN=1, TIE=0, LOSS=-1, None=None"""
+        if r == "WIN":   return 1
+        if r == "LOSS":  return -1
+        if r == "TIE":   return 0
+        return None
+
+    def build_row(team, opp, stats, cats_won, cats_lost, cats_tied, week):
+        row = {
+            "year":      year,
+            "week":      week,
+            "team":      team.team_name,
+            "opponent":  opp.team_name,
+            "cats_won":  cats_won,
+            "cats_lost": cats_lost,
+            "cats_tied": cats_tied,
+        }
+        for espn_key, our_cat in ESPN_CAT_MAP.items():
+            if espn_key in stats:
+                row[f"{our_cat}_value"]  = stats[espn_key].get("value")
+                row[f"{our_cat}_result"] = result_to_int(stats[espn_key].get("result"))
+            else:
+                row[f"{our_cat}_value"]  = None
+                row[f"{our_cat}_result"] = None
+        return row
 
     for week in range(1, n_weeks + 1):
         try:
@@ -89,32 +126,19 @@ def fetch_matchups(league, year):
             print(f"    Week {week}: {e}")
             continue
 
-        for matchup in box_scores:
-            if matchup.home_team == 0 or matchup.away_team == 0:
+        for m in box_scores:
+            if not hasattr(m, 'home_stats') or not hasattr(m, 'away_stats'):
                 continue
-
-            home_scores = matchup.home_final_score if hasattr(matchup, 'home_final_score') else {}
-            away_scores = matchup.away_final_score if hasattr(matchup, 'away_final_score') else {}
-
-            # Try to get per-category results
-            home_cat_wins = getattr(matchup, 'home_wins', {})
-            away_cat_wins = getattr(matchup, 'away_wins', {})
-
-            def build_row(team, opp, cat_wins, final_score):
-                row = {
-                    "year":     year,
-                    "week":     week,
-                    "team":     team.team_name,
-                    "opponent": opp.team_name,
-                    "cats_won": sum(cat_wins.values()) if cat_wins else None,
-                    "score":    final_score,
-                }
-                for cat in ALL_CATS:
-                    row[f"{cat}_win"] = cat_wins.get(cat, None)
-                return row
-
-            rows.append(build_row(matchup.home_team, matchup.away_team, home_cat_wins, home_scores))
-            rows.append(build_row(matchup.away_team, matchup.home_team, away_cat_wins, away_scores))
+            if m.home_team == 0 or m.away_team == 0:
+                continue
+            rows.append(build_row(
+                m.home_team, m.away_team, m.home_stats,
+                m.home_wins, m.home_losses, m.home_ties, week
+            ))
+            rows.append(build_row(
+                m.away_team, m.home_team, m.away_stats,
+                m.away_wins, m.away_losses, m.away_ties, week
+            ))
 
     df = pd.DataFrame(rows)
     print(f"    {len(df)} team-week rows ({n_weeks} weeks)")
@@ -135,7 +159,7 @@ def fetch_rosters(league, year):
                 "team":           team.team_name,
                 "player_name":    player.name,
                 "position":       player.position,
-                "eligible_slots": ",".join(player.eligibleSlots) if hasattr(player, 'eligibleSlots') else "",
+                "eligible_slots": ",".join(str(s) for s in player.eligibleSlots) if hasattr(player, 'eligibleSlots') else "",
                 "pro_team":       player.proTeam if hasattr(player, 'proTeam') else "",
             })
     df = pd.DataFrame(rows)

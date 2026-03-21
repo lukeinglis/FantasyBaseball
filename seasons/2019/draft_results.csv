@@ -1,0 +1,241 @@
+year,round,pick,overall,team,player_name,keeper
+2019,1,1,0,Betts Against Us,Mookie Betts,False
+2019,1,2,0,Buck Showalter,Mike Trout,False
+2019,1,3,0,Moooooose-Yeli Bombers,Christian Yelich,False
+2019,1,4,0,Smokin' Bases,J.D. Martinez,False
+2019,1,5,0,A Song of  Bryce and Fire,Nolan Arenado,False
+2019,1,6,0,Magic Man,Jose Ramirez,False
+2019,1,7,0,Napoli  Headed Hoes,Alex Bregman,False
+2019,1,8,0,Sale For The Title,Max Scherzer,False
+2019,1,9,0,Shay Bel-Air GMY's,Ronald Acuna Jr.,False
+2019,1,10,0,Delray Beach Air Biscuits,Chris Sale,False
+2019,2,1,0,Delray Beach Air Biscuits,Jacob deGrom,False
+2019,2,2,0,Shay Bel-Air GMY's,Aaron Judge,False
+2019,2,3,0,Sale For The Title,Francisco Lindor,False
+2019,2,4,0,Napoli  Headed Hoes,Giancarlo Stanton,False
+2019,2,5,0,Magic Man,Charlie Blackmon,False
+2019,2,6,0,A Song of  Bryce and Fire,Bryce Harper,False
+2019,2,7,0,Smokin' Bases,Freddie Freeman,False
+2019,2,8,0,Moooooose-Yeli Bombers,Justin Verlander,False
+2019,2,9,0,Buck Showalter,Javier Baez,False
+2019,2,10,0,Betts Against Us,Trea Turner,False
+2019,3,1,0,Betts Against Us,Corey Kluber,False
+2019,3,2,0,Buck Showalter,Paul Goldschmidt,False
+2019,3,3,0,Moooooose-Yeli Bombers,Jose Altuve,False
+2019,3,4,0,Smokin' Bases,Manny Machado,False
+2019,3,5,0,A Song of  Bryce and Fire,Kris Bryant,False
+2019,3,6,0,Magic Man,Aaron Nola,False
+2019,3,7,0,Napoli  Headed Hoes,Trevor Bauer,False
+2019,3,8,0,Sale For The Title,Gerrit Cole,False
+2019,3,9,0,Shay Bel-Air GMY's,Trevor Story,False
+2019,3,10,0,Delray Beach Air Biscuits,Starling Marte,False
+2019,4,1,0,Delray Beach Air Biscuits,Cody Bellinger,False
+2019,4,2,0,Shay Bel-Air GMY's,Noah Syndergaard,False
+2019,4,3,0,Sale For The Title,Juan Soto,False
+2019,4,4,0,Napoli  Headed Hoes,Andrew Benintendi,False
+2019,4,5,0,Magic Man,Anthony Rizzo,False
+2019,4,6,0,A Song of  Bryce and Fire,Rhys Hoskins,False
+2019,4,7,0,Smokin' Bases,Carlos Carrasco,False
+2019,4,8,0,Moooooose-Yeli Bombers,Joey Votto,False
+2019,4,9,0,Buck Showalter,Blake Snell,False
+2019,4,10,0,Betts Against Us,Eddie Rosario,False
+2019,5,1,0,Betts Against Us,Gleyber Torres,False
+2019,5,2,0,Buck Showalter,Walker Buehler,False
+2019,5,3,0,Moooooose-Yeli Bombers,Jack Flaherty,False
+2019,5,4,0,Smokin' Bases,Anthony Rendon,False
+2019,5,5,0,A Song of  Bryce and Fire,Khris Davis,False
+2019,5,6,0,Magic Man,Zack Greinke,False
+2019,5,7,0,Napoli  Headed Hoes,Xander Bogaerts,False
+2019,5,8,0,Sale For The Title,George Springer,False
+2019,5,9,0,Shay Bel-Air GMY's,Whit Merrifield,False
+2019,5,10,0,Delray Beach Air Biscuits,Ozzie Albies,False
+2019,6,1,0,Delray Beach Air Biscuits,Carlos Correa,False
+2019,6,2,0,Shay Bel-Air GMY's,Jameson Taillon,False
+2019,6,3,0,Sale For The Title,James Paxton,False
+2019,6,4,0,Napoli  Headed Hoes,Patrick Corbin,False
+2019,6,5,0,Magic Man,Corey Seager,False
+2019,6,6,0,A Song of  Bryce and Fire,Edwin Encarnacion,False
+2019,6,7,0,Smokin' Bases,Stephen Strasburg,False
+2019,6,8,0,Moooooose-Yeli Bombers,J.T. Realmuto,False
+2019,6,9,0,Buck Showalter,Nicholas Castellanos,False
+2019,6,10,0,Betts Against Us,Jose Berrios,False
+2019,7,1,0,Betts Against Us,Madison Bumgarner,False
+2019,7,2,0,Buck Showalter,Kenley Jansen,False
+2019,7,3,0,Moooooose-Yeli Bombers,Tommy Pham,False
+2019,7,4,0,Smokin' Bases,Daniel Murphy,False
+2019,7,5,0,A Song of  Bryce and Fire,Gary Sanchez,False
+2019,7,6,0,Magic Man,Lorenzo Cain,False
+2019,7,7,0,Napoli  Headed Hoes,Mitch Haniger,False
+2019,7,8,0,Sale For The Title,Eugenio Suarez,False
+2019,7,9,0,Shay Bel-Air GMY's,Blake Treinen,False
+2019,7,10,0,Delray Beach Air Biscuits,Aroldis Chapman,False
+2019,8,1,0,Delray Beach Air Biscuits,Edwin Diaz,False
+2019,8,2,0,Shay Bel-Air GMY's,Michael Conforto,False
+2019,8,3,0,Sale For The Title,Jose Abreu,False
+2019,8,4,0,Napoli  Headed Hoes,Roberto Osuna,False
+2019,8,5,0,Magic Man,Clayton Kershaw,False
+2019,8,6,0,A Song of  Bryce and Fire,Jean Segura,False
+2019,8,7,0,Smokin' Bases,Nelson Cruz,False
+2019,8,8,0,Moooooose-Yeli Bombers,David Dahl,False
+2019,8,9,0,Buck Showalter,Matt Carpenter,False
+2019,8,10,0,Betts Against Us,Marcell Ozuna,False
+2019,9,1,0,Betts Against Us,Vladimir Guerrero Jr.,False
+2019,9,2,0,Buck Showalter,Mike Clevinger,False
+2019,9,3,0,Moooooose-Yeli Bombers,Justin Turner,False
+2019,9,4,0,Smokin' Bases,Eloy Jimenez,False
+2019,9,5,0,A Song of  Bryce and Fire,David Price,False
+2019,9,6,0,Magic Man,Robinson Cano,False
+2019,9,7,0,Napoli  Headed Hoes,Zack Wheeler,False
+2019,9,8,0,Sale For The Title,Dee Gordon,False
+2019,9,9,0,Shay Bel-Air GMY's,Jesus Aguilar,False
+2019,9,10,0,Delray Beach Air Biscuits,Luis Severino,False
+2019,10,1,0,Delray Beach Air Biscuits,Miguel Andujar,False
+2019,10,2,0,Shay Bel-Air GMY's,Adalberto Mondesi,False
+2019,10,3,0,Sale For The Title,German Marquez,False
+2019,10,4,0,Napoli  Headed Hoes,Joey Gallo,False
+2019,10,5,0,Magic Man,Chris Archer,False
+2019,10,6,0,A Song of  Bryce and Fire,Miles Mikolas,False
+2019,10,7,0,Smokin' Bases,Masahiro Tanaka,False
+2019,10,8,0,Moooooose-Yeli Bombers,Charlie Morton,False
+2019,10,9,0,Buck Showalter,Willson Contreras,False
+2019,10,10,0,Betts Against Us,Buster Posey,False
+2019,11,1,0,Betts Against Us,Robbie Ray,False
+2019,11,2,0,Buck Showalter,Jonathan Villar,False
+2019,11,3,0,Moooooose-Yeli Bombers,Cole Hamels,False
+2019,11,4,0,Smokin' Bases,Andrew McCutchen,False
+2019,11,5,0,A Song of  Bryce and Fire,Mike Foltynewicz,False
+2019,11,6,0,Magic Man,Michael Brantley,False
+2019,11,7,0,Napoli  Headed Hoes,Brad Hand,False
+2019,11,8,0,Sale For The Title,Rafael Devers,False
+2019,11,9,0,Shay Bel-Air GMY's,Wil Myers,False
+2019,11,10,0,Delray Beach Air Biscuits,Justin Upton,False
+2019,12,1,0,Delray Beach Air Biscuits,Yasiel Puig,False
+2019,12,2,0,Shay Bel-Air GMY's,Yasmani Grandal,False
+2019,12,3,0,Sale For The Title,Raisel Iglesias,False
+2019,12,4,0,Napoli  Headed Hoes,Travis Shaw,False
+2019,12,5,0,Magic Man,Yu Darvish,False
+2019,12,6,0,A Song of  Bryce and Fire,Shane Bieber,False
+2019,12,7,0,Smokin' Bases,Luis Castillo,False
+2019,12,8,0,Moooooose-Yeli Bombers,Jose Peraza,False
+2019,12,9,0,Buck Showalter,Rick Porcello,False
+2019,12,10,0,Betts Against Us,Miguel Cabrera,False
+2019,13,1,0,Betts Against Us,Josh Hader,False
+2019,13,2,0,Buck Showalter,Kyle Hendricks,False
+2019,13,3,0,Moooooose-Yeli Bombers,A.J. Pollock,False
+2019,13,4,0,Smokin' Bases,Nathan Eovaldi,False
+2019,13,5,0,A Song of  Bryce and Fire,Matt Chapman,False
+2019,13,6,0,Magic Man,Josh Donaldson,False
+2019,13,7,0,Napoli  Headed Hoes,Mallex Smith,False
+2019,13,8,0,Sale For The Title,Felipe Vazquez,False
+2019,13,9,0,Shay Bel-Air GMY's,J.A. Happ,False
+2019,13,10,0,Delray Beach Air Biscuits,David Peralta,False
+2019,14,1,0,Delray Beach Air Biscuits,Kirby Yates,False
+2019,14,2,0,Shay Bel-Air GMY's,Nick Pivetta,False
+2019,14,3,0,Sale For The Title,Yadier Molina,False
+2019,14,4,0,Napoli  Headed Hoes,David Robertson,False
+2019,14,5,0,Magic Man,Sean Doolittle,False
+2019,14,6,0,A Song of  Bryce and Fire,Dallas Keuchel,False
+2019,14,7,0,Smokin' Bases,Chris Paddack,False
+2019,14,8,0,Moooooose-Yeli Bombers,Mike Moustakas,False
+2019,14,9,0,Buck Showalter,Jose Quintana,False
+2019,14,10,0,Betts Against Us,Jake Arrieta,False
+2019,15,1,0,Betts Against Us,Jon Lester,False
+2019,15,2,0,Buck Showalter,Billy Hamilton,False
+2019,15,3,0,Moooooose-Yeli Bombers,Byron Buxton,False
+2019,15,4,0,Smokin' Bases,Aaron Hicks,False
+2019,15,5,0,A Song of  Bryce and Fire,Eduardo Rodriguez,False
+2019,15,6,0,Magic Man,Wilson Ramos,False
+2019,15,7,0,Napoli  Headed Hoes,Jose Alvarado,False
+2019,15,8,0,Sale For The Title,Stephen Piscotty,False
+2019,15,9,0,Shay Bel-Air GMY's,Yusei Kikuchi,False
+2019,15,10,0,Delray Beach Air Biscuits,Jurickson Profar,False
+2019,16,1,0,Delray Beach Air Biscuits,Kenta Maeda,False
+2019,16,2,0,Shay Bel-Air GMY's,Ken Giles,False
+2019,16,3,0,Sale For The Title,Andrew Miller,False
+2019,16,4,0,Napoli  Headed Hoes,Tyler Glasnow,False
+2019,16,5,0,Magic Man,Wade Davis,False
+2019,16,6,0,A Song of  Bryce and Fire,,False
+2019,16,7,0,Smokin' Bases,Ross Stripling,False
+2019,16,8,0,Moooooose-Yeli Bombers,Hyun-Jin Ryu,False
+2019,16,9,0,Buck Showalter,Kevin Gausman,False
+2019,16,10,0,Betts Against Us,Jose Leclerc,False
+2019,17,1,0,Betts Against Us,Rougned Odor,False
+2019,17,2,0,Buck Showalter,Victor Robles,False
+2019,17,3,0,Moooooose-Yeli Bombers,Matt Strahm,False
+2019,17,4,0,Smokin' Bases,Nomar Mazara,False
+2019,17,5,0,A Song of  Bryce and Fire,Brian Dozier,False
+2019,17,6,0,Magic Man,Kyle Schwarber,False
+2019,17,7,0,Napoli  Headed Hoes,Max Muncy,False
+2019,17,8,0,Sale For The Title,Shohei Ohtani,False
+2019,17,9,0,Shay Bel-Air GMY's,Joey Lucchesi,False
+2019,17,10,0,Delray Beach Air Biscuits,Cody Allen,False
+2019,18,1,0,Delray Beach Air Biscuits,Ender Inciarte,False
+2019,18,2,0,Shay Bel-Air GMY's,Craig Kimbrel,False
+2019,18,3,0,Sale For The Title,Matthew Boyd,False
+2019,18,4,0,Napoli  Headed Hoes,Andrew Heaney,False
+2019,18,5,0,Magic Man,Dylan Bundy,False
+2019,18,6,0,A Song of  Bryce and Fire,Will Smith,False
+2019,18,7,0,Smokin' Bases,Ryan Pressly,False
+2019,18,8,0,Moooooose-Yeli Bombers,Hunter Strickland,False
+2019,18,9,0,Buck Showalter,Matt Barnes,False
+2019,18,10,0,Betts Against Us,Brad Peacock,False
+2019,19,1,0,Betts Against Us,Archie Bradley,False
+2019,19,2,0,Buck Showalter,Marwin Gonzalez,False
+2019,19,3,0,Moooooose-Yeli Bombers,Marcus Stroman,False
+2019,19,4,0,Smokin' Bases,Asdrubal Cabrera,False
+2019,19,5,0,A Song of  Bryce and Fire,Corey Knebel,False
+2019,19,6,0,Magic Man,Julio Teheran,False
+2019,19,7,0,Napoli  Headed Hoes,Sean Newcomb,False
+2019,19,8,0,Sale For The Title,Adam Eaton,False
+2019,19,9,0,Shay Bel-Air GMY's,Yoan Moncada,False
+2019,19,10,0,Delray Beach Air Biscuits,Rich Hill,False
+2019,20,1,0,Delray Beach Air Biscuits,Mike Zunino,False
+2019,20,2,0,Shay Bel-Air GMY's,Alex Reyes,False
+2019,20,3,0,Sale For The Title,Ian Desmond,False
+2019,20,4,0,Napoli  Headed Hoes,Steven Matz,False
+2019,20,5,0,Magic Man,Zack Britton,False
+2019,20,6,0,A Song of  Bryce and Fire,Pete Alonso,False
+2019,20,7,0,Smokin' Bases,Joe Musgrove,False
+2019,20,8,0,Moooooose-Yeli Bombers,Elvis Andrus,False
+2019,20,9,0,Buck Showalter,Jhoulys Chacin,False
+2019,20,10,0,Betts Against Us,Adam Jones,False
+2019,21,1,0,Betts Against Us,Zack Godley,False
+2019,21,2,0,Buck Showalter,Jakob Junis,False
+2019,21,3,0,Moooooose-Yeli Bombers,Michael Wacha,False
+2019,21,4,0,Smokin' Bases,Jordan Hicks,False
+2019,21,5,0,A Song of  Bryce and Fire,Adam Ottavino,False
+2019,21,6,0,Magic Man,Matt Kemp,False
+2019,21,7,0,Napoli  Headed Hoes,Josh James,False
+2019,21,8,0,Sale For The Title,Fernando Tatis Jr.,False
+2019,21,9,0,Shay Bel-Air GMY's,Kyle Freeland,False
+2019,21,10,0,Delray Beach Air Biscuits,Amed Rosario,False
+2019,22,1,0,Delray Beach Air Biscuits,Carlos Martinez,False
+2019,22,2,0,Shay Bel-Air GMY's,Jon Gray,False
+2019,22,3,0,Sale For The Title,Ryan Braun,False
+2019,22,4,0,Napoli  Headed Hoes,Francisco Cervelli,False
+2019,22,5,0,Magic Man,Eric Hosmer,False
+2019,22,6,0,A Song of  Bryce and Fire,Arodys Vizcaino,False
+2019,22,7,0,Smokin' Bases,Danny Jansen,False
+2019,22,8,0,Moooooose-Yeli Bombers,Brandon Woodruff,False
+2019,22,9,0,Buck Showalter,Carlos Santana,False
+2019,22,10,0,Betts Against Us,Eduardo Escobar,False
+2019,23,1,0,Betts Against Us,Austin Meadows,False
+2019,23,2,0,Buck Showalter,Tony Watson,False
+2019,23,3,0,Moooooose-Yeli Bombers,Jeurys Familia,False
+2019,23,4,0,Smokin' Bases,Ryan Brasier,False
+2019,23,5,0,A Song of  Bryce and Fire,Dellin Betances,False
+2019,23,6,0,Magic Man,Sonny Gray,False
+2019,23,7,0,Napoli  Headed Hoes,Carlos Rodon,False
+2019,23,8,0,Sale For The Title,Cesar Hernandez,False
+2019,23,9,0,Shay Bel-Air GMY's,Alex Colome,False
+2019,23,10,0,Delray Beach Air Biscuits,Trevor Richards,False
+2019,24,1,0,Delray Beach Air Biscuits,Marco Gonzales,False
+2019,24,2,0,Shay Bel-Air GMY's,Yuli Gurriel,False
+2019,24,3,0,Sale For The Title,Brandon Nimmo,False
+2019,24,4,0,Napoli  Headed Hoes,Lourdes Gurriel Jr.,False
+2019,24,5,0,Magic Man,Collin McHugh,False
+2019,24,6,0,A Song of  Bryce and Fire,Trevor May,False
+2019,24,7,0,Smokin' Bases,Pablo Lopez,False
+2019,24,8,0,Moooooose-Yeli Bombers,Dakota Hudson,False
+2019,24,9,0,Buck Showalter,Diego Castillo,False
+2019,24,10,0,Betts Against Us,Aaron Sanchez,False

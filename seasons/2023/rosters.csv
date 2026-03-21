@@ -1,0 +1,254 @@
+year,team,player_name,position,eligible_slots,pro_team
+2023,The G.O.A.T,Jose Ramirez,SS,"3B,1B/3B,IF,DH,UTIL,BE,IL",Cle
+2023,The G.O.A.T,Fernando Tatis Jr.,OF,"SS,2B/SS,IF,UTIL,BE,IL,RF,OF",SD
+2023,The G.O.A.T,Spencer Strider,C,"P,SP,RP,BE,IL",Atl
+2023,The G.O.A.T,Dylan Cease,C,"P,SP,BE,IL",ChW
+2023,The G.O.A.T,Jazz Chisholm Jr.,3B,"2B,2B/SS,IF,UTIL,BE,IL,CF,OF",Mia
+2023,The G.O.A.T,Luis Robert Jr.,1B/3B,"CF,OF,UTIL,BE,IL",ChW
+2023,The G.O.A.T,Zac Gallen,C,"P,SP,BE,IL",Ari
+2023,The G.O.A.T,Josh Hader,RF,"P,RP,BE,IL",FA
+2023,The G.O.A.T,Lucas Giolito,C,"P,SP,BE,IL",Bos
+2023,The G.O.A.T,Tyler Glasnow,C,"P,SP,BE,IL",LAD
+2023,The G.O.A.T,Wander Franco,OF,"SS,2B/SS,IF,UTIL,BE,IL",TB
+2023,The G.O.A.T,Sonny Gray,C,"P,SP,BE,IL",StL
+2023,The G.O.A.T,Mitch Keller,C,"P,SP,BE,IL",Pit
+2023,The G.O.A.T,Eury Perez,C,"P,SP,BE,IL",Mia
+2023,The G.O.A.T,Josh Naylor,2B,"1B,1B/3B,IF,DH,UTIL,BE,IL",Cle
+2023,The G.O.A.T,A.J. Minter,RF,"P,RP,BE,IL",Atl
+2023,The G.O.A.T,Tarik Skubal,C,"P,SP,BE,IL",Det
+2023,The G.O.A.T,Trevor Story,3B,"2B,2B/SS,IF,UTIL,BE,IL,SS",Bos
+2023,The G.O.A.T,Bryan Reynolds,1B/3B,"CF,OF,UTIL,BE,IL,LF,DH",Pit
+2023,The G.O.A.T,Kyle Finnegan,RF,"P,RP,BE,IL",Wsh
+2023,The G.O.A.T,Cal Raleigh,1B,"C,UTIL,BE,IL,DH",Sea
+2023,The G.O.A.T,Yainer Diaz,1B,"C,UTIL,BE,IL,DH",Hou
+2023,The G.O.A.T,DJ LeMahieu,SS,"1B,2B,3B,2B/SS,1B/3B,IF,UTIL,BE,IL",NYY
+2023,The G.O.A.T,Adam Duvall,1B/3B,"LF,CF,OF,UTIL,BE,IL,RF",Bos
+2023,The G.O.A.T,Tanner Bibee,C,"P,SP,BE,IL",Cle
+2023,The G.O.A.T,Ranger Suarez,C,"P,SP,BE,IL",Phi
+2023,Daisy + Shay Bel-Airs,Kyle Tucker,LF,"RF,OF,UTIL,BE,IL",Hou
+2023,Daisy + Shay Bel-Airs,Mookie Betts,LF,"RF,OF,UTIL,BE,IL,2B,2B/SS,IF,SS",LAD
+2023,Daisy + Shay Bel-Airs,Aaron Nola,C,"P,SP,BE,IL",Phi
+2023,Daisy + Shay Bel-Airs,Michael Harris II,1B/3B,"CF,OF,UTIL,BE,IL",Atl
+2023,Daisy + Shay Bel-Airs,Emmanuel Clase,RF,"P,RP,BE,IL",Cle
+2023,Daisy + Shay Bel-Airs,Tommy Edman,3B,"2B,SS,2B/SS,IF,UTIL,BE,IL,OF,CF",StL
+2023,Daisy + Shay Bel-Airs,Xander Bogaerts,OF,"SS,2B/SS,IF,UTIL,BE,IL",SD
+2023,Daisy + Shay Bel-Airs,Carlos Rodon,C,"P,SP,BE,IL",NYY
+2023,Daisy + Shay Bel-Airs,Charlie Morton,C,"P,SP,BE,IL",Atl
+2023,Daisy + Shay Bel-Airs,Kenley Jansen,RF,"P,RP,BE,IL",Bos
+2023,Daisy + Shay Bel-Airs,Alex Cobb,C,"P,SP,BE,IL",SF
+2023,Daisy + Shay Bel-Airs,Jose Berrios,C,"P,SP,BE,IL",Tor
+2023,Daisy + Shay Bel-Airs,Camilo Doval,RF,"P,RP,BE,IL",SF
+2023,Daisy + Shay Bel-Airs,Christian Walker,2B,"1B,1B/3B,IF,UTIL,BE,IL",Ari
+2023,Daisy + Shay Bel-Airs,Spencer Steer,SS,"3B,1B/3B,IF,UTIL,BE,IL,1B,LF,OF,2B,2B/SS",Cin
+2023,Daisy + Shay Bel-Airs,Willson Contreras,1B,"C,DH,UTIL,BE,IL",StL
+2023,Daisy + Shay Bel-Airs,Steven Matz,C,"P,SP,BE,IL,RP",StL
+2023,Daisy + Shay Bel-Airs,Bryson Stott,OF,"2B,SS,2B/SS,IF,UTIL,BE,IL",Phi
+2023,Daisy + Shay Bel-Airs,Jose Quintana,C,"P,SP,BE,IL",NYM
+2023,Daisy + Shay Bel-Airs,MJ Melendez,1B,"C,LF,OF,DH,UTIL,BE,IL,RF",KC
+2023,Daisy + Shay Bel-Airs,Dakota Hudson,C,"P,SP,BE,IL,RP",Col
+2023,Daisy + Shay Bel-Airs,Hyun Jin Ryu,C,"P,SP,BE,IL",FA
+2023,Daisy + Shay Bel-Airs,Braxton Garrett,C,"P,SP,BE,IL",Mia
+2023,Daisy + Shay Bel-Airs,Nathaniel Lowe,2B,"1B,1B/3B,IF,UTIL,BE,IL",Tex
+2023,Daisy + Shay Bel-Airs,Wilmer Flores,3B,"1B,2B,3B,2B/SS,1B/3B,IF,DH,UTIL,BE,IL",SF
+2023,Smokin' Bases,Aaron Judge,1B/3B,"CF,RF,OF,DH,UTIL,BE,IL",NYY
+2023,Smokin' Bases,Rafael Devers,SS,"3B,1B/3B,IF,UTIL,BE,IL",Bos
+2023,Smokin' Bases,Bo Bichette,OF,"SS,2B/SS,IF,UTIL,BE,IL",Tor
+2023,Smokin' Bases,Zack Wheeler,C,"P,SP,BE,IL",Phi
+2023,Smokin' Bases,Yu Darvish,C,"P,SP,BE,IL",SD
+2023,Smokin' Bases,Randy Arozarena,2B/SS,"LF,RF,OF,DH,UTIL,BE,IL",TB
+2023,Smokin' Bases,Andres Munoz,RF,"P,RP,BE,IL",Sea
+2023,Smokin' Bases,Hunter Greene,C,"P,SP,BE,IL",Cin
+2023,Smokin' Bases,Kodai Senga,C,"P,SP,BE,IL",NYM
+2023,Smokin' Bases,Luis Arraez,2B,"1B,2B,2B/SS,1B/3B,IF,DH,UTIL,BE,IL",Mia
+2023,Smokin' Bases,William Contreras,1B,"C,DH,UTIL,BE,IL",Mil
+2023,Smokin' Bases,Andrew Heaney,C,"P,SP,BE,IL,RP",Tex
+2023,Smokin' Bases,Bryce Elder,C,"P,SP,BE,IL",Atl
+2023,Smokin' Bases,Yandy Diaz,SS,"3B,1B/3B,IF,UTIL,BE,IL,1B,DH",TB
+2023,Smokin' Bases,Bailey Ober,C,"P,SP,BE,IL",Min
+2023,Smokin' Bases,Elly De La Cruz,OF,"SS,2B/SS,IF,UTIL,BE,IL,3B,1B/3B",Cin
+2023,Smokin' Bases,Lane Thomas,2B/SS,"LF,CF,RF,OF,UTIL,BE,IL",Wsh
+2023,Smokin' Bases,David Bednar,RF,"P,RP,BE,IL",Pit
+2023,Smokin' Bases,Bryan Abreu,RF,"P,RP,BE,IL",Hou
+2023,Smokin' Bases,Michael Lorenzen,C,"P,SP,BE,IL",Phi
+2023,Smokin' Bases,Lars Nootbaar,LF,"RF,OF,UTIL,BE,IL,CF,LF",StL
+2023,Smokin' Bases,Brandon Nimmo,1B/3B,"CF,OF,UTIL,BE,IL,LF",NYM
+2023,Smokin' Bases,Emerson Hancock,C,"P,SP,BE,IL",Sea
+2023,Smokin' Bases,Ty France,2B,"1B,1B/3B,IF,UTIL,BE,IL",Sea
+2023,Smokin' Bases,Christopher Morel,1B/3B,"2B,2B/SS,IF,CF,OF,UTIL,BE,IL,DH",ChC
+2023,Delray Beach Air Biscuits,Trea Turner,OF,"SS,2B/SS,IF,UTIL,BE,IL",Phi
+2023,Delray Beach Air Biscuits,Gerrit Cole,C,"P,SP,BE,IL",NYY
+2023,Delray Beach Air Biscuits,Brandon Woodruff,C,"P,SP,BE,IL",FA
+2023,Delray Beach Air Biscuits,J.T. Realmuto,1B,"C,UTIL,BE,IL",Phi
+2023,Delray Beach Air Biscuits,Luis Castillo,C,"P,SP,BE,IL",Sea
+2023,Delray Beach Air Biscuits,Daulton Varsho,1B,"C,CF,RF,OF,UTIL,BE,IL,LF",Tor
+2023,Delray Beach Air Biscuits,Ryan Pressly,RF,"P,RP,BE,IL",Hou
+2023,Delray Beach Air Biscuits,Andres Gimenez,3B,"2B,2B/SS,IF,UTIL,BE,IL",Cle
+2023,Delray Beach Air Biscuits,Ryan Helsley,RF,"P,RP,BE,IL",StL
+2023,Delray Beach Air Biscuits,Adolis Garcia,LF,"CF,RF,OF,DH,UTIL,BE,IL",Tex
+2023,Delray Beach Air Biscuits,Clay Holmes,RF,"P,RP,BE,IL",NYY
+2023,Delray Beach Air Biscuits,Anthony Rizzo,2B,"1B,1B/3B,IF,UTIL,BE,IL",NYY
+2023,Delray Beach Air Biscuits,Carlos Correa,OF,"SS,2B/SS,IF,UTIL,BE,IL",Min
+2023,Delray Beach Air Biscuits,Alexis Diaz,RF,"P,RP,BE,IL",Cin
+2023,Delray Beach Air Biscuits,Brady Singer,C,"P,SP,BE,IL",KC
+2023,Delray Beach Air Biscuits,Hunter Brown,C,"P,SP,BE,IL",Hou
+2023,Delray Beach Air Biscuits,MacKenzie Gore,C,"P,SP,BE,IL",Wsh
+2023,Delray Beach Air Biscuits,Austin Hays,2B/SS,"LF,RF,OF,UTIL,BE,IL",Bal
+2023,Delray Beach Air Biscuits,Eduardo Rodriguez,C,"P,SP,BE,IL",Ari
+2023,Delray Beach Air Biscuits,Paul Blackburn,C,"P,SP,BE,IL",Oak
+2023,Delray Beach Air Biscuits,Aaron Civale,C,"P,SP,BE,IL",TB
+2023,Delray Beach Air Biscuits,Erik Swanson,RF,"P,RP,BE,IL",Tor
+2023,Delray Beach Air Biscuits,Justin Turner,SS,"3B,1B/3B,IF,DH,UTIL,BE,IL,1B,2B,2B/SS",FA
+2023,Delray Beach Air Biscuits,Patrick Corbin,C,"P,SP,BE,IL",Wsh
+2023,Delray Beach Air Biscuits,Alec Bohm,SS,"3B,1B/3B,IF,UTIL,BE,IL,1B",Phi
+2023,Delray Beach Air Biscuits,George Springer,1B/3B,"CF,RF,OF,DH,UTIL,BE,IL",Tor
+2023,Cream City Cowtippers,Ronald Acuna Jr.,LF,"RF,OF,DH,UTIL,BE,IL",Atl
+2023,Cream City Cowtippers,Max Scherzer,C,"P,SP,BE,IL",Tex
+2023,Cream City Cowtippers,Justin Verlander,C,"P,SP,BE,IL",Hou
+2023,Cream City Cowtippers,Matt Olson,2B,"1B,1B/3B,IF,UTIL,BE,IL",Atl
+2023,Cream City Cowtippers,Francisco Lindor,OF,"SS,2B/SS,IF,UTIL,BE,IL",NYM
+2023,Cream City Cowtippers,Cristian Javier,C,"P,SP,BE,IL",Hou
+2023,Cream City Cowtippers,Will Smith,1B,"C,DH,UTIL,BE,IL",LAD
+2023,Cream City Cowtippers,Devin Williams,RF,"P,RP,BE,IL",Mil
+2023,Cream City Cowtippers,Christian Yelich,2B/SS,"LF,OF,DH,UTIL,BE,IL",Mil
+2023,Cream City Cowtippers,Clayton Kershaw,C,"P,SP,BE,IL",FA
+2023,Cream City Cowtippers,Jon Gray,C,"P,SP,BE,IL",Tex
+2023,Cream City Cowtippers,Merrill Kelly,C,"P,SP,BE,IL",Ari
+2023,Cream City Cowtippers,Jose Altuve,3B,"2B,2B/SS,IF,UTIL,BE,IL",Hou
+2023,Cream City Cowtippers,Paul Sewald,RF,"P,RP,BE,IL",Ari
+2023,Cream City Cowtippers,Marcus Stroman,C,"P,SP,BE,IL",FA
+2023,Cream City Cowtippers,Taijuan Walker,C,"P,SP,BE,IL",Phi
+2023,Cream City Cowtippers,Ha-Seong Kim,OF,"3B,SS,2B/SS,1B/3B,IF,UTIL,BE,IL,2B",SD
+2023,Cream City Cowtippers,Matt McLain,OF,"SS,2B/SS,IF,UTIL,BE,IL,2B",Cin
+2023,Cream City Cowtippers,Whit Merrifield,3B,"2B,2B/SS,IF,RF,OF,UTIL,BE,IL,LF",FA
+2023,Cream City Cowtippers,Kenta Maeda,C,"P,SP,BE,IL",Det
+2023,Cream City Cowtippers,Jeimer Candelario,SS,"3B,1B/3B,IF,UTIL,BE,IL,1B",Cin
+2023,Cream City Cowtippers,Ian Happ,2B/SS,"LF,OF,UTIL,BE,IL",ChC
+2023,Cream City Cowtippers,Mitch Garver,CF,"DH,UTIL,BE,IL,C",Sea
+2023,Cream City Cowtippers,Josh Bell,2B,"1B,1B/3B,IF,DH,UTIL,BE,IL",Mia
+2023,Cream City Cowtippers,George Kirby,C,"P,SP,BE,IL",Sea
+2023,Cream City Cowtippers,Andrew Abbott,C,"P,SP,BE,IL",Cin
+2023,Buck Showalter,Vladimir Guerrero Jr.,2B,"1B,1B/3B,IF,DH,UTIL,BE,IL",Tor
+2023,Buck Showalter,Freddie Freeman,2B,"1B,1B/3B,IF,UTIL,BE,IL",LAD
+2023,Buck Showalter,Shane Bieber,C,"P,SP,BE,IL",Cle
+2023,Buck Showalter,Marcus Semien,3B,"2B,2B/SS,IF,UTIL,BE,IL",Tex
+2023,Buck Showalter,Kyle Schwarber,2B/SS,"LF,OF,UTIL,BE,IL,DH",Phi
+2023,Buck Showalter,Framber Valdez,C,"P,SP,BE,IL",Hou
+2023,Buck Showalter,Salvador Perez,1B,"C,DH,UTIL,BE,IL,1B,1B/3B,IF",KC
+2023,Buck Showalter,Gunnar Henderson,SS,"3B,1B/3B,IF,UTIL,BE,IL,SS,2B/SS,DH",Bal
+2023,Buck Showalter,Teoscar Hernandez,LF,"RF,OF,UTIL,BE,IL,DH",FA
+2023,Buck Showalter,Nick Castellanos,LF,"RF,OF,UTIL,BE,IL",Phi
+2023,Buck Showalter,Chris Bassitt,C,"P,SP,BE,IL",Tor
+2023,Buck Showalter,David Robertson,RF,"P,RP,BE,IL",Mia
+2023,Buck Showalter,Grayson Rodriguez,C,"P,SP,BE,IL",Bal
+2023,Buck Showalter,Kyle Gibson,C,"P,SP,BE,IL",StL
+2023,Buck Showalter,Yusei Kikuchi,C,"P,SP,RP,BE,IL",Tor
+2023,Buck Showalter,Yennier Cano,RF,"P,RP,BE,IL",Bal
+2023,Buck Showalter,Dean Kremer,C,"P,SP,BE,IL",Bal
+2023,Buck Showalter,Kyle Bradish,C,"P,SP,BE,IL",Bal
+2023,Buck Showalter,Jordan Walker,SS,"3B,1B/3B,IF,UTIL,BE,IL,RF,OF,LF",StL
+2023,Buck Showalter,Craig Kimbrel,RF,"P,RP,BE,IL",Bal
+2023,Buck Showalter,Steven Wilson,RF,"P,RP,BE,IL",SD
+2023,Buck Showalter,Jordan Westburg,OF,"SS,2B/SS,IF,UTIL,BE,IL,2B,3B,1B/3B",Bal
+2023,Buck Showalter,Cole Ragans,C,"P,SP,BE,IL,RP",KC
+2023,Buck Showalter,Brandon Williamson,C,"P,SP,BE,IL",Cin
+2023,Buck Showalter,Joan Adon,C,"P,SP,BE,IL",Wsh
+2023,Soto Baggins,Juan Soto,LF,"RF,OF,UTIL,BE,IL,LF",NYY
+2023,Soto Baggins,Mike Trout,1B/3B,"CF,OF,UTIL,BE,IL",LAA
+2023,Soto Baggins,Pete Alonso,2B,"1B,1B/3B,IF,DH,UTIL,BE,IL",NYM
+2023,Soto Baggins,Nolan Arenado,SS,"3B,1B/3B,IF,UTIL,BE,IL,DH",StL
+2023,Soto Baggins,Corey Seager,OF,"SS,2B/SS,IF,UTIL,BE,IL",Tex
+2023,Soto Baggins,Bryce Harper,CF,"DH,UTIL,BE,IL,1B,1B/3B,IF",Phi
+2023,Soto Baggins,Joe Ryan,C,"P,SP,BE,IL",Min
+2023,Soto Baggins,Pablo Lopez,C,"P,SP,BE,IL",Min
+2023,Soto Baggins,Tony Gonsolin,C,"P,SP,BE,IL",LAD
+2023,Soto Baggins,Jordan Montgomery,C,"P,SP,BE,IL",FA
+2023,Soto Baggins,Patrick Sandoval,C,"P,SP,BE,IL",LAA
+2023,Soto Baggins,Martin Perez,C,"P,SP,BE,IL,RP",Pit
+2023,Soto Baggins,Justin Steele,C,"P,SP,BE,IL",ChC
+2023,Soto Baggins,Gleyber Torres,3B,"2B,2B/SS,IF,UTIL,BE,IL,DH",NYY
+2023,Soto Baggins,Bobby Miller,C,"P,SP,BE,IL",LAD
+2023,Soto Baggins,Brooks Raley,RF,"P,RP,BE,IL",NYM
+2023,Soto Baggins,Blake Snell,C,"P,SP,BE,IL",FA
+2023,Soto Baggins,JP Sears,C,"P,SP,BE,IL",Oak
+2023,Soto Baggins,Jarren Duran,1B/3B,"CF,OF,UTIL,BE,IL,LF",Bos
+2023,Soto Baggins,Elias Diaz,1B,"C,UTIL,BE,IL",Col
+2023,Soto Baggins,Marcell Ozuna,2B/SS,"LF,OF,DH,UTIL,BE,IL",Atl
+2023,Soto Baggins,Nick Pivetta,C,"P,SP,BE,IL,RP",Bos
+2023,Soto Baggins,Graham Ashcraft,C,"P,SP,BE,IL",Cin
+2023,Soto Baggins,Austin Gomber,C,"P,SP,RP,BE,IL",Col
+2023,Soto Baggins,Kerry Carpenter,2B/SS,"LF,OF,UTIL,BE,IL,RF,DH",Det
+2023,Soto Baggins,Spencer Torkelson,2B,"1B,1B/3B,IF,UTIL,BE,IL",Det
+2023,Goldschmidt Happens,Julio Rodriguez,1B/3B,"CF,OF,UTIL,BE,IL",Sea
+2023,Goldschmidt Happens,Sandy Alcantara,C,"P,SP,BE,IL",Mia
+2023,Goldschmidt Happens,Paul Goldschmidt,2B,"1B,1B/3B,IF,DH,UTIL,BE,IL",StL
+2023,Goldschmidt Happens,Max Fried,C,"P,SP,BE,IL",Atl
+2023,Goldschmidt Happens,Cedric Mullins,1B/3B,"CF,OF,UTIL,BE,IL",Bal
+2023,Goldschmidt Happens,Alex Bregman,SS,"3B,1B/3B,IF,UTIL,BE,IL",Hou
+2023,Goldschmidt Happens,Logan Gilbert,C,"P,SP,BE,IL",Sea
+2023,Goldschmidt Happens,Jhoan Duran,RF,"P,RP,BE,IL",Min
+2023,Goldschmidt Happens,Max Muncy,SS,"2B,3B,2B/SS,1B/3B,IF,DH,UTIL,BE,IL",LAD
+2023,Goldschmidt Happens,Sean Murphy,1B,"C,DH,UTIL,BE,IL",Atl
+2023,Goldschmidt Happens,Nathan Eovaldi,C,"P,SP,BE,IL",Tex
+2023,Goldschmidt Happens,Carlos Estevez,RF,"P,RP,BE,IL",LAA
+2023,Goldschmidt Happens,James Paxton,C,"P,SP,BE,IL",FA
+2023,Goldschmidt Happens,Willy Adames,OF,"SS,2B/SS,IF,UTIL,BE,IL",Mil
+2023,Goldschmidt Happens,Logan Allen,C,"P,SP,BE,IL",Cle
+2023,Goldschmidt Happens,Andrew Vaughn,LF,"1B,1B/3B,IF,LF,RF,OF,DH,UTIL,BE,IL",ChW
+2023,Goldschmidt Happens,TJ Friedl,2B/SS,"LF,CF,OF,UTIL,BE,IL",Cin
+2023,Goldschmidt Happens,Chas McCormick,2B/SS,"LF,CF,OF,UTIL,BE,IL,RF",Hou
+2023,Goldschmidt Happens,Aroldis Chapman,RF,"P,RP,BE,IL",FA
+2023,Goldschmidt Happens,Zack Gelof,3B,"2B,2B/SS,IF,UTIL,BE,IL",Oak
+2023,Goldschmidt Happens,Javier Assad,C,"P,SP,BE,IL,RP",ChC
+2023,Goldschmidt Happens,Mark Leiter Jr.,RF,"P,RP,BE,IL",ChC
+2023,Goldschmidt Happens,Griffin Canning,C,"P,SP,BE,IL",LAA
+2023,Goldschmidt Happens,Tanner Houck,RF,"P,RP,BE,IL,SP",Bos
+2023,Goldschmidt Happens,Kyle Harrison,C,"P,SP,BE,IL",SF
+2023,Lisa dANN,Shohei Ohtani,CF,"DH,UTIL,P,SP,BE,IL",LAD
+2023,Lisa dANN,Bobby Witt Jr.,OF,"3B,SS,2B/SS,1B/3B,IF,UTIL,BE,IL,DH",KC
+2023,Lisa dANN,Manny Machado,SS,"3B,1B/3B,IF,UTIL,BE,IL,DH",SD
+2023,Lisa dANN,Julio Urias,C,"P,SP,BE,IL",LAD
+2023,Lisa dANN,Ozzie Albies,3B,"2B,2B/SS,IF,UTIL,BE,IL",Atl
+2023,Lisa dANN,Logan Webb,C,"P,SP,BE,IL",SF
+2023,Lisa dANN,Corbin Carroll,2B/SS,"LF,OF,UTIL,BE,IL,RF,CF",Ari
+2023,Lisa dANN,Felix Bautista,RF,"P,RP,BE,IL",Bal
+2023,Lisa dANN,Raisel Iglesias,RF,"P,RP,BE,IL",Atl
+2023,Lisa dANN,Ryan Mountcastle,2B,"1B,1B/3B,IF,DH,UTIL,BE,IL",Bal
+2023,Lisa dANN,Nico Hoerner,OF,"SS,2B/SS,IF,UTIL,BE,IL,2B",ChC
+2023,Lisa dANN,Josh Lowe,LF,"RF,OF,UTIL,BE,IL,DH,CF",TB
+2023,Lisa dANN,Bryce Miller,C,"P,SP,BE,IL",Sea
+2023,Lisa dANN,Bryan Woo,C,"P,SP,BE,IL",Sea
+2023,Lisa dANN,Seth Lugo,RF,"P,RP,BE,IL,SP",KC
+2023,Lisa dANN,Ryan O'Hearn,2B,"1B,1B/3B,IF,RF,OF,UTIL,BE,IL,DH",Bal
+2023,Lisa dANN,Jorge Soler,2B/SS,"LF,OF,UTIL,BE,IL,DH,RF",FA
+2023,Lisa dANN,Chris Sale,C,"P,SP,BE,IL",Atl
+2023,Lisa dANN,Jordan Romano,RF,"P,RP,BE,IL",Tor
+2023,Lisa dANN,Mike Clevinger,C,"P,SP,BE,IL",FA
+2023,Lisa dANN,Keibert Ruiz,1B,"C,UTIL,BE,IL,DH",Wsh
+2023,Lisa dANN,Jack Flaherty,C,"P,SP,BE,IL",Det
+2023,Lisa dANN,Max Kepler,LF,"RF,OF,UTIL,BE,IL",Min
+2023,Lisa dANN,Slade Cecconi,C,"P,SP,BE,IL",Ari
+2023,Lisa dANN,Johan Oviedo,RF,"P,SP,RP,BE,IL",Pit
+2023,MOArch Redbirds,Corbin Burnes,C,"P,SP,BE,IL",Mil
+2023,MOArch Redbirds,Yordan Alvarez,2B/SS,"LF,OF,DH,UTIL,BE,IL",Hou
+2023,MOArch Redbirds,Austin Riley,SS,"3B,1B/3B,IF,UTIL,BE,IL",Atl
+2023,MOArch Redbirds,Kevin Gausman,C,"P,SP,BE,IL",Tor
+2023,MOArch Redbirds,Adley Rutschman,1B,"C,DH,UTIL,BE,IL",Bal
+2023,MOArch Redbirds,Michael Wacha,C,"P,SP,BE,IL",KC
+2023,MOArch Redbirds,Zach Eflin,C,"P,SP,BE,IL",TB
+2023,MOArch Redbirds,Cody Bellinger,1B/3B,"CF,OF,UTIL,BE,IL,1B,1B/3B,IF",FA
+2023,MOArch Redbirds,Rich Hill,C,"P,SP,BE,IL,RP",FA
+2023,MOArch Redbirds,Anthony Santander,LF,"LF,RF,OF,DH,UTIL,BE,IL,1B,1B/3B,IF",Bal
+2023,MOArch Redbirds,Will Smith,RF,"P,RP,BE,IL",KC
+2023,MOArch Redbirds,Ezequiel Duran,SS,"3B,1B/3B,IF,UTIL,BE,IL,SS,2B/SS,OF,LF,DH",Tex
+2023,MOArch Redbirds,Ryan McMahon,SS,"3B,1B/3B,IF,UTIL,BE,IL,2B,2B/SS",Col
+2023,MOArch Redbirds,Wade Miley,C,"P,SP,BE,IL",Mil
+2023,MOArch Redbirds,Ketel Marte,3B,"2B,2B/SS,IF,DH,UTIL,BE,IL",Ari
+2023,MOArch Redbirds,Tanner Scott,RF,"P,RP,BE,IL",Mia
+2023,MOArch Redbirds,Lourdes Gurriel Jr.,2B/SS,"LF,OF,UTIL,BE,IL,DH",Ari
+2023,MOArch Redbirds,Cristopher Sanchez,RF,"P,RP,BE,IL,SP",Phi
+2023,MOArch Redbirds,Tyler Anderson,C,"P,SP,BE,IL",LAA
+2023,MOArch Redbirds,Ian Gibaut,RF,"P,RP,BE,IL",Cin
+2023,MOArch Redbirds,Adbert Alzolay,RF,"P,RP,BE,IL",ChC
+2023,MOArch Redbirds,Jesse Scholtens,RF,"P,RP,BE,IL,SP",ChW
+2023,MOArch Redbirds,Chase Silseth,C,"P,SP,BE,IL,RP",LAA
+2023,MOArch Redbirds,Isaac Paredes,SS,"1B,2B,3B,2B/SS,1B/3B,IF,UTIL,BE,IL",TB

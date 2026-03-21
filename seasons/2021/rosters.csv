@@ -1,0 +1,255 @@
+year,team,player_name,position,eligible_slots,pro_team
+2021,Comeback Tour,Trea Turner,OF,"SS,2B/SS,IF,UTIL,BE,IL,2B",LAD
+2021,Comeback Tour,Shane Bieber,C,"P,SP,BE,IL",Cle
+2021,Comeback Tour,Vladimir Guerrero Jr.,2B,"1B,1B/3B,IF,DH,UTIL,BE,IL",Tor
+2021,Comeback Tour,Paul Goldschmidt,2B,"1B,1B/3B,IF,UTIL,BE,IL",StL
+2021,Comeback Tour,Salvador Perez,1B,"C,UTIL,BE,IL,DH",KC
+2021,Comeback Tour,Lance McCullers Jr.,C,"P,SP,BE,IL",Hou
+2021,Comeback Tour,Trent Grisham,1B/3B,"CF,OF,UTIL,BE,IL",SD
+2021,Comeback Tour,Marcus Stroman,C,"P,SP,BE,IL",ChC
+2021,Comeback Tour,Robbie Ray,C,"P,SP,BE,IL",Sea
+2021,Comeback Tour,Mitch Haniger,LF,"RF,OF,UTIL,BE,IL,DH",Sea
+2021,Comeback Tour,Blake Treinen,RF,"P,RP,BE,IL",LAD
+2021,Comeback Tour,Liam Hendriks,RF,"P,RP,BE,IL",ChW
+2021,Comeback Tour,Alek Manoah,C,"P,SP,BE,IL",Tor
+2021,Comeback Tour,Brandon Lowe,3B,"2B,2B/SS,IF,RF,OF,UTIL,BE,IL,LF",TB
+2021,Comeback Tour,Chris Flexen,RF,"P,RP,BE,IL,SP",Sea
+2021,Comeback Tour,Tylor Megill,RF,"P,RP,BE,IL,SP",NYM
+2021,Comeback Tour,Dansby Swanson,OF,"SS,2B/SS,IF,UTIL,BE,IL",Atl
+2021,Comeback Tour,Matt Chapman,SS,"3B,1B/3B,IF,UTIL,BE,IL",Oak
+2021,Comeback Tour,Miles Mikolas,C,"P,SP,BE,IL",StL
+2021,Comeback Tour,Javier Baez,OF,"SS,2B/SS,IF,UTIL,BE,IL,2B",Det
+2021,Comeback Tour,Carlos Hernandez,C,"P,SP,BE,IL,RP",KC
+2021,Comeback Tour,Jean Segura,3B,"2B,3B,2B/SS,1B/3B,IF,UTIL,BE,IL",Phi
+2021,Comeback Tour,Scott Barlow,RF,"P,RP,BE,IL",KC
+2021,Comeback Tour,Cole Irvin,RF,"P,RP,BE,IL,SP",Oak
+2021,Comeback Tour,Jose Urquidy,C,"P,SP,BE,IL",Hou
+2021,Mike Lowell W.S. MVP,Jacob deGrom,C,"P,SP,BE,IL",NYM
+2021,Mike Lowell W.S. MVP,Francisco Lindor,OF,"SS,2B/SS,IF,UTIL,BE,IL",NYM
+2021,Mike Lowell W.S. MVP,Alex Bregman,SS,"3B,1B/3B,IF,UTIL,BE,IL",Hou
+2021,Mike Lowell W.S. MVP,Aaron Judge,LF,"RF,OF,UTIL,BE,IL,DH,CF",NYY
+2021,Mike Lowell W.S. MVP,Tim Anderson,OF,"SS,2B/SS,IF,UTIL,BE,IL",ChW
+2021,Mike Lowell W.S. MVP,Luke Voit,2B,"1B,1B/3B,IF,UTIL,BE,IL,DH",NYY
+2021,Mike Lowell W.S. MVP,Jose Altuve,3B,"2B,2B/SS,IF,UTIL,BE,IL",Hou
+2021,Mike Lowell W.S. MVP,Teoscar Hernandez,LF,"RF,OF,UTIL,BE,IL,LF,DH",Tor
+2021,Mike Lowell W.S. MVP,Shohei Ohtani,CF,"DH,UTIL,P,SP,BE,IL",LAA
+2021,Mike Lowell W.S. MVP,James Karinchak,RF,"P,RP,BE,IL",Cle
+2021,Mike Lowell W.S. MVP,Willson Contreras,1B,"C,DH,UTIL,BE,IL",ChC
+2021,Mike Lowell W.S. MVP,Gary Sanchez,1B,"C,UTIL,BE,IL",NYY
+2021,Mike Lowell W.S. MVP,Joey Gallo,LF,"RF,OF,UTIL,BE,IL,DH,LF",NYY
+2021,Mike Lowell W.S. MVP,Eric Hosmer,2B,"1B,1B/3B,IF,UTIL,BE,IL",SD
+2021,Mike Lowell W.S. MVP,Victor Robles,1B/3B,"CF,OF,UTIL,BE,IL",Wsh
+2021,Mike Lowell W.S. MVP,Alex Verdugo,LF,"LF,RF,OF,UTIL,BE,IL,CF",Bos
+2021,Mike Lowell W.S. MVP,Dylan Carlson,LF,"LF,CF,RF,OF,UTIL,BE,IL",StL
+2021,Mike Lowell W.S. MVP,Madison Bumgarner,C,"P,SP,BE,IL",Ari
+2021,Mike Lowell W.S. MVP,Taijuan Walker,C,"P,SP,BE,IL",NYM
+2021,Mike Lowell W.S. MVP,Taylor Rogers,RF,"P,RP,BE,IL",Min
+2021,Mike Lowell W.S. MVP,Michael Pineda,C,"P,SP,BE,IL",FA
+2021,Mike Lowell W.S. MVP,Nick Pivetta,C,"P,SP,BE,IL",Bos
+2021,Mike Lowell W.S. MVP,Jesus Luzardo,C,"P,SP,BE,IL,RP",Mia
+2021,Mike Lowell W.S. MVP,Josiah Gray,C,"P,SP,BE,IL",Wsh
+2021,Mike Lowell W.S. MVP,Ranger Suarez,RF,"P,RP,BE,IL,SP",Phi
+2021,Daisy + Shay Bel-Airs,Aaron Nola,C,"P,SP,BE,IL",Phi
+2021,Daisy + Shay Bel-Airs,Kyle Tucker,2B/SS,"LF,OF,DH,UTIL,BE,IL,RF",Hou
+2021,Daisy + Shay Bel-Airs,Anthony Rizzo,2B,"1B,1B/3B,IF,UTIL,BE,IL",FA
+2021,Daisy + Shay Bel-Airs,J.D. Martinez,CF,"DH,UTIL,BE,IL,OF,LF",Bos
+2021,Daisy + Shay Bel-Airs,Kris Bryant,SS,"3B,1B/3B,IF,UTIL,BE,IL,OF,LF,RF,1B,CF",FA
+2021,Daisy + Shay Bel-Airs,Kevin Gausman,C,"P,SP,BE,IL",Tor
+2021,Daisy + Shay Bel-Airs,John Means,C,"P,SP,BE,IL",Bal
+2021,Daisy + Shay Bel-Airs,Jake Cronenworth,3B,"1B,2B,SS,2B/SS,1B/3B,IF,UTIL,BE,IL",SD
+2021,Daisy + Shay Bel-Airs,Chris Taylor,2B/SS,"2B,SS,2B/SS,IF,LF,OF,UTIL,BE,IL,CF,3B,1B/3B",LAD
+2021,Daisy + Shay Bel-Airs,Max Fried,C,"P,SP,BE,IL",Atl
+2021,Daisy + Shay Bel-Airs,Buster Posey,1B,"C,UTIL,BE,IL",FA
+2021,Daisy + Shay Bel-Airs,Framber Valdez,C,"P,SP,BE,IL",Hou
+2021,Daisy + Shay Bel-Airs,Edwin Diaz,RF,"P,RP,BE,IL",NYM
+2021,Daisy + Shay Bel-Airs,DJ LeMahieu,3B,"1B,2B,3B,2B/SS,1B/3B,IF,UTIL,BE,IL",NYY
+2021,Daisy + Shay Bel-Airs,Luis Robert,1B/3B,"CF,OF,UTIL,BE,IL",ChW
+2021,Daisy + Shay Bel-Airs,Marco Gonzales,C,"P,SP,BE,IL",Sea
+2021,Daisy + Shay Bel-Airs,Triston McKenzie,C,"P,SP,BE,IL",Cle
+2021,Daisy + Shay Bel-Airs,Chris Paddack,C,"P,SP,BE,IL",SD
+2021,Daisy + Shay Bel-Airs,Corey Kluber,C,"P,SP,BE,IL",TB
+2021,Daisy + Shay Bel-Airs,Hunter Renfroe,LF,"RF,OF,UTIL,BE,IL",Mil
+2021,Daisy + Shay Bel-Airs,Jordan Romano,RF,"P,RP,BE,IL",Tor
+2021,Daisy + Shay Bel-Airs,C.J. Cron,2B,"1B,1B/3B,IF,UTIL,BE,IL",Col
+2021,Daisy + Shay Bel-Airs,Carlos Carrasco,C,"P,SP,BE,IL",NYM
+2021,Daisy + Shay Bel-Airs,Andrew Kittredge,RF,"P,RP,BE,IL,SP",TB
+2021,Smokin' Bases,Juan Soto,2B/SS,"LF,OF,UTIL,BE,IL,RF",Wsh
+2021,Smokin' Bases,Xander Bogaerts,OF,"SS,2B/SS,IF,UTIL,BE,IL",Bos
+2021,Smokin' Bases,Max Scherzer,C,"P,SP,BE,IL",NYM
+2021,Smokin' Bases,Rafael Devers,SS,"3B,1B/3B,IF,UTIL,BE,IL",Bos
+2021,Smokin' Bases,Pete Alonso,2B,"1B,1B/3B,IF,DH,UTIL,BE,IL",NYM
+2021,Smokin' Bases,Nick Castellanos,LF,"RF,OF,UTIL,BE,IL",FA
+2021,Smokin' Bases,Yordan Alvarez,CF,"DH,UTIL,BE,IL,LF,OF",Hou
+2021,Smokin' Bases,Charlie Morton,C,"P,SP,BE,IL",Atl
+2021,Smokin' Bases,Joe Musgrove,C,"P,SP,BE,IL",SD
+2021,Smokin' Bases,Tommy Edman,SS,"3B,SS,2B/SS,1B/3B,IF,RF,OF,UTIL,BE,IL,2B",StL
+2021,Smokin' Bases,Aaron Civale,C,"P,SP,BE,IL",Cle
+2021,Smokin' Bases,Tyler Mahle,C,"P,SP,BE,IL",Cin
+2021,Smokin' Bases,Nathan Eovaldi,C,"P,SP,BE,IL",Bos
+2021,Smokin' Bases,Emmanuel Clase,RF,"P,RP,BE,IL",Cle
+2021,Smokin' Bases,Will Smith,RF,"P,RP,BE,IL",Atl
+2021,Smokin' Bases,Jonathan Schoop,3B,"2B,2B/SS,IF,UTIL,BE,IL,1B,1B/3B,DH",Det
+2021,Smokin' Bases,Ian Kennedy,RF,"P,RP,BE,IL",FA
+2021,Smokin' Bases,Yadier Molina,1B,"C,UTIL,BE,IL",StL
+2021,Smokin' Bases,Eloy Jimenez,2B/SS,"LF,OF,UTIL,BE,IL,DH",ChW
+2021,Smokin' Bases,Tanner Houck,C,"P,SP,BE,IL,RP",Bos
+2021,Smokin' Bases,Blake Snell,C,"P,SP,BE,IL",SD
+2021,Smokin' Bases,Tyler Anderson,C,"P,SP,BE,IL",FA
+2021,Smokin' Bases,Elieser Hernandez,C,"P,SP,BE,IL",Mia
+2021,Smokin' Bases,Wander Franco,OF,"SS,2B/SS,IF,UTIL,BE,IL",TB
+2021,Smokin' Bases,Jake Odorizzi,C,"P,SP,BE,IL",Hou
+2021,Smokin' Bases,Giovanny Gallegos,RF,"P,RP,BE,IL",StL
+2021,Delray Beach Air Biscuits,Manny Machado,SS,"3B,1B/3B,IF,UTIL,BE,IL",SD
+2021,Delray Beach Air Biscuits,J.T. Realmuto,1B,"C,UTIL,BE,IL,1B,1B/3B,IF",Phi
+2021,Delray Beach Air Biscuits,Whit Merrifield,LF,"2B,2B/SS,IF,CF,RF,OF,UTIL,BE,IL",KC
+2021,Delray Beach Air Biscuits,Starling Marte,1B/3B,"CF,OF,UTIL,BE,IL",NYM
+2021,Delray Beach Air Biscuits,Aroldis Chapman,RF,"P,RP,BE,IL",NYY
+2021,Delray Beach Air Biscuits,Zach Plesac,C,"P,SP,BE,IL",Cle
+2021,Delray Beach Air Biscuits,Ryan Pressly,RF,"P,RP,BE,IL",Hou
+2021,Delray Beach Air Biscuits,Dominic Smith,2B,"1B,1B/3B,IF,LF,OF,UTIL,BE,IL",NYM
+2021,Delray Beach Air Biscuits,Carlos Correa,OF,"SS,2B/SS,IF,UTIL,BE,IL",FA
+2021,Delray Beach Air Biscuits,German Marquez,C,"P,SP,BE,IL",Col
+2021,Delray Beach Air Biscuits,Chris Sale,C,"P,SP,BE,IL",Bos
+2021,Delray Beach Air Biscuits,Diego Castillo,RF,"P,RP,BE,IL",Sea
+2021,Delray Beach Air Biscuits,Yuli Gurriel,2B,"1B,1B/3B,IF,UTIL,BE,IL",Hou
+2021,Delray Beach Air Biscuits,Randal Grichuk,1B/3B,"CF,OF,UTIL,BE,IL,RF,DH",Tor
+2021,Delray Beach Air Biscuits,Wade Miley,C,"P,SP,BE,IL",ChC
+2021,Delray Beach Air Biscuits,Alex Reyes,RF,"P,RP,BE,IL",StL
+2021,Delray Beach Air Biscuits,Vladimir Gutierrez,C,"P,SP,BE,IL",Cin
+2021,Delray Beach Air Biscuits,Shane McClanahan,C,"P,SP,BE,IL",TB
+2021,Delray Beach Air Biscuits,Merrill Kelly,C,"P,SP,BE,IL",Ari
+2021,Delray Beach Air Biscuits,Touki Toussaint,C,"P,SP,BE,IL",Atl
+2021,Delray Beach Air Biscuits,Jonathan Loaisiga,RF,"P,SP,RP,BE,IL",NYY
+2021,Delray Beach Air Biscuits,Eric Lauer,C,"P,SP,BE,IL",Mil
+2021,Delray Beach Air Biscuits,Garrett Whitlock,C,"P,SP,BE,IL,RP",Bos
+2021,Delray Beach Air Biscuits,Ryan Mountcastle,2B/SS,"1B,1B/3B,IF,LF,OF,UTIL,BE,IL,DH",Bal
+2021,Delray Beach Air Biscuits,Giancarlo Stanton,CF,"DH,UTIL,BE,IL,OF,RF,LF",NYY
+2021,Delray Beach Air Biscuits,Adolis Garcia,2B/SS,"LF,OF,UTIL,BE,IL,CF,RF,DH",Tex
+2021,Cream City Cowtippers,Mookie Betts,LF,"RF,OF,UTIL,BE,IL,CF",LAD
+2021,Cream City Cowtippers,Corey Seager,OF,"SS,2B/SS,IF,UTIL,BE,IL",Tex
+2021,Cream City Cowtippers,Yu Darvish,C,"P,SP,BE,IL",SD
+2021,Cream City Cowtippers,Ozzie Albies,3B,"2B,2B/SS,IF,UTIL,BE,IL",Atl
+2021,Cream City Cowtippers,Jose Berrios,C,"P,SP,BE,IL",Tor
+2021,Cream City Cowtippers,Josh Hader,RF,"P,RP,BE,IL",Mil
+2021,Cream City Cowtippers,Nelson Cruz,CF,"DH,UTIL,BE,IL",FA
+2021,Cream City Cowtippers,Zack Wheeler,C,"P,SP,BE,IL",Phi
+2021,Cream City Cowtippers,Sandy Alcantara,C,"P,SP,BE,IL",Mia
+2021,Cream City Cowtippers,Justin Turner,SS,"3B,1B/3B,IF,DH,UTIL,BE,IL",LAD
+2021,Cream City Cowtippers,Mark Melancon,RF,"P,RP,BE,IL",SD
+2021,Cream City Cowtippers,Luis Garcia,RF,"P,RP,BE,IL,SP",Hou
+2021,Cream City Cowtippers,Luis Castillo,C,"P,SP,BE,IL",Cin
+2021,Cream City Cowtippers,Christian Vazquez,1B,"C,UTIL,BE,IL",Bos
+2021,Cream City Cowtippers,Jon Gray,C,"P,SP,BE,IL",Tex
+2021,Cream City Cowtippers,Willy Adames,OF,"SS,2B/SS,IF,UTIL,BE,IL",Mil
+2021,Cream City Cowtippers,Jorge Polanco,OF,"SS,2B/SS,IF,UTIL,BE,IL,2B",Min
+2021,Cream City Cowtippers,Austin Riley,SS,"3B,1B/3B,IF,UTIL,BE,IL,1B",Atl
+2021,Cream City Cowtippers,Myles Straw,1B/3B,"CF,OF,UTIL,BE,IL",Cle
+2021,Cream City Cowtippers,Jesus Aguilar,2B,"1B,1B/3B,IF,DH,UTIL,BE,IL",Mia
+2021,Cream City Cowtippers,Robbie Grossman,2B/SS,"LF,OF,UTIL,BE,IL,RF",Det
+2021,Cream City Cowtippers,Jeimer Candelario,2B,"1B,3B,1B/3B,IF,UTIL,BE,IL",Det
+2021,Cream City Cowtippers,Michael Conforto,LF,"RF,OF,UTIL,BE,IL",FA
+2021,Cream City Cowtippers,Jordan Montgomery,C,"P,SP,BE,IL",NYY
+2021,Cream City Cowtippers,Josh Rojas,3B,"2B,2B/SS,IF,UTIL,BE,IL,SS,OF,RF,LF,3B,1B/3B",Ari
+2021,Cream City Cowtippers,Brad Boxberger,RF,"P,RP,BE,IL",FA
+2021,Buck Showalter,Walker Buehler,C,"P,SP,BE,IL",LAD
+2021,Buck Showalter,Jack Flaherty,C,"P,SP,BE,IL",StL
+2021,Buck Showalter,Will Smith,1B,"C,UTIL,BE,IL",LAD
+2021,Buck Showalter,Max Muncy,2B,"1B,2B,3B,2B/SS,1B/3B,IF,UTIL,BE,IL",LAD
+2021,Buck Showalter,Raisel Iglesias,RF,"P,RP,BE,IL",LAA
+2021,Buck Showalter,Marcus Semien,OF,"SS,2B/SS,IF,UTIL,BE,IL,2B",Tex
+2021,Buck Showalter,Trey Mancini,LF,"RF,OF,UTIL,BE,IL,1B,1B/3B,IF,DH",Bal
+2021,Buck Showalter,Trevor Rogers,C,"P,SP,BE,IL",Mia
+2021,Buck Showalter,Cedric Mullins,1B/3B,"CF,OF,UTIL,BE,IL",Bal
+2021,Buck Showalter,Jake Diekman,RF,"P,RP,BE,IL",FA
+2021,Buck Showalter,Casey Mize,C,"P,SP,BE,IL",Det
+2021,Buck Showalter,Adam Wainwright,C,"P,SP,BE,IL",StL
+2021,Buck Showalter,Bryan Reynolds,2B/SS,"LF,CF,OF,UTIL,BE,IL",Pit
+2021,Buck Showalter,Byron Buxton,1B/3B,"CF,OF,UTIL,BE,IL",Min
+2021,Buck Showalter,Charlie Blackmon,LF,"RF,OF,UTIL,BE,IL",Col
+2021,Buck Showalter,Kwang Hyun Kim,C,"P,SP,BE,IL,RP",FA
+2021,Buck Showalter,Josh Harrison,3B,"2B,3B,2B/SS,1B/3B,IF,UTIL,BE,IL,OF,LF",FA
+2021,Buck Showalter,Jonathan India,SS,"3B,1B/3B,IF,UTIL,BE,IL,2B,2B/SS",Cin
+2021,Buck Showalter,Drew Smyly,C,"P,SP,BE,IL,RP",FA
+2021,Buck Showalter,Craig Kimbrel,RF,"P,RP,BE,IL",ChW
+2021,Buck Showalter,Zach Eflin,C,"P,SP,BE,IL",Phi
+2021,Buck Showalter,Nestor Cortes,RF,"P,RP,BE,IL,SP",NYY
+2021,Buck Showalter,Eli Morgan,C,"P,SP,BE,IL",Cle
+2021,Buck Showalter,Ian Anderson,C,"P,SP,BE,IL",Atl
+2021,Buck Showalter,Matthew Boyd,C,"P,SP,BE,IL",FA
+2021,Buck Showalter,Zach Davies,C,"P,SP,BE,IL",FA
+2021,PeeWee Yermin,Cody Bellinger,1B/3B,"1B,1B/3B,IF,CF,OF,UTIL,BE,IL",LAD
+2021,PeeWee Yermin,Freddie Freeman,2B,"1B,1B/3B,IF,UTIL,BE,IL",FA
+2021,PeeWee Yermin,Nolan Arenado,SS,"3B,1B/3B,IF,UTIL,BE,IL",StL
+2021,PeeWee Yermin,George Springer,1B/3B,"CF,OF,UTIL,BE,IL,DH",Tor
+2021,PeeWee Yermin,Kenley Jansen,RF,"P,RP,BE,IL",FA
+2021,PeeWee Yermin,Sonny Gray,C,"P,SP,BE,IL",Cin
+2021,PeeWee Yermin,Sean Manaea,C,"P,SP,BE,IL",Oak
+2021,PeeWee Yermin,Dallas Keuchel,C,"P,SP,BE,IL",ChW
+2021,PeeWee Yermin,Richard Rodriguez,RF,"P,RP,BE,IL",FA
+2021,PeeWee Yermin,Carlos Rodon,C,"P,SP,BE,IL",FA
+2021,PeeWee Yermin,Tyler Rogers,RF,"P,RP,BE,IL",SF
+2021,PeeWee Yermin,Jesse Winker,2B/SS,"LF,OF,DH,UTIL,BE,IL",Cin
+2021,PeeWee Yermin,Dylan Cease,C,"P,SP,BE,IL",ChW
+2021,PeeWee Yermin,Bryce Harper,LF,"RF,OF,DH,UTIL,BE,IL",Phi
+2021,PeeWee Yermin,Andrew Chafin,RF,"P,RP,BE,IL",FA
+2021,PeeWee Yermin,Alex Wood,RF,"P,RP,BE,IL,SP",SF
+2021,PeeWee Yermin,James Kaprielian,RF,"P,RP,BE,IL,SP",Oak
+2021,PeeWee Yermin,Kyle Schwarber,2B/SS,"LF,OF,UTIL,BE,IL,DH,1B,1B/3B,IF",FA
+2021,PeeWee Yermin,Cal Quantrill,RF,"P,SP,RP,BE,IL",Cle
+2021,PeeWee Yermin,Kyle Farmer,OF,"2B,SS,2B/SS,IF,UTIL,BE,IL,3B,1B/3B",Cin
+2021,PeeWee Yermin,Fernando Tatis Jr.,OF,"SS,2B/SS,IF,UTIL,BE,IL,OF,RF",SD
+2021,PeeWee Yermin,Tyler Stephenson,1B,"C,UTIL,BE,IL,1B,1B/3B,IF",Cin
+2021,PeeWee Yermin,Lewis Brinson,LF,"LF,RF,OF,UTIL,BE,IL,CF",FA
+2021,PeeWee Yermin,Huascar Ynoa,C,"P,SP,BE,IL",Atl
+2021,PeeWee Yermin,Jaime Barria,C,"P,SP,BE,IL",LAA
+2021,PeeWee Yermin,Franmil Reyes,CF,"DH,UTIL,BE,IL,RF,OF",Cle
+2021,Blue Haderade,Christian Yelich,2B/SS,"LF,OF,UTIL,BE,IL",Mil
+2021,Blue Haderade,Gerrit Cole,C,"P,SP,BE,IL",NYY
+2021,Blue Haderade,Bo Bichette,OF,"SS,2B/SS,IF,UTIL,BE,IL,DH",Tor
+2021,Blue Haderade,Brandon Woodruff,C,"P,SP,BE,IL",Mil
+2021,Blue Haderade,Ketel Marte,3B,"2B,2B/SS,IF,UTIL,BE,IL,CF,OF",Ari
+2021,Blue Haderade,Hyun Jin Ryu,C,"P,SP,BE,IL",Tor
+2021,Blue Haderade,Matt Olson,2B,"1B,1B/3B,IF,UTIL,BE,IL",Oak
+2021,Blue Haderade,Austin Meadows,2B/SS,"LF,OF,UTIL,BE,IL,DH",TB
+2021,Blue Haderade,Freddy Peralta,RF,"P,RP,BE,IL,SP",Mil
+2021,Blue Haderade,Jake McGee,RF,"P,RP,BE,IL",SF
+2021,Blue Haderade,Omar Narvaez,1B,"C,UTIL,BE,IL",Mil
+2021,Blue Haderade,Yimi Garcia,RF,"P,RP,BE,IL",Tor
+2021,Blue Haderade,Anthony DeSclafani,C,"P,SP,BE,IL",SF
+2021,Blue Haderade,Lou Trivino,RF,"P,RP,BE,IL",Oak
+2021,Blue Haderade,Kyle Gibson,C,"P,SP,BE,IL",Phi
+2021,Blue Haderade,Jared Walsh,2B,"1B,1B/3B,IF,UTIL,BE,IL,RF,OF",LAA
+2021,Blue Haderade,Eduardo Escobar,SS,"3B,1B/3B,IF,UTIL,BE,IL,2B,2B/SS,1B",NYM
+2021,Blue Haderade,Devin Williams,RF,"P,RP,BE,IL",Mil
+2021,Blue Haderade,Logan Gilbert,C,"P,SP,BE,IL",Sea
+2021,Blue Haderade,Kolten Wong,3B,"2B,2B/SS,IF,UTIL,BE,IL",Mil
+2021,Blue Haderade,Avisail Garcia,1B/3B,"CF,OF,UTIL,BE,IL,RF",Mia
+2021,Blue Haderade,AJ Pollock,2B/SS,"LF,CF,OF,DH,UTIL,BE,IL",LAD
+2021,Blue Haderade,Austin Gomber,RF,"P,SP,RP,BE,IL",Col
+2021,Blue Haderade,Luis Urias,SS,"2B,3B,2B/SS,1B/3B,IF,UTIL,BE,IL,SS",Mil
+2021,Blue Haderade,Tyler Alexander,RF,"P,RP,BE,IL,SP",Det
+2021,Blue Haderade,Kyle Freeland,C,"P,SP,BE,IL",Col
+2021,Lisa dANN,Jose Ramirez,SS,"3B,1B/3B,IF,UTIL,BE,IL,DH",Cle
+2021,Lisa dANN,Trevor Story,OF,"SS,2B/SS,IF,UTIL,BE,IL",FA
+2021,Lisa dANN,Jose Abreu,2B,"1B,1B/3B,IF,UTIL,BE,IL,DH",ChW
+2021,Lisa dANN,Corbin Burnes,C,"P,SP,BE,IL",Mil
+2021,Lisa dANN,Kyle Hendricks,C,"P,SP,BE,IL",ChC
+2021,Lisa dANN,Randy Arozarena,2B/SS,"LF,OF,UTIL,BE,IL,RF,DH",TB
+2021,Lisa dANN,Julio Urias,C,"P,SP,BE,IL",LAD
+2021,Lisa dANN,Drew Pomeranz,RF,"P,RP,BE,IL",SD
+2021,Lisa dANN,Ryan McMahon,3B,"1B,2B,3B,2B/SS,1B/3B,IF,UTIL,BE,IL",Col
+2021,Lisa dANN,Matt Barnes,RF,"P,RP,BE,IL",Bos
+2021,Lisa dANN,Michael Kopech,C,"P,SP,BE,IL,RP",ChW
+2021,Lisa dANN,Mark Canha,LF,"LF,RF,OF,DH,UTIL,BE,IL,CF",NYM
+2021,Lisa dANN,Kendall Graveman,RF,"P,RP,BE,IL",ChW
+2021,Lisa dANN,Yusmeiro Petit,RF,"P,RP,BE,IL",FA
+2021,Lisa dANN,Raimel Tapia,2B/SS,"LF,OF,DH,UTIL,BE,IL",Col
+2021,Lisa dANN,Eric Haase,1B,"C,UTIL,BE,IL,LF,OF,DH",Det
+2021,Lisa dANN,Frankie Montas,C,"P,SP,BE,IL",Oak
+2021,Lisa dANN,Brandon Crawford,OF,"SS,2B/SS,IF,UTIL,BE,IL",SF
+2021,Lisa dANN,Tyler O'Neill,2B/SS,"LF,OF,UTIL,BE,IL",StL
+2021,Lisa dANN,Rich Hill,C,"P,SP,BE,IL",Bos
+2021,Lisa dANN,Logan Webb,C,"P,SP,BE,IL",SF
+2021,Lisa dANN,Brett Anderson,C,"P,SP,BE,IL",FA
+2021,Lisa dANN,Patrick Corbin,C,"P,SP,BE,IL",Wsh
+2021,Lisa dANN,Alec Mills,C,"P,SP,BE,IL,RP",ChC

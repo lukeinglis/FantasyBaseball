@@ -1,0 +1,241 @@
+year,round,pick,overall,team,player_name,keeper
+2021,1,1,0,Smokin' Bases,Juan Soto,False
+2021,1,2,0,Buck Showalter,Ronald Acuna Jr.,False
+2021,1,3,0,Delray Beach Air Biscuits,Fernando Tatis Jr.,False
+2021,1,4,0,Cream City Cowtippers,Mookie Betts,False
+2021,1,5,0,Daisy + Shay Bel-Airs,Mike Trout,False
+2021,1,6,0,Mike Lowell W.S. MVP,Jacob deGrom,False
+2021,1,7,0,PeeWee Yermin,Cody Bellinger,False
+2021,1,8,0,Blue Haderade,Christian Yelich,False
+2021,1,9,0,Comeback Tour,Trea Turner,False
+2021,1,10,0,Lisa dANN,Jose Ramirez,False
+2021,2,1,0,Lisa dANN,Trevor Story,False
+2021,2,2,0,Comeback Tour,Shane Bieber,False
+2021,2,3,0,Blue Haderade,Gerrit Cole,False
+2021,2,4,0,PeeWee Yermin,Freddie Freeman,False
+2021,2,5,0,Mike Lowell W.S. MVP,Francisco Lindor,False
+2021,2,6,0,Daisy + Shay Bel-Airs,Trevor Bauer,False
+2021,2,7,0,Cream City Cowtippers,Corey Seager,False
+2021,2,8,0,Delray Beach Air Biscuits,Manny Machado,False
+2021,2,9,0,Buck Showalter,Walker Buehler,False
+2021,2,10,0,Smokin' Bases,Xander Bogaerts,False
+2021,3,1,0,Smokin' Bases,Max Scherzer,False
+2021,3,2,0,Buck Showalter,Lucas Giolito,False
+2021,3,3,0,Delray Beach Air Biscuits,DJ LeMahieu,False
+2021,3,4,0,Cream City Cowtippers,Yu Darvish,False
+2021,3,5,0,Daisy + Shay Bel-Airs,Aaron Nola,False
+2021,3,6,0,Mike Lowell W.S. MVP,Luis Robert,False
+2021,3,7,0,PeeWee Yermin,Nolan Arenado,False
+2021,3,8,0,Blue Haderade,Bo Bichette,False
+2021,3,9,0,Comeback Tour,Bryce Harper,False
+2021,3,10,0,Lisa dANN,Marcell Ozuna,False
+2021,4,1,0,Lisa dANN,Jose Abreu,False
+2021,4,2,0,Comeback Tour,Vladimir Guerrero Jr.,False
+2021,4,3,0,Blue Haderade,Brandon Woodruff,False
+2021,4,4,0,PeeWee Yermin,Anthony Rendon,False
+2021,4,5,0,Mike Lowell W.S. MVP,Alex Bregman,False
+2021,4,6,0,Daisy + Shay Bel-Airs,Blake Snell,False
+2021,4,7,0,Cream City Cowtippers,Ozzie Albies,False
+2021,4,8,0,Delray Beach Air Biscuits,Clayton Kershaw,False
+2021,4,9,0,Buck Showalter,Cavan Biggio,False
+2021,4,10,0,Smokin' Bases,Rafael Devers,False
+2021,5,1,0,Smokin' Bases,Pete Alonso,False
+2021,5,2,0,Buck Showalter,Jack Flaherty,False
+2021,5,3,0,Delray Beach Air Biscuits,J.T. Realmuto,False
+2021,5,4,0,Cream City Cowtippers,Luis Castillo,False
+2021,5,5,0,Daisy + Shay Bel-Airs,Kyle Tucker,False
+2021,5,6,0,Mike Lowell W.S. MVP,Aaron Judge,False
+2021,5,7,0,PeeWee Yermin,Tyler Glasnow,False
+2021,5,8,0,Blue Haderade,Ketel Marte,False
+2021,5,9,0,Comeback Tour,Paul Goldschmidt,False
+2021,5,10,0,Lisa dANN,Corbin Burnes,False
+2021,6,1,0,Lisa dANN,Dylan Bundy,False
+2021,6,2,0,Comeback Tour,Kenta Maeda,False
+2021,6,3,0,Blue Haderade,Hyun Jin Ryu,False
+2021,6,4,0,PeeWee Yermin,George Springer,False
+2021,6,5,0,Mike Lowell W.S. MVP,Tim Anderson,False
+2021,6,6,0,Daisy + Shay Bel-Airs,Adalberto Mondesi,False
+2021,6,7,0,Cream City Cowtippers,Jose Berrios,False
+2021,6,8,0,Delray Beach Air Biscuits,Whit Merrifield,False
+2021,6,9,0,Buck Showalter,Lance Lynn,False
+2021,6,10,0,Smokin' Bases,Nick Castellanos,False
+2021,7,1,0,Smokin' Bases,Jeff McNeil,False
+2021,7,2,0,Buck Showalter,Will Smith,False
+2021,7,3,0,Delray Beach Air Biscuits,Starling Marte,False
+2021,7,4,0,Cream City Cowtippers,Josh Hader,False
+2021,7,5,0,Daisy + Shay Bel-Airs,Brandon Lowe,False
+2021,7,6,0,Mike Lowell W.S. MVP,Luke Voit,False
+2021,7,7,0,PeeWee Yermin,Javier Baez,False
+2021,7,8,0,Blue Haderade,Lourdes Gurriel Jr.,False
+2021,7,9,0,Comeback Tour,Keston Hiura,False
+2021,7,10,0,Lisa dANN,Kyle Hendricks,False
+2021,8,1,0,Lisa dANN,Stephen Strasburg,False
+2021,8,2,0,Comeback Tour,Eugenio Suarez,False
+2021,8,3,0,Blue Haderade,Matt Olson,False
+2021,8,4,0,PeeWee Yermin,Charlie Blackmon,False
+2021,8,5,0,Mike Lowell W.S. MVP,Jose Altuve,False
+2021,8,6,0,Daisy + Shay Bel-Airs,Michael Conforto,False
+2021,8,7,0,Cream City Cowtippers,Max Fried,False
+2021,8,8,0,Delray Beach Air Biscuits,Aroldis Chapman,False
+2021,8,9,0,Buck Showalter,Max Muncy,False
+2021,8,10,0,Smokin' Bases,Chris Paddack,False
+2021,9,1,0,Smokin' Bases,Yordan Alvarez,False
+2021,9,2,0,Buck Showalter,Matt Chapman,False
+2021,9,3,0,Delray Beach Air Biscuits,Edwin Diaz,False
+2021,9,4,0,Cream City Cowtippers,Nelson Cruz,False
+2021,9,5,0,Daisy + Shay Bel-Airs,Anthony Rizzo,False
+2021,9,6,0,Mike Lowell W.S. MVP,Jesus Luzardo,False
+2021,9,7,0,PeeWee Yermin,Liam Hendriks,False
+2021,9,8,0,Blue Haderade,Gleyber Torres,False
+2021,9,9,0,Comeback Tour,Salvador Perez,False
+2021,9,10,0,Lisa dANN,Ke'Bryan Hayes,False
+2021,10,1,0,Lisa dANN,Randy Arozarena,False
+2021,10,2,0,Comeback Tour,Corey Kluber,False
+2021,10,3,0,Blue Haderade,Yoan Moncada,False
+2021,10,4,0,PeeWee Yermin,Kenley Jansen,False
+2021,10,5,0,Mike Lowell W.S. MVP,Teoscar Hernandez,False
+2021,10,6,0,Daisy + Shay Bel-Airs,J.D. Martinez,False
+2021,10,7,0,Cream City Cowtippers,Zack Wheeler,False
+2021,10,8,0,Delray Beach Air Biscuits,Zach Plesac,False
+2021,10,9,0,Buck Showalter,Zack Greinke,False
+2021,10,10,0,Smokin' Bases,Eddie Rosario,False
+2021,11,1,0,Smokin' Bases,Charlie Morton,False
+2021,11,2,0,Buck Showalter,Raisel Iglesias,False
+2021,11,3,0,Delray Beach Air Biscuits,Ryan Pressly,False
+2021,11,4,0,Cream City Cowtippers,Devin Williams,False
+2021,11,5,0,Daisy + Shay Bel-Airs,Kris Bryant,False
+2021,11,6,0,Mike Lowell W.S. MVP,Shohei Ohtani,False
+2021,11,7,0,PeeWee Yermin,Ian Anderson,False
+2021,11,8,0,Blue Haderade,Austin Meadows,False
+2021,11,9,0,Comeback Tour,Michael Brantley,False
+2021,11,10,0,Lisa dANN,Trevor Rosenthal,False
+2021,12,1,0,Lisa dANN,Julio Urias,False
+2021,12,2,0,Comeback Tour,Lance McCullers Jr.,False
+2021,12,3,0,Blue Haderade,Wil Myers,False
+2021,12,4,0,PeeWee Yermin,Mike Moustakas,False
+2021,12,5,0,Mike Lowell W.S. MVP,Dinelson Lamet,False
+2021,12,6,0,Daisy + Shay Bel-Airs,Pablo Lopez,False
+2021,12,7,0,Cream City Cowtippers,Ramon Laureano,False
+2021,12,8,0,Delray Beach Air Biscuits,Zac Gallen,False
+2021,12,9,0,Buck Showalter,Marcus Semien,False
+2021,12,10,0,Smokin' Bases,Yasmani Grandal,False
+2021,13,1,0,Smokin' Bases,Joe Musgrove,False
+2021,13,2,0,Buck Showalter,Brad Hand,False
+2021,13,3,0,Delray Beach Air Biscuits,Dominic Smith,False
+2021,13,4,0,Cream City Cowtippers,Will Smith,False
+2021,13,5,0,Daisy + Shay Bel-Airs,Kevin Gausman,False
+2021,13,6,0,Mike Lowell W.S. MVP,James Karinchak,False
+2021,13,7,0,PeeWee Yermin,Rhys Hoskins,False
+2021,13,8,0,Blue Haderade,Patrick Corbin,False
+2021,13,9,0,Comeback Tour,Trent Grisham,False
+2021,13,10,0,Lisa dANN,Nick Madrigal,False
+2021,14,1,0,Lisa dANN,Tommy Pham,False
+2021,14,2,0,Comeback Tour,Rafael Montero,False
+2021,14,3,0,Blue Haderade,Freddy Peralta,False
+2021,14,4,0,PeeWee Yermin,Sonny Gray,False
+2021,14,5,0,Mike Lowell W.S. MVP,Willson Contreras,False
+2021,14,6,0,Daisy + Shay Bel-Airs,Dansby Swanson,False
+2021,14,7,0,Cream City Cowtippers,Josh Bell,False
+2021,14,8,0,Delray Beach Air Biscuits,Byron Buxton,False
+2021,14,9,0,Buck Showalter,Mike Yastrzemski,False
+2021,14,10,0,Smokin' Bases,Tommy Edman,False
+2021,15,1,0,Smokin' Bases,Sixto Sanchez,False
+2021,15,2,0,Buck Showalter,Trey Mancini,False
+2021,15,3,0,Delray Beach Air Biscuits,Carlos Correa,False
+2021,15,4,0,Cream City Cowtippers,Sandy Alcantara,False
+2021,15,5,0,Daisy + Shay Bel-Airs,Marco Gonzales,False
+2021,15,6,0,Mike Lowell W.S. MVP,Gary Sanchez,False
+2021,15,7,0,PeeWee Yermin,Ian Happ,False
+2021,15,8,0,Blue Haderade,Jordan Romano,False
+2021,15,9,0,Comeback Tour,AJ Pollock,False
+2021,15,10,0,Lisa dANN,Christian Vazquez,False
+2021,16,1,0,Lisa dANN,Dylan Moore,False
+2021,16,2,0,Comeback Tour,Marcus Stroman,False
+2021,16,3,0,Blue Haderade,Amir Garrett,False
+2021,16,4,0,PeeWee Yermin,Sean Manaea,False
+2021,16,5,0,Mike Lowell W.S. MVP,Joey Gallo,False
+2021,16,6,0,Daisy + Shay Bel-Airs,Travis d'Arnaud,False
+2021,16,7,0,Cream City Cowtippers,James Paxton,False
+2021,16,8,0,Delray Beach Air Biscuits,German Marquez,False
+2021,16,9,0,Buck Showalter,Ryan Mountcastle,False
+2021,16,10,0,Smokin' Bases,Jordan Hicks,False
+2021,17,1,0,Smokin' Bases,Aaron Civale,False
+2021,17,2,0,Buck Showalter,Joakim Soria,False
+2021,17,3,0,Delray Beach Air Biscuits,Zach Eflin,False
+2021,17,4,0,Cream City Cowtippers,Giancarlo Stanton,False
+2021,17,5,0,Daisy + Shay Bel-Airs,Andrew Heaney,False
+2021,17,6,0,Mike Lowell W.S. MVP,Alec Bohm,False
+2021,17,7,0,PeeWee Yermin,Dallas Keuchel,False
+2021,17,8,0,Blue Haderade,James McCann,False
+2021,17,9,0,Comeback Tour,Josh Donaldson,False
+2021,17,10,0,Lisa dANN,Drew Pomeranz,False
+2021,18,1,0,Lisa dANN,Adam Ottavino,False
+2021,18,2,0,Comeback Tour,Matt Barnes,False
+2021,18,3,0,Blue Haderade,Adam Wainwright,False
+2021,18,4,0,PeeWee Yermin,Franmil Reyes,False
+2021,18,5,0,Mike Lowell W.S. MVP,Eric Hosmer,False
+2021,18,6,0,Daisy + Shay Bel-Airs,Jose Urquidy,False
+2021,18,7,0,Cream City Cowtippers,Yadier Molina,False
+2021,18,8,0,Delray Beach Air Biscuits,Nick Solak,False
+2021,18,9,0,Buck Showalter,Carlos Carrasco,False
+2021,18,10,0,Smokin' Bases,Frankie Montas,False
+2021,19,1,0,Smokin' Bases,Tyler Mahle,False
+2021,19,2,0,Buck Showalter,Casey Mize,False
+2021,19,3,0,Delray Beach Air Biscuits,Jameson Taillon,False
+2021,19,4,0,Cream City Cowtippers,Andrew McCutchen,False
+2021,19,5,0,Daisy + Shay Bel-Airs,Craig Kimbrel,False
+2021,19,6,0,Mike Lowell W.S. MVP,Taylor Rogers,False
+2021,19,7,0,PeeWee Yermin,David Price,False
+2021,19,8,0,Blue Haderade,Jake McGee,False
+2021,19,9,0,Comeback Tour,Dustin May,False
+2021,19,10,0,Lisa dANN,Eduardo Rodriguez,False
+2021,20,1,0,Lisa dANN,C.J. Cron,False
+2021,20,2,0,Comeback Tour,Archie Bradley,False
+2021,20,3,0,Blue Haderade,Jordan Montgomery,False
+2021,20,4,0,PeeWee Yermin,Chris Bassitt,False
+2021,20,5,0,Mike Lowell W.S. MVP,Victor Robles,False
+2021,20,6,0,Daisy + Shay Bel-Airs,John Means,False
+2021,20,7,0,Cream City Cowtippers,Greg Holland,False
+2021,20,8,0,Delray Beach Air Biscuits,Alex Colome,False
+2021,20,9,0,Buck Showalter,Didi Gregorius,False
+2021,20,10,0,Smokin' Bases,Nathan Eovaldi,False
+2021,21,1,0,Smokin' Bases,Aaron Hicks,False
+2021,21,2,0,Buck Showalter,Kyle Schwarber,False
+2021,21,3,0,Delray Beach Air Biscuits,Anthony Santander,False
+2021,21,4,0,Cream City Cowtippers,Michael Pineda,False
+2021,21,5,0,Daisy + Shay Bel-Airs,Pete Fairbanks,False
+2021,21,6,0,Mike Lowell W.S. MVP,Alex Verdugo,False
+2021,21,7,0,PeeWee Yermin,Mike Soroka,False
+2021,21,8,0,Blue Haderade,Avisail Garcia,False
+2021,21,9,0,Comeback Tour,Robbie Ray,False
+2021,21,10,0,Lisa dANN,Jorge Soler,False
+2021,22,1,0,Lisa dANN,Andres Gimenez,False
+2021,22,2,0,Comeback Tour,Matthew Boyd,False
+2021,22,3,0,Blue Haderade,Jake Diekman,False
+2021,22,4,0,PeeWee Yermin,Richard Rodriguez,False
+2021,22,5,0,Mike Lowell W.S. MVP,Triston McKenzie,False
+2021,22,6,0,Daisy + Shay Bel-Airs,Anthony Bass,False
+2021,22,7,0,Cream City Cowtippers,Justin Turner,False
+2021,22,8,0,Delray Beach Air Biscuits,Elieser Hernandez,False
+2021,22,9,0,Buck Showalter,Trevor Rogers,False
+2021,22,10,0,Smokin' Bases,Andrew Vaughn,False
+2021,23,1,0,Smokin' Bases,Tyler Duffey,False
+2021,23,2,0,Buck Showalter,Brady Singer,False
+2021,23,3,0,Delray Beach Air Biscuits,Domingo German,False
+2021,23,4,0,Cream City Cowtippers,Gio Urshela,False
+2021,23,5,0,Daisy + Shay Bel-Airs,Yusei Kikuchi,False
+2021,23,6,0,Mike Lowell W.S. MVP,Cristian Javier,False
+2021,23,7,0,PeeWee Yermin,Daniel Bard,False
+2021,23,8,0,Blue Haderade,Kolten Wong,False
+2021,23,9,0,Comeback Tour,Noah Syndergaard,False
+2021,23,10,0,Lisa dANN,Joc Pederson,False
+2021,24,1,0,Lisa dANN,Kyle Gibson,False
+2021,24,2,0,Comeback Tour,Jake Arrieta,False
+2021,24,3,0,Blue Haderade,Sean Murphy,False
+2021,24,4,0,PeeWee Yermin,Carson Kelly,False
+2021,24,5,0,Mike Lowell W.S. MVP,Giovanny Gallegos,False
+2021,24,6,0,Daisy + Shay Bel-Airs,Jean Segura,False
+2021,24,7,0,Cream City Cowtippers,Raimel Tapia,False
+2021,24,8,0,Delray Beach Air Biscuits,Chris Sale,False
+2021,24,9,0,Buck Showalter,Jake Odorizzi,False
+2021,24,10,0,Smokin' Bases,Chris Martin,False

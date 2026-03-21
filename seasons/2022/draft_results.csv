@@ -1,0 +1,241 @@
+year,round,pick,overall,team,player_name,keeper
+2022,1,1,0,Cream City Cowtippers,Shohei Ohtani,False
+2022,1,2,0,Lisa dANN,Vladimir Guerrero Jr.,False
+2022,1,3,0,Buck Showalter,Juan Soto,False
+2022,1,4,0,Daisy + Shay Bel-Airs,Trea Turner,False
+2022,1,5,0,The G.O.A.T,Jose Ramirez,False
+2022,1,6,0,The Basitt Hounds,Mike Trout,False
+2022,1,7,0,Delray Beach Air Biscuits,Gerrit Cole,False
+2022,1,8,0,Smokin' Bases,Freddie Freeman,False
+2022,1,9,0,MOArch Redbirds,Corbin Burnes,False
+2022,1,10,0,Wander Vision,Brandon Woodruff,False
+2022,2,1,0,Wander Vision,Mookie Betts,False
+2022,2,2,0,MOArch Redbirds,Walker Buehler,False
+2022,2,3,0,Smokin' Bases,Ronald Acuna Jr.,False
+2022,2,4,0,Delray Beach Air Biscuits,Bryce Harper,False
+2022,2,5,0,The Basitt Hounds,Rafael Devers,False
+2022,2,6,0,The G.O.A.T,Shane Bieber,False
+2022,2,7,0,Daisy + Shay Bel-Airs,Max Scherzer,False
+2022,2,8,0,Buck Showalter,Manny Machado,False
+2022,2,9,0,Lisa dANN,Julio Urias,False
+2022,2,10,0,Cream City Cowtippers,Sandy Alcantara,False
+2022,3,1,0,Cream City Cowtippers,Bo Bichette,False
+2022,3,2,0,Lisa dANN,Lucas Giolito,False
+2022,3,3,0,Buck Showalter,Robbie Ray,False
+2022,3,4,0,Daisy + Shay Bel-Airs,Kyle Tucker,False
+2022,3,5,0,The G.O.A.T,Aaron Nola,False
+2022,3,6,0,The Basitt Hounds,Pete Alonso,False
+2022,3,7,0,Delray Beach Air Biscuits,Marcus Semien,False
+2022,3,8,0,Smokin' Bases,Ozzie Albies,False
+2022,3,9,0,MOArch Redbirds,Matt Olson,False
+2022,3,10,0,Wander Vision,Nick Castellanos,False
+2022,4,1,0,Wander Vision,Freddy Peralta,False
+2022,4,2,0,MOArch Redbirds,Austin Riley,False
+2022,4,3,0,Smokin' Bases,Jose Berrios,False
+2022,4,4,0,Delray Beach Air Biscuits,Yordan Alvarez,False
+2022,4,5,0,The Basitt Hounds,Kris Bryant,False
+2022,4,6,0,The G.O.A.T,Luis Robert,False
+2022,4,7,0,Daisy + Shay Bel-Airs,Zack Wheeler,False
+2022,4,8,0,Buck Showalter,Max Fried,False
+2022,4,9,0,Lisa dANN,Xander Bogaerts,False
+2022,4,10,0,Cream City Cowtippers,Nolan Arenado,False
+2022,5,1,0,Cream City Cowtippers,Kevin Gausman,False
+2022,5,2,0,Lisa dANN,Ketel Marte,False
+2022,5,3,0,Buck Showalter,Max Muncy,False
+2022,5,4,0,Daisy + Shay Bel-Airs,Aaron Judge,False
+2022,5,5,0,The G.O.A.T,Trevor Story,False
+2022,5,6,0,The Basitt Hounds,George Springer,False
+2022,5,7,0,Delray Beach Air Biscuits,Josh Hader,False
+2022,5,8,0,Smokin' Bases,J.D. Martinez,False
+2022,5,9,0,MOArch Redbirds,Jose Altuve,False
+2022,5,10,0,Wander Vision,Paul Goldschmidt,False
+2022,6,1,0,Wander Vision,Cedric Mullins,False
+2022,6,2,0,MOArch Redbirds,Carlos Correa,False
+2022,6,3,0,Smokin' Bases,Alex Bregman,False
+2022,6,4,0,Delray Beach Air Biscuits,Dylan Cease,False
+2022,6,5,0,The Basitt Hounds,Corey Seager,False
+2022,6,6,0,The G.O.A.T,Salvador Perez,False
+2022,6,7,0,Daisy + Shay Bel-Airs,Whit Merrifield,False
+2022,6,8,0,Buck Showalter,Joe Musgrove,False
+2022,6,9,0,Lisa dANN,Logan Webb,False
+2022,6,10,0,Cream City Cowtippers,Christian Yelich,False
+2022,7,1,0,Cream City Cowtippers,Jacob deGrom,False
+2022,7,2,0,Lisa dANN,Teoscar Hernandez,False
+2022,7,3,0,Buck Showalter,Bryan Reynolds,False
+2022,7,4,0,Daisy + Shay Bel-Airs,Alek Manoah,False
+2022,7,5,0,The G.O.A.T,Francisco Lindor,False
+2022,7,6,0,The Basitt Hounds,Brandon Lowe,False
+2022,7,7,0,Delray Beach Air Biscuits,Will Smith,False
+2022,7,8,0,Smokin' Bases,Giancarlo Stanton,False
+2022,7,9,0,MOArch Redbirds,Yasmani Grandal,False
+2022,7,10,0,Wander Vision,Anthony Rendon,False
+2022,8,1,0,Wander Vision,Wander Franco,False
+2022,8,2,0,MOArch Redbirds,Liam Hendriks,False
+2022,8,3,0,Smokin' Bases,Tim Anderson,False
+2022,8,4,0,Delray Beach Air Biscuits,Jose Abreu,False
+2022,8,5,0,The Basitt Hounds,Kyle Schwarber,False
+2022,8,6,0,The G.O.A.T,Blake Snell,False
+2022,8,7,0,Daisy + Shay Bel-Airs,J.T. Realmuto,False
+2022,8,8,0,Buck Showalter,Frankie Montas,False
+2022,8,9,0,Lisa dANN,Byron Buxton,False
+2022,8,10,0,Cream City Cowtippers,Starling Marte,False
+2022,9,1,0,Cream City Cowtippers,Yu Darvish,False
+2022,9,2,0,Lisa dANN,Raisel Iglesias,False
+2022,9,3,0,Buck Showalter,Emmanuel Clase,False
+2022,9,4,0,Daisy + Shay Bel-Airs,Sean Manaea,False
+2022,9,5,0,The G.O.A.T,Justin Verlander,False
+2022,9,6,0,The Basitt Hounds,Daulton Varsho,False
+2022,9,7,0,Delray Beach Air Biscuits,DJ LeMahieu,False
+2022,9,8,0,Smokin' Bases,Carlos Rodon,False
+2022,9,9,0,MOArch Redbirds,Cody Bellinger,False
+2022,9,10,0,Wander Vision,Nathan Eovaldi,False
+2022,10,1,0,Wander Vision,Edwin Diaz,False
+2022,10,2,0,MOArch Redbirds,Lance Lynn,False
+2022,10,3,0,Smokin' Bases,Charlie Morton,False
+2022,10,4,0,Delray Beach Air Biscuits,Ryan Pressly,False
+2022,10,5,0,The Basitt Hounds,Ian Anderson,False
+2022,10,6,0,The G.O.A.T,Anthony Rizzo,False
+2022,10,7,0,Daisy + Shay Bel-Airs,Tyler Mahle,False
+2022,10,8,0,Buck Showalter,Fernando Tatis Jr.,False
+2022,10,9,0,Lisa dANN,Aroldis Chapman,False
+2022,10,10,0,Cream City Cowtippers,Yuli Gurriel,False
+2022,11,1,0,Cream City Cowtippers,Trevor Rogers,False
+2022,11,2,0,Lisa dANN,Eloy Jimenez,False
+2022,11,3,0,Buck Showalter,Craig Kimbrel,False
+2022,11,4,0,Daisy + Shay Bel-Airs,Bobby Witt Jr.,False
+2022,11,5,0,The G.O.A.T,Kenley Jansen,False
+2022,11,6,0,The Basitt Hounds,Chris Bassitt,False
+2022,11,7,0,Delray Beach Air Biscuits,Jorge Polanco,False
+2022,11,8,0,Smokin' Bases,Pablo Lopez,False
+2022,11,9,0,MOArch Redbirds,Eduardo Rodriguez,False
+2022,11,10,0,Wander Vision,Clayton Kershaw,False
+2022,12,1,0,Wander Vision,Jonathan India,False
+2022,12,2,0,MOArch Redbirds,Mitch Haniger,False
+2022,12,3,0,Smokin' Bases,Nelson Cruz,False
+2022,12,4,0,Delray Beach Air Biscuits,Luis Garcia,False
+2022,12,5,0,The Basitt Hounds,Zac Gallen,False
+2022,12,6,0,The G.O.A.T,Marcell Ozuna,False
+2022,12,7,0,Daisy + Shay Bel-Airs,Shane McClanahan,False
+2022,12,8,0,Buck Showalter,Dansby Swanson,False
+2022,12,9,0,Lisa dANN,Marcus Stroman,False
+2022,12,10,0,Cream City Cowtippers,Julio Rodriguez,False
+2022,13,1,0,Cream City Cowtippers,Jordan Romano,False
+2022,13,2,0,Lisa dANN,Javier Baez,False
+2022,13,3,0,Buck Showalter,Tyler O'Neill,False
+2022,13,4,0,Daisy + Shay Bel-Airs,Rhys Hoskins,False
+2022,13,5,0,The G.O.A.T,Jesse Winker,False
+2022,13,6,0,The Basitt Hounds,Tarik Skubal,False
+2022,13,7,0,Delray Beach Air Biscuits,Giovanny Gallegos,False
+2022,13,8,0,Smokin' Bases,Framber Valdez,False
+2022,13,9,0,MOArch Redbirds,Josh Bell,False
+2022,13,10,0,Wander Vision,Logan Gilbert,False
+2022,14,1,0,Wander Vision,Hunter Renfroe,False
+2022,14,2,0,MOArch Redbirds,Seiya Suzuki,False
+2022,14,3,0,Smokin' Bases,Jake Cronenworth,False
+2022,14,4,0,Delray Beach Air Biscuits,Tommy Edman,False
+2022,14,5,0,The Basitt Hounds,Luis Castillo,False
+2022,14,6,0,The G.O.A.T,Jazz Chisholm Jr.,False
+2022,14,7,0,Daisy + Shay Bel-Airs,Adalberto Mondesi,False
+2022,14,8,0,Buck Showalter,Adam Wainwright,False
+2022,14,9,0,Lisa dANN,Noah Syndergaard,False
+2022,14,10,0,Cream City Cowtippers,Sonny Gray,False
+2022,15,1,0,Cream City Cowtippers,Ty France,False
+2022,15,2,0,Lisa dANN,Matt Chapman,False
+2022,15,3,0,Buck Showalter,Ryan Mountcastle,False
+2022,15,4,0,Daisy + Shay Bel-Airs,Randy Arozarena,False
+2022,15,5,0,The G.O.A.T,Lourdes Gurriel Jr.,False
+2022,15,6,0,The Basitt Hounds,John Means,False
+2022,15,7,0,Delray Beach Air Biscuits,Jordan Montgomery,False
+2022,15,8,0,Smokin' Bases,Michael Kopech,False
+2022,15,9,0,MOArch Redbirds,German Marquez,False
+2022,15,10,0,Wander Vision,Hyun Jin Ryu,False
+2022,16,1,0,Wander Vision,Keibert Ruiz,False
+2022,16,2,0,MOArch Redbirds,Luis Severino,False
+2022,16,3,0,Smokin' Bases,Taylor Rogers,False
+2022,16,4,0,Delray Beach Air Biscuits,C.J. Cron,False
+2022,16,5,0,The Basitt Hounds,Tyler Rogers,False
+2022,16,6,0,The G.O.A.T,Corey Knebel,False
+2022,16,7,0,Daisy + Shay Bel-Airs,Tanner Houck,False
+2022,16,8,0,Buck Showalter,Gary Sanchez,False
+2022,16,9,0,Lisa dANN,Myles Straw,False
+2022,16,10,0,Cream City Cowtippers,Josh Donaldson,False
+2022,17,1,0,Cream City Cowtippers,Jake McGee,False
+2022,17,2,0,Lisa dANN,Mike Clevinger,False
+2022,17,3,0,Buck Showalter,Triston McKenzie,False
+2022,17,4,0,Daisy + Shay Bel-Airs,Lou Trivino,False
+2022,17,5,0,The G.O.A.T,Cavan Biggio,False
+2022,17,6,0,The Basitt Hounds,Anthony DeSclafani,False
+2022,17,7,0,Delray Beach Air Biscuits,Ranger Suarez,False
+2022,17,8,0,Smokin' Bases,Aaron Civale,False
+2022,17,9,0,MOArch Redbirds,Alex Verdugo,False
+2022,17,10,0,Wander Vision,Scott Barlow,False
+2022,18,1,0,Wander Vision,Chris Sale,False
+2022,18,2,0,MOArch Redbirds,Justin Turner,False
+2022,18,3,0,Smokin' Bases,Joey Gallo,False
+2022,18,4,0,Delray Beach Air Biscuits,Bailey Ober,False
+2022,18,5,0,The Basitt Hounds,Alex Wood,False
+2022,18,6,0,The G.O.A.T,Trent Grisham,False
+2022,18,7,0,Daisy + Shay Bel-Airs,Jared Walsh,False
+2022,18,8,0,Buck Showalter,Adley Rutschman,False
+2022,18,9,0,Lisa dANN,Alex Cobb,False
+2022,18,10,0,Cream City Cowtippers,Charlie Blackmon,False
+2022,19,1,0,Cream City Cowtippers,Jon Gray,False
+2022,19,2,0,Lisa dANN,Tyler Stephenson,False
+2022,19,3,0,Buck Showalter,Andrew Heaney,False
+2022,19,4,0,Daisy + Shay Bel-Airs,Jose Urquidy,False
+2022,19,5,0,The G.O.A.T,Corey Kluber,False
+2022,19,6,0,The Basitt Hounds,Joe Ryan,False
+2022,19,7,0,Delray Beach Air Biscuits,Cal Quantrill,False
+2022,19,8,0,Smokin' Bases,Andrew Kittredge,False
+2022,19,9,0,MOArch Redbirds,Franmil Reyes,False
+2022,19,10,0,Wander Vision,Eddie Rosario,False
+2022,20,1,0,Wander Vision,Jack Flaherty,False
+2022,20,2,0,MOArch Redbirds,Jean Segura,False
+2022,20,3,0,Smokin' Bases,Willson Contreras,False
+2022,20,4,0,Delray Beach Air Biscuits,Kyle Hendricks,False
+2022,20,5,0,The Basitt Hounds,Zack Greinke,False
+2022,20,6,0,The G.O.A.T,Trevor Bauer,False
+2022,20,7,0,Daisy + Shay Bel-Airs,Mark Melancon,False
+2022,20,8,0,Buck Showalter,Jorge Soler,False
+2022,20,9,0,Lisa dANN,Ke'Bryan Hayes,False
+2022,20,10,0,Cream City Cowtippers,Omar Narvaez,False
+2022,21,1,0,Cream City Cowtippers,Devin Williams,False
+2022,21,2,0,Lisa dANN,Tyler Matzek,False
+2022,21,3,0,Buck Showalter,Chris Taylor,False
+2022,21,4,0,Daisy + Shay Bel-Airs,Matt Barnes,False
+2022,21,5,0,The G.O.A.T,Cole Irvin,False
+2022,21,6,0,The Basitt Hounds,Tony Gonsolin,False
+2022,21,7,0,Delray Beach Air Biscuits,Austin Meadows,False
+2022,21,8,0,Smokin' Bases,Casey Mize,False
+2022,21,9,0,MOArch Redbirds,Willy Adames,False
+2022,21,10,0,Wander Vision,Joe Barlow,False
+2022,22,1,0,Wander Vision,Will Smith,False
+2022,22,2,0,MOArch Redbirds,Drew Rasmussen,False
+2022,22,3,0,Smokin' Bases,Patrick Sandoval,False
+2022,22,4,0,Delray Beach Air Biscuits,Blake Treinen,False
+2022,22,5,0,The Basitt Hounds,Genesis Cabrera,False
+2022,22,6,0,The G.O.A.T,Miles Mikolas,False
+2022,22,7,0,Daisy + Shay Bel-Airs,Huascar Ynoa,False
+2022,22,8,0,Buck Showalter,Zach Plesac,False
+2022,22,9,0,Lisa dANN,Mitch Garver,False
+2022,22,10,0,Cream City Cowtippers,Carlos Carrasco,False
+2022,23,1,0,Cream City Cowtippers,Joey Votto,False
+2022,23,2,0,Lisa dANN,Garrett Whitlock,False
+2022,23,3,0,Buck Showalter,Patrick Corbin,False
+2022,23,4,0,Daisy + Shay Bel-Airs,Camilo Doval,False
+2022,23,5,0,The G.O.A.T,Madison Bumgarner,False
+2022,23,6,0,The Basitt Hounds,Adam Ottavino,False
+2022,23,7,0,Delray Beach Air Biscuits,Chris Flexen,False
+2022,23,8,0,Smokin' Bases,Chad Green,False
+2022,23,9,0,MOArch Redbirds,Michael Brantley,False
+2022,23,10,0,Wander Vision,David Peralta,False
+2022,24,1,0,Wander Vision,Spencer Torkelson,False
+2022,24,2,0,MOArch Redbirds,Marco Gonzales,False
+2022,24,3,0,Smokin' Bases,Hunter Greene,False
+2022,24,4,0,Delray Beach Air Biscuits,Randal Grichuk,False
+2022,24,5,0,The Basitt Hounds,Alex Kirilloff,False
+2022,24,6,0,The G.O.A.T,Paul Sewald,False
+2022,24,7,0,Daisy + Shay Bel-Airs,Shane Baz,False
+2022,24,8,0,Buck Showalter,Steven Matz,False
+2022,24,9,0,Lisa dANN,Yusei Kikuchi,False
+2022,24,10,0,Cream City Cowtippers,Brendan Rodgers,False

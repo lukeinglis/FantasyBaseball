@@ -36,8 +36,14 @@ NEGATIVE_CATS = {"L", "ERA", "WHIP"}
 def load_matchup_data():
     """
     Load weekly category W/L results from seasons/YYYY/matchups.csv.
-    Aggregate to team-season level: win% per category.
-    Returns None if no matchup files are found.
+
+    Schema (from fetch_espn_history.py):
+      year, week, team, opponent, cats_won, cats_lost, cats_tied,
+      {CAT}_value, {CAT}_result  (result: 1=win, 0=tie, -1=loss)
+
+    Aggregates to team-season level:
+      - per-category win% (treats tie as 0.5)
+      - overall matchup win% (cats_won > cats_lost = win)
     """
     frames = []
     for year_dir in sorted(SEASONS_DIR.iterdir()):
@@ -46,7 +52,9 @@ def load_matchup_data():
             continue
         try:
             df = pd.read_csv(path)
-            df["year"] = int(year_dir.name)
+            # Skip years with no data (e.g. 2020 COVID season)
+            if len(df) == 0:
+                continue
             frames.append(df)
         except Exception as e:
             print(f"  Could not read {path}: {e}")
@@ -55,31 +63,28 @@ def load_matchup_data():
         return None
 
     df = pd.concat(frames, ignore_index=True)
+    available_cats = [c for c in ALL_CATS if f"{c}_result" in df.columns]
     print(f"  Matchup data: {len(df)} team-week rows across {df['year'].nunique()} seasons")
+    print(f"  Categories available: {available_cats}")
 
-    # Build cat_win columns: 1 = won category, 0 = lost, None = missing
-    win_cols = [f"{c}_win" for c in ALL_CATS if f"{c}_win" in df.columns]
-    available_cats = [c for c in ALL_CATS if f"{c}_win" in df.columns]
+    # Derive overall matchup result per week: win if cats_won > cats_lost
+    df["matchup_win"] = (df["cats_won"] > df["cats_lost"]).astype(float)
+    df.loc[df["cats_won"] == df["cats_lost"], "matchup_win"] = 0.5
 
-    # Aggregate to team-season: cat win%, overall win%
-    agg = {}
-    for cat in available_cats:
-        col = f"{cat}_win"
-        agg[f"{cat}_winpct"] = (col, lambda x: x.dropna().mean())
-
-    # Also need overall matchup W/L — proxy as cats_won > (total cats / 2)
-    # But we may not have this directly; derive from category wins if needed
+    # Aggregate to team-season
     season_rows = []
     for (year, team), grp in df.groupby(["year", "team"]):
         row = {"year": year, "team": team}
+        row["overall_winpct"] = grp["matchup_win"].mean()
         for cat in available_cats:
-            col = f"{cat}_win"
+            col = f"{cat}_result"
             vals = grp[col].dropna()
-            row[f"{cat}_winpct"] = vals.mean() if len(vals) > 0 else None
-        # Overall win% from standings if cats_won not available
-        if "cats_won" in grp.columns and grp["cats_won"].notna().any():
-            total_possible = len(ALL_CATS) * len(grp)
-            row["overall_winpct"] = grp["cats_won"].sum() / total_possible if total_possible else None
+            if len(vals) > 0:
+                # Convert 1/0/-1 to win%: win=1, tie=0.5, loss=0
+                win_pct = ((vals == 1).sum() + 0.5 * (vals == 0).sum()) / len(vals)
+                row[f"{cat}_winpct"] = round(win_pct, 4)
+            else:
+                row[f"{cat}_winpct"] = None
         season_rows.append(row)
 
     return pd.DataFrame(season_rows), available_cats
