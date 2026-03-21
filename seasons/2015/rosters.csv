@@ -1,0 +1,276 @@
+year,team,player_name,position,eligible_slots,pro_team
+2015,Pedroia Owns U,Edwin Encarnacion,2B,"1B,1B/3B,DH,UTIL,BE,IL,IF",Tor
+2015,Pedroia Owns U,Ryan Braun,LF,"OF,RF,UTIL,BE,IL",Mil
+2015,Pedroia Owns U,Carlos Gonzalez,2B/SS,"OF,LF,RF,UTIL,BE,IL",Col
+2015,Pedroia Owns U,Evan Longoria,SS,"3B,1B/3B,DH,UTIL,BE,IL,IF",TB
+2015,Pedroia Owns U,Dustin Pedroia,3B,"2B,2B/SS,UTIL,BE,IL,IF",Bos
+2015,Pedroia Owns U,Jacob deGrom,C,"P,SP,BE,IL",NYM
+2015,Pedroia Owns U,Michael Wacha,C,"P,SP,BE,IL",StL
+2015,Pedroia Owns U,Alex Gordon,2B/SS,"OF,LF,UTIL,BE,IL",KC
+2015,Pedroia Owns U,Yadier Molina,1B,"C,UTIL,BE,IL",StL
+2015,Pedroia Owns U,Elvis Andrus,OF,"SS,2B/SS,UTIL,BE,IL,IF",Tex
+2015,Pedroia Owns U,Matt Carpenter,SS,"2B,3B,2B/SS,1B/3B,UTIL,BE,IL,IF",StL
+2015,Pedroia Owns U,Michael Pineda,C,"P,SP,BE,IL",NYY
+2015,Pedroia Owns U,Fernando Rodney,RF,"P,RP,BE,IL",ChC
+2015,Pedroia Owns U,James Paxton,C,"P,SP,BE,IL",Sea
+2015,Pedroia Owns U,Jeurys Familia,RF,"P,RP,BE,IL",NYM
+2015,Pedroia Owns U,Kendrys Morales,2B,"1B,1B/3B,DH,UTIL,BE,IL,IF",KC
+2015,Pedroia Owns U,Nick Martinez,RF,"P,SP,RP,BE,IL",Tex
+2015,Pedroia Owns U,Chase Anderson,C,"P,SP,BE,IL",Ari
+2015,Pedroia Owns U,Mike Bolsinger,RF,"P,SP,RP,BE,IL",LAD
+2015,Pedroia Owns U,Lance McCullers,C,"P,SP,BE,IL",Hou
+2015,Pedroia Owns U,Yasmany Tomas,LF,"3B,OF,1B/3B,RF,UTIL,BE,IL,IF",Ari
+2015,Pedroia Owns U,Mike Montgomery,C,"P,SP,BE,IL",Sea
+2015,Pedroia Owns U,Neil Walker,3B,"2B,2B/SS,UTIL,BE,IL,IF",NYM
+2015,Pedroia Owns U,Erasmo Ramirez,RF,"P,SP,RP,BE,IL",TB
+2015,Magic Man,Mike Trout,1B/3B,"OF,CF,UTIL,BE,IL",LAA
+2015,Magic Man,Adrian Beltre,SS,"3B,1B/3B,UTIL,BE,IL,IF",Tex
+2015,Magic Man,Cole Hamels,C,"P,SP,BE,IL",Tex
+2015,Magic Man,Masahiro Tanaka,C,"P,SP,BE,IL",NYY
+2015,Magic Man,Joey Votto,2B,"1B,1B/3B,UTIL,BE,IL,IF",Cin
+2015,Magic Man,Francisco Liriano,C,"P,SP,BE,IL",Pit
+2015,Magic Man,Shelby Miller,C,"P,SP,BE,IL",Ari
+2015,Magic Man,Russell Martin,1B,"C,UTIL,BE,IL",Tor
+2015,Magic Man,Carlos Martinez,C,"P,SP,RP,BE,IL",StL
+2015,Magic Man,Robinson Cano,3B,"2B,2B/SS,UTIL,BE,IL,IF",Sea
+2015,Magic Man,Noah Syndergaard,C,"P,SP,BE,IL",NYM
+2015,Magic Man,Carlos Correa,OF,"SS,2B/SS,UTIL,BE,IL,IF",Hou
+2015,Magic Man,Jordan Zimmermann,C,"P,SP,BE,IL",Det
+2015,Magic Man,Jason Heyward,LF,"OF,CF,RF,UTIL,BE,IL",ChC
+2015,Magic Man,Kevin Gausman,C,"P,SP,RP,BE,IL",Bal
+2015,Magic Man,Felix Hernandez,C,"P,SP,BE,IL",Sea
+2015,Magic Man,George Springer,LF,"OF,CF,RF,UTIL,BE,IL",Hou
+2015,Magic Man,Mitch Moreland,2B,"1B,1B/3B,DH,UTIL,BE,IL,IF",Tex
+2015,Magic Man,Curtis Granderson,LF,"OF,RF,UTIL,BE,IL",NYM
+2015,Magic Man,Jake Peavy,C,"P,SP,BE,IL",SF
+2015,Magic Man,Josh Harrison,LF,"2B,3B,OF,2B/SS,1B/3B,LF,RF,UTIL,BE,IL,IF",Pit
+2015,Magic Man,Carlos Beltran,LF,"OF,RF,DH,UTIL,BE,IL",NYY
+2015,NY GMY's,Andrew McCutchen,1B/3B,"OF,CF,UTIL,BE,IL",Pit
+2015,NY GMY's,David Price,C,"P,SP,BE,IL",Bos
+2015,NY GMY's,Josh Donaldson,SS,"3B,1B/3B,UTIL,BE,IL,IF",Tor
+2015,NY GMY's,Todd Frazier,SS,"1B,3B,1B/3B,UTIL,BE,IL,IF",ChW
+2015,NY GMY's,Carlos Carrasco,C,"P,SP,RP,BE,IL",Cle
+2015,NY GMY's,David Robertson,RF,"P,RP,BE,IL",ChW
+2015,NY GMY's,Lance Lynn,C,"P,SP,BE,IL",StL
+2015,NY GMY's,Stephen Vogt,2B,"C,1B,1B/3B,UTIL,BE,IL,IF",Oak
+2015,NY GMY's,Steven Matz,C,"P,SP,BE,IL",NYM
+2015,NY GMY's,Jay Bruce,LF,"OF,RF,UTIL,BE,IL",Cin
+2015,NY GMY's,Corey Kluber,C,"P,SP,BE,IL",Cle
+2015,NY GMY's,Troy Tulowitzki,OF,"SS,2B/SS,UTIL,BE,IL,IF",Tor
+2015,NY GMY's,Adam Lind,2B,"1B,1B/3B,DH,UTIL,BE,IL,IF",Sea
+2015,NY GMY's,Mark Trumbo,2B,"1B,OF,1B/3B,LF,RF,DH,UTIL,BE,IL,IF",Bal
+2015,NY GMY's,Daniel Murphy,3B,"1B,2B,3B,2B/SS,1B/3B,UTIL,BE,IL,IF",Wsh
+2015,NY GMY's,Delino DeShields,3B,"2B,OF,2B/SS,LF,CF,UTIL,BE,IL,IF",Tex
+2015,NY GMY's,Byron Buxton,1B/3B,"OF,CF,UTIL,BE,IL",Min
+2015,NY GMY's,Francisco Cervelli,1B,"C,UTIL,BE,IL",Pit
+2015,NY GMY's,Brett Anderson,C,"P,SP,BE,IL",LAD
+2015,NY GMY's,Drew Hutchison,C,"P,SP,BE,IL",Tor
+2015,NY GMY's,David Peralta,2B/SS,"OF,LF,RF,UTIL,BE,IL",Ari
+2015,NY GMY's,Joe Kelly,C,"P,SP,BE,IL",Bos
+2015,Smokin' Bases,Jose Bautista,LF,"OF,RF,DH,UTIL,BE,IL",Tor
+2015,Smokin' Bases,Michael Brantley,2B/SS,"OF,LF,CF,DH,UTIL,BE,IL",Cle
+2015,Smokin' Bases,Adrian Gonzalez,2B,"1B,1B/3B,UTIL,BE,IL,IF",LAD
+2015,Smokin' Bases,Kyle Seager,SS,"3B,1B/3B,UTIL,BE,IL,IF",Sea
+2015,Smokin' Bases,Christian Yelich,2B/SS,"OF,LF,CF,UTIL,BE,IL",Mia
+2015,Smokin' Bases,Hisashi Iwakuma,C,"P,SP,BE,IL",Sea
+2015,Smokin' Bases,Alex Wood,C,"P,SP,RP,BE,IL",LAD
+2015,Smokin' Bases,Xander Bogaerts,SS,"3B,SS,2B/SS,1B/3B,UTIL,BE,IL,IF",Bos
+2015,Smokin' Bases,Dellin Betances,RF,"P,RP,BE,IL",NYY
+2015,Smokin' Bases,Jake Odorizzi,C,"P,SP,BE,IL",TB
+2015,Smokin' Bases,Hector Santiago,RF,"P,SP,RP,BE,IL",LAA
+2015,Smokin' Bases,Kenley Jansen,RF,"P,RP,BE,IL",LAD
+2015,Smokin' Bases,Logan Forsythe,3B,"1B,2B,2B/SS,1B/3B,DH,UTIL,BE,IL,IF",TB
+2015,Smokin' Bases,David Ortiz,CF,"DH,UTIL,BE,IL",Bos
+2015,Smokin' Bases,Miguel Sano,SS,"3B,1B/3B,DH,UTIL,BE,IL,IF",Min
+2015,Smokin' Bases,Danny Salazar,C,"P,SP,BE,IL",Cle
+2015,Smokin' Bases,Shawn Tolleson,RF,"P,RP,BE,IL",Tex
+2015,Smokin' Bases,Ken Giles,RF,"P,RP,BE,IL",Hou
+2015,Smokin' Bases,Nick Hundley,1B,"C,UTIL,BE,IL",Col
+2015,Smokin' Bases,Rusney Castillo,1B/3B,"OF,LF,CF,RF,UTIL,BE,IL",Bos
+2015,Smokin' Bases,Raisel Iglesias,C,"P,SP,BE,IL",Cin
+2015,Smokin' Bases,Kyle Gibson,C,"P,SP,BE,IL",Min
+2015,Fear The Beards,Giancarlo Stanton,LF,"OF,RF,UTIL,BE,IL",Mia
+2015,Fear The Beards,Madison Bumgarner,C,"P,SP,BE,IL",SF
+2015,Fear The Beards,Johnny Cueto,C,"P,SP,BE,IL",SF
+2015,Fear The Beards,Starling Marte,2B/SS,"OF,LF,CF,UTIL,BE,IL",Pit
+2015,Fear The Beards,Gerrit Cole,C,"P,SP,BE,IL",Pit
+2015,Fear The Beards,Carlos Santana,SS,"1B,3B,1B/3B,DH,UTIL,BE,IL,IF",Cle
+2015,Fear The Beards,Evan Gattis,1B,"C,OF,LF,DH,UTIL,BE,IL",Hou
+2015,Fear The Beards,Kolten Wong,3B,"2B,2B/SS,UTIL,BE,IL,IF",StL
+2015,Fear The Beards,Erick Aybar,OF,"SS,2B/SS,UTIL,BE,IL,IF",Atl
+2015,Fear The Beards,Mike Moustakas,SS,"3B,1B/3B,UTIL,BE,IL,IF",KC
+2015,Fear The Beards,Santiago Casilla,RF,"P,RP,BE,IL",SF
+2015,Fear The Beards,Mark Teixeira,2B,"1B,1B/3B,UTIL,BE,IL,IF",NYY
+2015,Fear The Beards,Melky Cabrera,2B/SS,"OF,LF,UTIL,BE,IL",ChW
+2015,Fear The Beards,Craig Kimbrel,RF,"P,RP,BE,IL",Bos
+2015,Fear The Beards,Nathan Eovaldi,C,"P,SP,BE,IL",NYY
+2015,Fear The Beards,Collin McHugh,C,"P,SP,BE,IL",Hou
+2015,Fear The Beards,Tommy Milone,C,"P,SP,BE,IL",Min
+2015,Fear The Beards,Ben Zobrist,3B,"2B,SS,OF,2B/SS,LF,UTIL,BE,IL,IF",ChC
+2015,Fear The Beards,Jonathon Niese,C,"P,SP,BE,IL",Pit
+2015,Fear The Beards,Gregory Polanco,LF,"OF,RF,UTIL,BE,IL",Pit
+2015,Fear The Beards,Charlie Morton,C,"P,SP,BE,IL",Phi
+2015,Fear The Beards,Travis Shaw,SS,"1B,3B,1B/3B,UTIL,BE,IL,IF",Bos
+2015,Fear The Beards,Julio Teheran,C,"P,SP,BE,IL",Atl
+2015,Fear The Beards,Ryan Zimmerman,SS,"1B,3B,OF,1B/3B,LF,UTIL,BE,IL,IF",Wsh
+2015,THE  SAUCE,Jose Abreu,2B,"1B,1B/3B,DH,UTIL,BE,IL,IF",ChW
+2015,THE  SAUCE,Anthony Rizzo,2B,"1B,1B/3B,UTIL,BE,IL,IF",ChC
+2015,THE  SAUCE,Gio Gonzalez,C,"P,SP,BE,IL",Wsh
+2015,THE  SAUCE,Garrett Richards,C,"P,SP,BE,IL",LAA
+2015,THE  SAUCE,J.D. Martinez,2B/SS,"OF,LF,RF,DH,UTIL,BE,IL",Det
+2015,THE  SAUCE,Scott Kazmir,C,"P,SP,BE,IL",LAD
+2015,THE  SAUCE,Travis d'Arnaud,1B,"C,UTIL,BE,IL",NYM
+2015,THE  SAUCE,Carlos Rodon,C,"P,SP,BE,IL",ChW
+2015,THE  SAUCE,Carlos Gomez,1B/3B,"OF,CF,UTIL,BE,IL",Hou
+2015,THE  SAUCE,Taijuan Walker,C,"P,SP,BE,IL",Sea
+2015,THE  SAUCE,Mat Latos,C,"P,SP,BE,IL",LAA
+2015,THE  SAUCE,Hanley Ramirez,OF,"SS,OF,2B/SS,LF,DH,UTIL,BE,IL,IF",Bos
+2015,THE  SAUCE,Josh Hamilton,2B/SS,"OF,LF,RF,UTIL,BE,IL",Tex
+2015,THE  SAUCE,Cody Anderson,C,"P,SP,BE,IL",Cle
+2015,THE  SAUCE,Roberto Osuna,C,"P,SP,RP,BE,IL",Tor
+2015,THE  SAUCE,Brad Ziegler,RF,"P,RP,BE,IL",Ari
+2015,THE  SAUCE,Aaron Nola,C,"P,SP,RP,BE,IL",Phi
+2015,THE  SAUCE,Jung Ho Kang,OF,"3B,SS,2B/SS,1B/3B,UTIL,BE,IL,IF",Pit
+2015,THE  SAUCE,Ian Desmond,OF,"SS,2B/SS,UTIL,BE,IL,IF",Wsh
+2015,THE  SAUCE,Brandon Phillips,3B,"2B,2B/SS,UTIL,BE,IL,IF",Cin
+2015,THE  SAUCE,Adam Eaton,1B/3B,"OF,CF,UTIL,BE,IL",ChW
+2015,THE  SAUCE,Keyvius Sampson,C,"P,SP,BE,IL",Cin
+2015,Real Men of Genius,Miguel Cabrera,2B,"1B,1B/3B,DH,UTIL,BE,IL,IF",Det
+2015,Real Men of Genius,Adam Jones,1B/3B,"OF,CF,UTIL,BE,IL",Bal
+2015,Real Men of Genius,Buster Posey,1B,"C,1B,1B/3B,UTIL,BE,IL,IF",SF
+2015,Real Men of Genius,Justin Upton,2B/SS,"OF,LF,UTIL,BE,IL",Det
+2015,Real Men of Genius,Billy Hamilton,1B/3B,"OF,CF,UTIL,BE,IL",Cin
+2015,Real Men of Genius,Ian Kinsler,3B,"2B,2B/SS,UTIL,BE,IL,IF",Det
+2015,Real Men of Genius,Nolan Arenado,SS,"3B,1B/3B,UTIL,BE,IL,IF",Col
+2015,Real Men of Genius,Mark Melancon,RF,"P,RP,BE,IL",Pit
+2015,Real Men of Genius,Trevor Rosenthal,RF,"P,RP,BE,IL",StL
+2015,Real Men of Genius,Yordano Ventura,C,"P,SP,BE,IL",KC
+2015,Real Men of Genius,Anibal Sanchez,C,"P,SP,BE,IL",Det
+2015,Real Men of Genius,Jose Quintana,C,"P,SP,BE,IL",ChW
+2015,Real Men of Genius,Eric Hosmer,2B,"1B,1B/3B,UTIL,BE,IL,IF",KC
+2015,Real Men of Genius,Jonathan Papelbon,RF,"P,RP,BE,IL",Wsh
+2015,Real Men of Genius,Mike Leake,C,"P,SP,BE,IL",StL
+2015,Real Men of Genius,Edinson Volquez,C,"P,SP,BE,IL",KC
+2015,Real Men of Genius,Josh Reddick,LF,"OF,RF,UTIL,BE,IL",Oak
+2015,Real Men of Genius,Colby Lewis,C,"P,SP,BE,IL",Tex
+2015,Real Men of Genius,Patrick Corbin,C,"P,SP,BE,IL",Ari
+2015,Real Men of Genius,Brandon Crawford,OF,"SS,2B/SS,UTIL,BE,IL,IF",SF
+2015,Real Men of Genius,Gerardo Parra,LF,"OF,LF,CF,RF,UTIL,BE,IL",Col
+2015,Real Men of Genius,Tom Koehler,C,"P,SP,BE,IL",Mia
+2015,Real Men of Genius,Yunel Escobar,OF,"3B,SS,2B/SS,1B/3B,UTIL,BE,IL,IF",LAA
+2015,Harley - Simons Inc.,Freddie Freeman,2B,"1B,1B/3B,UTIL,BE,IL,IF",Atl
+2015,Harley - Simons Inc.,Jacoby Ellsbury,1B/3B,"OF,CF,UTIL,BE,IL",NYY
+2015,Harley - Simons Inc.,Corey Dickerson,2B/SS,"OF,LF,UTIL,BE,IL",Col
+2015,Harley - Simons Inc.,Aroldis Chapman,RF,"P,RP,BE,IL",NYY
+2015,Harley - Simons Inc.,James Shields,C,"P,SP,BE,IL",SD
+2015,Harley - Simons Inc.,Greg Holland,RF,"P,RP,BE,IL",KC
+2015,Harley - Simons Inc.,Mookie Betts,1B/3B,"OF,CF,RF,UTIL,BE,IL",Bos
+2015,Harley - Simons Inc.,Salvador Perez,1B,"C,UTIL,BE,IL",KC
+2015,Harley - Simons Inc.,Glen Perkins,RF,"P,RP,BE,IL",Min
+2015,Harley - Simons Inc.,Mike Fiers,C,"P,SP,BE,IL",Hou
+2015,Harley - Simons Inc.,Jean Segura,OF,"SS,2B/SS,UTIL,BE,IL,IF",Mil
+2015,Harley - Simons Inc.,Jhonny Peralta,OF,"SS,2B/SS,UTIL,BE,IL,IF",StL
+2015,Harley - Simons Inc.,Dee Gordon,3B,"2B,2B/SS,UTIL,BE,IL,IF",Mia
+2015,Harley - Simons Inc.,Matt Harvey,C,"P,SP,BE,IL",NYM
+2015,Harley - Simons Inc.,Brandon Belt,2B,"1B,OF,1B/3B,LF,UTIL,BE,IL,IF",SF
+2015,Harley - Simons Inc.,Matt Duffy,3B,"2B,3B,2B/SS,1B/3B,UTIL,BE,IL,IF",SF
+2015,Harley - Simons Inc.,Matt Wisler,C,"P,SP,BE,IL",Atl
+2015,Harley - Simons Inc.,Alex Rios,LF,"OF,RF,UTIL,BE,IL",KC
+2015,Harley - Simons Inc.,Joe Ross,C,"P,SP,BE,IL",Wsh
+2015,Harley - Simons Inc.,Jimmy Nelson,C,"P,SP,BE,IL",Mil
+2015,Harley - Simons Inc.,Luis Severino,C,"P,SP,BE,IL",NYY
+2015,Harley - Simons Inc.,Nick Markakis,LF,"OF,RF,UTIL,BE,IL",Atl
+2015,Harley - Simons Inc.,Aaron Brooks,RF,"P,SP,RP,BE,IL",Oak
+2015,Harley - Simons Inc.,Chris Bassitt,RF,"P,SP,RP,BE,IL",Oak
+2015,Buck Showalter,Clayton Kershaw,C,"P,SP,BE,IL",LAD
+2015,Buck Showalter,Chris Sale,C,"P,SP,BE,IL",ChW
+2015,Buck Showalter,Bryce Harper,2B/SS,"OF,LF,CF,RF,UTIL,BE,IL",Wsh
+2015,Buck Showalter,Yoenis Cespedes,2B/SS,"OF,LF,CF,DH,UTIL,BE,IL",NYM
+2015,Buck Showalter,Nelson Cruz,2B/SS,"OF,LF,RF,DH,UTIL,BE,IL",Sea
+2015,Buck Showalter,Jonathan Lucroy,1B,"C,UTIL,BE,IL",Mil
+2015,Buck Showalter,Prince Fielder,2B,"1B,1B/3B,DH,UTIL,BE,IL,IF",Tex
+2015,Buck Showalter,Jason Kipnis,3B,"2B,2B/SS,DH,UTIL,BE,IL,IF",Cle
+2015,Buck Showalter,Zach Britton,RF,"P,RP,BE,IL",Bal
+2015,Buck Showalter,Chris Tillman,C,"P,SP,BE,IL",Bal
+2015,Buck Showalter,Dallas Keuchel,C,"P,SP,BE,IL",Hou
+2015,Buck Showalter,Francisco Rodriguez,RF,"P,RP,BE,IL",Det
+2015,Buck Showalter,Andrew Miller,RF,"P,RP,BE,IL",NYY
+2015,Buck Showalter,Lorenzo Cain,1B/3B,"OF,CF,RF,UTIL,BE,IL",KC
+2015,Buck Showalter,Alex Rodriguez,SS,"3B,1B/3B,DH,UTIL,BE,IL,IF",NYY
+2015,Buck Showalter,A.J. Burnett,C,"P,SP,BE,IL",Pit
+2015,Buck Showalter,Cesar Hernandez,1B/3B,"2B,3B,SS,OF,2B/SS,1B/3B,CF,UTIL,BE,IL,IF",Phi
+2015,Buck Showalter,Marco Estrada,C,"P,SP,RP,BE,IL",Tor
+2015,Buck Showalter,R.A. Dickey,C,"P,SP,BE,IL",Tor
+2015,Buck Showalter,Dan Haren,C,"P,SP,BE,IL",ChC
+2015,Buck Showalter,Brad Boxberger,RF,"P,RP,BE,IL",TB
+2015,Buck Showalter,Didi Gregorius,OF,"SS,2B/SS,UTIL,BE,IL,IF",NYY
+2015,Buck Showalter,Marcus Semien,SS,"2B,3B,SS,2B/SS,1B/3B,UTIL,BE,IL,IF",Oak
+2015,Triple A  Titties ,Paul Goldschmidt,2B,"1B,1B/3B,UTIL,BE,IL,IF",Ari
+2015,Triple A  Titties ,Max Scherzer,C,"P,SP,BE,IL",Wsh
+2015,Triple A  Titties ,Stephen Strasburg,C,"P,SP,BE,IL",Wsh
+2015,Triple A  Titties ,Anthony Rendon,3B,"2B,3B,2B/SS,1B/3B,UTIL,BE,IL,IF",Wsh
+2015,Triple A  Titties ,Kris Bryant,SS,"3B,OF,1B/3B,LF,UTIL,BE,IL,IF",ChC
+2015,Triple A  Titties ,Starlin Castro,OF,"2B,SS,2B/SS,UTIL,BE,IL,IF",NYY
+2015,Triple A  Titties ,Brandon Moss,2B,"1B,OF,1B/3B,LF,RF,UTIL,BE,IL,IF",StL
+2015,Triple A  Titties ,Jake Arrieta,C,"P,SP,BE,IL",ChC
+2015,Triple A  Titties ,Jorge Soler,LF,"OF,RF,UTIL,BE,IL",ChC
+2015,Triple A  Titties ,Brian McCann,1B,"C,1B,1B/3B,UTIL,BE,IL,IF",NYY
+2015,Triple A  Titties ,Justin Verlander,C,"P,SP,BE,IL",Det
+2015,Triple A  Titties ,Jason Hammel,C,"P,SP,BE,IL",ChC
+2015,Triple A  Titties ,Trevor Bauer,C,"P,SP,BE,IL",Cle
+2015,Triple A  Titties ,DJ LeMahieu,3B,"2B,2B/SS,UTIL,BE,IL,IF",Col
+2015,Triple A  Titties ,Mark Buehrle,C,"P,SP,BE,IL",Tor
+2015,Triple A  Titties ,Eduardo Rodriguez,C,"P,SP,BE,IL",Bos
+2015,Triple A  Titties ,Matt Wieters,1B,"C,DH,UTIL,BE,IL",Bal
+2015,Triple A  Titties ,Chris Davis,2B,"1B,3B,OF,1B/3B,RF,DH,UTIL,BE,IL,IF",Bal
+2015,Triple A  Titties ,Cameron Maybin,1B/3B,"OF,CF,UTIL,BE,IL",Det
+2015,Triple A  Titties ,Luke Gregerson,RF,"P,RP,BE,IL",Hou
+2015,Triple A  Titties ,Bartolo Colon,C,"P,SP,BE,IL",NYM
+2015,Triple A  Titties ,Chris Rusin,RF,"P,SP,RP,BE,IL",Col
+2015,RollieFingers YerMom,Jose Altuve,3B,"2B,2B/SS,UTIL,BE,IL,IF",Hou
+2015,RollieFingers YerMom,Albert Pujols,2B,"1B,1B/3B,DH,UTIL,BE,IL,IF",LAA
+2015,RollieFingers YerMom,Jeff Samardzija,C,"P,SP,BE,IL",SF
+2015,RollieFingers YerMom,Manny Machado,SS,"3B,1B/3B,UTIL,BE,IL,IF",Bal
+2015,RollieFingers YerMom,Yan Gomes,1B,"C,UTIL,BE,IL",Cle
+2015,RollieFingers YerMom,Cody Allen,RF,"P,RP,BE,IL",Cle
+2015,RollieFingers YerMom,Brett Gardner,1B/3B,"OF,LF,CF,UTIL,BE,IL",NYY
+2015,RollieFingers YerMom,Wil Myers,LF,"1B,OF,1B/3B,CF,RF,UTIL,BE,IL,IF",SD
+2015,RollieFingers YerMom,Joakim Soria,RF,"P,RP,BE,IL",KC
+2015,RollieFingers YerMom,Miguel Gonzalez,C,"P,SP,BE,IL",Bal
+2015,RollieFingers YerMom,Jesse Chavez,C,"P,SP,RP,BE,IL",Tor
+2015,RollieFingers YerMom,Andrew Cashner,C,"P,SP,BE,IL",SD
+2015,RollieFingers YerMom,Clay Buchholz,C,"P,SP,BE,IL",Bos
+2015,RollieFingers YerMom,Billy Burns,1B/3B,"OF,CF,UTIL,BE,IL",Oak
+2015,RollieFingers YerMom,Avisail Garcia,LF,"OF,RF,DH,UTIL,BE,IL",ChW
+2015,RollieFingers YerMom,Zack Greinke,C,"P,SP,BE,IL",Ari
+2015,RollieFingers YerMom,Charlie Blackmon,LF,"OF,LF,CF,RF,UTIL,BE,IL",Col
+2015,RollieFingers YerMom,Jose Reyes,OF,"SS,2B/SS,UTIL,BE,IL,IF",Col
+2015,RollieFingers YerMom,Rougned Odor,3B,"2B,2B/SS,UTIL,BE,IL,IF",Tex
+2015,RollieFingers YerMom,Taylor Jungmann,C,"P,SP,BE,IL",Mil
+2015,RollieFingers YerMom,Dexter Fowler,1B/3B,"OF,CF,UTIL,BE,IL",ChC
+2015,RollieFingers YerMom,Ivan Nova,C,"P,SP,BE,IL",NYY
+2015,RollieFingers YerMom,Ian Kennedy,C,"P,SP,BE,IL",SD
+2015,RollieFingers YerMom,Derek Holland,C,"P,SP,BE,IL",Tex
+2015,Napoli  Headed Hoes,Jon Lester,C,"P,SP,BE,IL",ChC
+2015,Napoli  Headed Hoes,Victor Martinez,CF,"1B,1B/3B,DH,UTIL,BE,IL,IF",Det
+2015,Napoli  Headed Hoes,Brian Dozier,3B,"2B,2B/SS,UTIL,BE,IL,IF",Min
+2015,Napoli  Headed Hoes,Sonny Gray,C,"P,SP,BE,IL",Oak
+2015,Napoli  Headed Hoes,Tyson Ross,C,"P,SP,BE,IL",SD
+2015,Napoli  Headed Hoes,Kole Calhoun,LF,"OF,RF,UTIL,BE,IL",LAA
+2015,Napoli  Headed Hoes,Huston Street,RF,"P,RP,BE,IL",LAA
+2015,Napoli  Headed Hoes,Jose Fernandez,C,"P,SP,BE,IL",Mia
+2015,Napoli  Headed Hoes,Alcides Escobar,OF,"SS,2B/SS,UTIL,BE,IL,IF",KC
+2015,Napoli  Headed Hoes,John Lackey,C,"P,SP,BE,IL",ChC
+2015,Napoli  Headed Hoes,Yasmani Grandal,1B,"C,1B,1B/3B,UTIL,BE,IL,IF",LAD
+2015,Napoli  Headed Hoes,Matt Kemp,1B/3B,"OF,LF,CF,RF,UTIL,BE,IL",SD
+2015,Napoli  Headed Hoes,A.J. Pollock,1B/3B,"OF,CF,UTIL,BE,IL",Ari
+2015,Napoli  Headed Hoes,Chris Archer,C,"P,SP,BE,IL",TB
+2015,Napoli  Headed Hoes,Jaime Garcia,C,"P,SP,BE,IL",StL
+2015,Napoli  Headed Hoes,Kyle Schwarber,1B,"C,OF,LF,UTIL,BE,IL",ChC
+2015,Napoli  Headed Hoes,Hector Rondon,RF,"P,RP,BE,IL",ChC
+2015,Napoli  Headed Hoes,Jackie Bradley Jr.,1B/3B,"OF,LF,CF,RF,UTIL,BE,IL",Bos
+2015,Napoli  Headed Hoes,Nathan Karns,C,"P,SP,BE,IL",Sea
+2015,Napoli  Headed Hoes,Pedro Alvarez,SS,"1B,3B,1B/3B,UTIL,BE,IL,IF",Pit
+2015,Napoli  Headed Hoes,Stephen Piscotty,SS,"1B,3B,OF,1B/3B,LF,RF,UTIL,BE,IL,IF",StL
+2015,Napoli  Headed Hoes,Wilmer Flores,OF,"2B,SS,2B/SS,UTIL,BE,IL,IF",NYM
+2015,Napoli  Headed Hoes,Wade Davis,RF,"P,RP,BE,IL",KC

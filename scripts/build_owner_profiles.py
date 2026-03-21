@@ -19,32 +19,37 @@ from pathlib import Path
 warnings.filterwarnings("ignore")
 
 LEAGUE_ID    = 4739
-YEARS        = [2019, 2021, 2022, 2023, 2024, 2025]
+YEARS        = [2015, 2016, 2017, 2018, 2019, 2021, 2022, 2023, 2024, 2025]
 DATA_PATH    = Path("data/owner_history.csv")
 OWNERS_DIR   = Path("owners")
 
 # ESPN IDs for known co-owned teams — treat as single owner entry
 # Key = canonical owner name, value = list of ESPN owner IDs that belong to them
 CO_OWNER_MAP = {
-    # Luke's team — co-owned with Bob Inglis (family)
+    # Luke's team — co-owned with Lee Inglis (2015-2016) then Bob Inglis (2017+)
     "Luke Inglis": [
         "{E2C37AED-2B8C-4150-A45D-092D08BE8FE6}",  # luke inglis
-        "{48B9EEF2-716E-4CBC-AE39-EC9618EE4937}",  # Bob Inglis (co-owner)
+        "{48B9EEF2-716E-4CBC-AE39-EC9618EE4937}",  # Bob Inglis (co-owner 2017+)
+        "{A0CA0D72-6943-4600-8A0D-7269438600BE}",  # Lee Inglis (co-owner 2015-2016, old account)
     ],
     # Daisy + Shay Bel-Airs — Zack appears under two ESPN accounts
     "Zack Kirstein": [
         "{64116DDD-4476-4EE6-B5CC-9D453A1934CF}",  # Zack Kirstein
         "{DFA92E9D-84A3-4821-9A8C-C43863A5D05C}",  # Zachary Kirstein (same person)
     ],
-    # The Houston Asstros / Pfaadt Ass Trouts — co-owned by Roger & Lee Inglis
+    # Triple A Titties / Harper Barely Know Her / Houston Asstros — Roger & Lee Inglis
     "Roger Chaufournier & Lee Inglis": [
         "{34CAE905-05E9-4AFF-91F4-13B94780A45D}",  # Roger Chaufournier
-        "{A1A33C57-82E7-412C-A258-97550E482B42}",  # Lee Inglis
+        "{A1A33C57-82E7-412C-A258-97550E482B42}",  # Lee Inglis (new account, 2017+)
     ],
     # Cash Betts Only — co-owned by Ricky & Michael
     "Ricky Krause & Michael Cornuta": [
         "{3BDE9FB9-A909-486E-ADDF-497D779580AA}",  # Ricky Krause
         "{A83D2A95-5A0C-4DF3-A446-58FE425A5032}",  # Michael Cornuta
+    ],
+    # Joel S / Joel Seagraves — ESPN truncated the display name in later years
+    "Joel Seagraves": [
+        "{F09D4C18-7DA2-479A-9D4C-187DA2979A57}",  # Joel S / Joel Seagraves
     ],
 }
 

@@ -1,0 +1,254 @@
+year,team,player_name,position,eligible_slots,pro_team
+2018,Dirty Sanchez,Madison Bumgarner,C,"P,SP,BE,IL",SF
+2018,Dirty Sanchez,Gary Sanchez,1B,"C,DH,UTIL,BE,IL",NYY
+2018,Dirty Sanchez,Noah Syndergaard,C,"P,SP,BE,IL",NYM
+2018,Dirty Sanchez,Christian Yelich,1B/3B,"OF,LF,CF,RF,UTIL,BE,IL",Mil
+2018,Dirty Sanchez,Xander Bogaerts,OF,"SS,2B/SS,UTIL,BE,IL,IF",Bos
+2018,Dirty Sanchez,Corey Knebel,RF,"P,RP,BE,IL",Mil
+2018,Dirty Sanchez,Daniel Murphy,3B,"1B,2B,2B/SS,1B/3B,UTIL,BE,IL,IF",Col
+2018,Dirty Sanchez,Michael Fulmer,C,"P,SP,BE,IL",Det
+2018,Dirty Sanchez,Ozzie Albies,3B,"2B,2B/SS,UTIL,BE,IL,IF",Atl
+2018,Dirty Sanchez,Marcell Ozuna,2B/SS,"OF,LF,UTIL,BE,IL",StL
+2018,Dirty Sanchez,Juan Soto,LF,"OF,LF,RF,UTIL,BE,IL",Wsh
+2018,Dirty Sanchez,Clayton Kershaw,C,"P,SP,BE,IL",LAD
+2018,Dirty Sanchez,Max Muncy,SS,"1B,2B,3B,2B/SS,1B/3B,UTIL,BE,IL,IF",LAD
+2018,Dirty Sanchez,Wil Myers,2B,"1B,3B,OF,1B/3B,LF,RF,UTIL,BE,IL,IF",SD
+2018,Dirty Sanchez,Zack Wheeler,C,"P,SP,BE,IL",NYM
+2018,Dirty Sanchez,Danny Duffy,C,"P,SP,BE,IL",KC
+2018,Dirty Sanchez,Brian Dozier,3B,"2B,2B/SS,UTIL,BE,IL,IF",LAD
+2018,Dirty Sanchez,Luis Castillo,C,"P,SP,BE,IL",Cin
+2018,Dirty Sanchez,Tanner Roark,C,"P,SP,BE,IL",Cin
+2018,Dirty Sanchez,Ryan Borucki,C,"P,SP,BE,IL",Tor
+2018,Dirty Sanchez,Mike Zunino,1B,"C,UTIL,BE,IL",TB
+2018,Dirty Sanchez,German Marquez,C,"P,SP,BE,IL",Col
+2018,Dirty Sanchez,Brian Johnson,C,"P,SP,BE,IL",Bos
+2018,Dirty Sanchez,Tyler Glasnow,RF,"P,SP,RP,BE,IL",TB
+2018,Dirty Sanchez,Joey Lucchesi,C,"P,SP,BE,IL",SD
+2018,Dirty Sanchez,Jakob Junis,C,"P,SP,BE,IL",KC
+2018,Sale For The Title,Chris Sale,C,"P,SP,BE,IL",Bos
+2018,Sale For The Title,Corey Kluber,C,"P,SP,BE,IL",Cle
+2018,Sale For The Title,Kenley Jansen,RF,"P,RP,BE,IL",LAD
+2018,Sale For The Title,Zack Greinke,C,"P,SP,BE,IL",Ari
+2018,Sale For The Title,Aroldis Chapman,RF,"P,RP,BE,IL",NYY
+2018,Sale For The Title,Travis Shaw,SS,"1B,2B,3B,2B/SS,1B/3B,UTIL,BE,IL,IF",Mil
+2018,Sale For The Title,Marwin Gonzalez,OF,"1B,2B,SS,OF,2B/SS,1B/3B,LF,UTIL,BE,IL,IF",Hou
+2018,Sale For The Title,Didi Gregorius,OF,"SS,2B/SS,UTIL,BE,IL,IF",NYY
+2018,Sale For The Title,Ivan Nova,C,"P,SP,BE,IL",ChW
+2018,Sale For The Title,Vince Velasquez,C,"P,SP,BE,IL",Phi
+2018,Sale For The Title,Odubel Herrera,1B/3B,"OF,CF,UTIL,BE,IL",Phi
+2018,Sale For The Title,Junior Guerra,RF,"P,SP,RP,BE,IL",Mil
+2018,Sale For The Title,Nick Markakis,LF,"OF,RF,UTIL,BE,IL",Atl
+2018,Sale For The Title,Scooter Gennett,3B,"2B,2B/SS,UTIL,BE,IL,IF",Cin
+2018,Sale For The Title,Clay Buchholz,C,"P,SP,BE,IL",Ari
+2018,Sale For The Title,Shin-Soo Choo,LF,"OF,LF,RF,DH,UTIL,BE,IL",Tex
+2018,Sale For The Title,Edwin Jackson,RF,"P,SP,RP,BE,IL",Oak
+2018,Sale For The Title,Dereck Rodriguez,C,"P,SP,BE,IL",SF
+2018,Sale For The Title,Steven Souza Jr.,LF,"OF,RF,UTIL,BE,IL",Ari
+2018,Sale For The Title,Matt Chapman,SS,"3B,1B/3B,UTIL,BE,IL,IF",Oak
+2018,Sale For The Title,Shane Greene,RF,"P,RP,BE,IL",Det
+2018,Sale For The Title,Matt Harvey,C,"P,SP,BE,IL",LAA
+2018,Sale For The Title,Hector Velazquez,RF,"P,SP,RP,BE,IL",Bos
+2018,Sale For The Title,Ryan Braun,2B/SS,"1B,OF,1B/3B,LF,UTIL,BE,IL,IF",Mil
+2018,Sale For The Title,Francisco Cervelli,1B,"C,UTIL,BE,IL",Pit
+2018,Bel Air GMY's,Trea Turner,OF,"SS,2B/SS,UTIL,BE,IL,IF",Wsh
+2018,Bel Air GMY's,Kris Bryant,SS,"3B,OF,1B/3B,LF,RF,UTIL,BE,IL,IF",ChC
+2018,Bel Air GMY's,J.D. Martinez,LF,"OF,LF,RF,DH,UTIL,BE,IL",Bos
+2018,Bel Air GMY's,Dee Gordon,3B,"2B,OF,2B/SS,CF,UTIL,BE,IL,IF",Sea
+2018,Bel Air GMY's,Luis Severino,C,"P,SP,BE,IL",NYY
+2018,Bel Air GMY's,Robbie Ray,C,"P,SP,BE,IL",Ari
+2018,Bel Air GMY's,Jose Quintana,C,"P,SP,BE,IL",ChC
+2018,Bel Air GMY's,Willson Contreras,1B,"C,UTIL,BE,IL",ChC
+2018,Bel Air GMY's,Dylan Bundy,C,"P,SP,BE,IL",Bal
+2018,Bel Air GMY's,Kevin Gausman,C,"P,SP,BE,IL",Atl
+2018,Bel Air GMY's,Ronald Acuna Jr.,1B/3B,"OF,LF,CF,UTIL,BE,IL",Atl
+2018,Bel Air GMY's,George Springer,1B/3B,"OF,CF,RF,DH,UTIL,BE,IL",Hou
+2018,Bel Air GMY's,Ross Stripling,RF,"P,SP,RP,BE,IL",LAD
+2018,Bel Air GMY's,Marcus Stroman,C,"P,SP,BE,IL",Tor
+2018,Bel Air GMY's,Shane Bieber,C,"P,SP,BE,IL",Cle
+2018,Bel Air GMY's,Ian Desmond,2B,"1B,OF,1B/3B,LF,UTIL,BE,IL,IF",Col
+2018,Bel Air GMY's,Joe Musgrove,C,"P,SP,RP,BE,IL",Pit
+2018,Bel Air GMY's,Miguel Andujar,SS,"3B,1B/3B,DH,UTIL,BE,IL,IF",NYY
+2018,Bel Air GMY's,Marco Estrada,C,"P,SP,BE,IL",Tor
+2018,Bel Air GMY's,Freddy Peralta,C,"P,SP,BE,IL",Mil
+2018,Bel Air GMY's,Joey Gallo,SS,"1B,3B,OF,1B/3B,LF,CF,RF,UTIL,BE,IL,IF",Tex
+2018,Bel Air GMY's,Bud Norris,RF,"P,RP,BE,IL",StL
+2018,Bel Air GMY's,Eduardo Nunez,3B,"2B,3B,OF,2B/SS,1B/3B,LF,DH,UTIL,BE,IL,IF",Bos
+2018,Bel Air GMY's,Reynaldo Lopez,C,"P,SP,BE,IL",ChW
+2018,Bel Air GMY's,Cesar Hernandez,3B,"2B,2B/SS,UTIL,BE,IL,IF",Phi
+2018,Bel Air GMY's,Tommy Milone,RF,"P,SP,RP,BE,IL",Wsh
+2018,Smokin' Bases,Mookie Betts,LF,"OF,CF,RF,UTIL,BE,IL",Bos
+2018,Smokin' Bases,Charlie Blackmon,1B/3B,"OF,CF,UTIL,BE,IL",Col
+2018,Smokin' Bases,Jacob deGrom,C,"P,SP,BE,IL",NYM
+2018,Smokin' Bases,Nelson Cruz,CF,"DH,UTIL,BE,IL",Min
+2018,Smokin' Bases,Aaron Nola,C,"P,SP,BE,IL",Phi
+2018,Smokin' Bases,Trevor Story,OF,"SS,2B/SS,UTIL,BE,IL,IF",Col
+2018,Smokin' Bases,Jon Lester,C,"P,SP,BE,IL",ChC
+2018,Smokin' Bases,Jameson Taillon,C,"P,SP,BE,IL",Pit
+2018,Smokin' Bases,Matt Carpenter,2B,"1B,2B,3B,2B/SS,1B/3B,UTIL,BE,IL,IF",StL
+2018,Smokin' Bases,Brandon Morrow,RF,"P,RP,BE,IL",ChC
+2018,Smokin' Bases,Yonder Alonso,2B,"1B,1B/3B,UTIL,BE,IL,IF",ChW
+2018,Smokin' Bases,Jack Flaherty,C,"P,SP,BE,IL",StL
+2018,Smokin' Bases,Chris Archer,C,"P,SP,BE,IL",Pit
+2018,Smokin' Bases,Gleyber Torres,OF,"2B,SS,2B/SS,UTIL,BE,IL,IF",NYY
+2018,Smokin' Bases,Starling Marte,2B/SS,"OF,LF,CF,UTIL,BE,IL",Pit
+2018,Smokin' Bases,Evan Gattis,1B,"C,DH,UTIL,BE,IL",Hou
+2018,Smokin' Bases,Kirby Yates,RF,"P,RP,BE,IL",SD
+2018,Smokin' Bases,Hector Rondon,RF,"P,RP,BE,IL",Hou
+2018,Smokin' Bases,Eduardo Escobar,SS,"3B,SS,2B/SS,1B/3B,DH,UTIL,BE,IL,IF",Ari
+2018,Smokin' Bases,Derek Holland,C,"P,SP,RP,BE,IL",SF
+2018,Smokin' Bases,Austin Gomber,C,"P,SP,RP,BE,IL",StL
+2018,Smokin' Bases,Michael Kopech,C,"P,SP,BE,IL",ChW
+2018,Smokin' Bases,David Peralta,LF,"OF,LF,RF,UTIL,BE,IL",Ari
+2018,Smokin' Bases,Andrew Suarez,C,"P,SP,BE,IL",SF
+2018,Smokin' Bases,Chris Stratton,C,"P,SP,BE,IL",SF
+2018,Delray Beach Air Biscuits,Jose Altuve,3B,"2B,2B/SS,UTIL,BE,IL,IF",Hou
+2018,Delray Beach Air Biscuits,Freddie Freeman,2B,"1B,1B/3B,UTIL,BE,IL,IF",Atl
+2018,Delray Beach Air Biscuits,Alex Bregman,OF,"3B,SS,2B/SS,1B/3B,UTIL,BE,IL,IF",Hou
+2018,Delray Beach Air Biscuits,Justin Upton,2B/SS,"OF,LF,DH,UTIL,BE,IL",LAA
+2018,Delray Beach Air Biscuits,Justin Turner,SS,"3B,1B/3B,UTIL,BE,IL,IF",LAD
+2018,Delray Beach Air Biscuits,James Paxton,C,"P,SP,BE,IL",NYY
+2018,Delray Beach Air Biscuits,Raisel Iglesias,RF,"P,RP,BE,IL",Cin
+2018,Delray Beach Air Biscuits,Kenta Maeda,C,"P,SP,RP,BE,IL",LAD
+2018,Delray Beach Air Biscuits,Ender Inciarte,1B/3B,"OF,CF,UTIL,BE,IL",Atl
+2018,Delray Beach Air Biscuits,Yadier Molina,1B,"C,UTIL,BE,IL",StL
+2018,Delray Beach Air Biscuits,Mike Clevinger,C,"P,SP,BE,IL",Cle
+2018,Delray Beach Air Biscuits,Miles Mikolas,C,"P,SP,BE,IL",StL
+2018,Delray Beach Air Biscuits,Cole Hamels,C,"P,SP,BE,IL",ChC
+2018,Delray Beach Air Biscuits,Mitch Haniger,LF,"OF,CF,RF,UTIL,BE,IL",Sea
+2018,Delray Beach Air Biscuits,Sean Manaea,C,"P,SP,BE,IL",Oak
+2018,Delray Beach Air Biscuits,Brad Boxberger,RF,"P,RP,BE,IL",Ari
+2018,Delray Beach Air Biscuits,Keone Kela,RF,"P,RP,BE,IL",Pit
+2018,Delray Beach Air Biscuits,Matt Olson,2B,"1B,1B/3B,UTIL,BE,IL,IF",Oak
+2018,Delray Beach Air Biscuits,Mike Fiers,C,"P,SP,BE,IL",Oak
+2018,Delray Beach Air Biscuits,Andrew Cashner,C,"P,SP,BE,IL",Bal
+2018,Delray Beach Air Biscuits,Lucas Giolito,C,"P,SP,BE,IL",ChW
+2018,Delray Beach Air Biscuits,Roberto Osuna,RF,"P,RP,BE,IL",Hou
+2018,Delray Beach Air Biscuits,Matt Duffy,OF,"3B,SS,2B/SS,1B/3B,UTIL,BE,IL,IF",TB
+2018,Delray Beach Air Biscuits,Jose Peraza,OF,"2B,SS,2B/SS,UTIL,BE,IL,IF",Cin
+2018,Delray Beach Air Biscuits,Aaron Hicks,1B/3B,"OF,LF,CF,UTIL,BE,IL",NYY
+2018,Jobu's VooDoo Project,Max Scherzer,C,"P,SP,BE,IL",Wsh
+2018,Jobu's VooDoo Project,Paul Goldschmidt,2B,"1B,1B/3B,UTIL,BE,IL,IF",StL
+2018,Jobu's VooDoo Project,Jose Ramirez,3B,"2B,3B,2B/SS,1B/3B,UTIL,BE,IL,IF",Cle
+2018,Jobu's VooDoo Project,Justin Verlander,C,"P,SP,BE,IL",Hou
+2018,Jobu's VooDoo Project,Gerrit Cole,C,"P,SP,BE,IL",Hou
+2018,Jobu's VooDoo Project,Kyle Hendricks,C,"P,SP,BE,IL",ChC
+2018,Jobu's VooDoo Project,Jose Berrios,C,"P,SP,BE,IL",Min
+2018,Jobu's VooDoo Project,Nicholas Castellanos,SS,"3B,OF,1B/3B,RF,DH,UTIL,BE,IL,IF",Det
+2018,Jobu's VooDoo Project,Jean Segura,OF,"SS,2B/SS,UTIL,BE,IL,IF",Phi
+2018,Jobu's VooDoo Project,Michael Brantley,2B/SS,"OF,LF,UTIL,BE,IL",Hou
+2018,Jobu's VooDoo Project,Nathan Eovaldi,C,"P,SP,BE,IL",Bos
+2018,Jobu's VooDoo Project,Rich Hill,C,"P,SP,BE,IL",LAD
+2018,Jobu's VooDoo Project,Felipe Vazquez,RF,"P,RP,BE,IL",Pit
+2018,Jobu's VooDoo Project,Trevor Cahill,C,"P,SP,BE,IL",LAA
+2018,Jobu's VooDoo Project,Justin Smoak,2B,"1B,1B/3B,DH,UTIL,BE,IL,IF",Tor
+2018,Jobu's VooDoo Project,Matthew Boyd,C,"P,SP,BE,IL",Det
+2018,Jobu's VooDoo Project,Paul DeJong,OF,"2B,SS,2B/SS,UTIL,BE,IL,IF",StL
+2018,Jobu's VooDoo Project,Anthony DeSclafani,C,"P,SP,BE,IL",Cin
+2018,Jobu's VooDoo Project,Tucker Barnhart,1B,"C,1B,1B/3B,UTIL,BE,IL,IF",Cin
+2018,Jobu's VooDoo Project,Adam Eaton,1B/3B,"OF,LF,CF,RF,UTIL,BE,IL",Wsh
+2018,Jobu's VooDoo Project,Yuli Gurriel,2B,"1B,2B,3B,2B/SS,1B/3B,UTIL,BE,IL,IF",Hou
+2018,Jobu's VooDoo Project,Billy McKinney,LF,"OF,LF,RF,UTIL,BE,IL",Tor
+2018,Jobu's VooDoo Project,Jeremy Jeffress,RF,"P,RP,BE,IL",Mil
+2018,Jobu's VooDoo Project,Wei-Yin Chen,C,"P,SP,BE,IL",Mia
+2018,Buck Showalter,Bryce Harper,LF,"OF,CF,RF,UTIL,BE,IL",Wsh
+2018,Buck Showalter,Manny Machado,SS,"3B,SS,2B/SS,1B/3B,UTIL,BE,IL,IF",LAD
+2018,Buck Showalter,Stephen Strasburg,C,"P,SP,BE,IL",Wsh
+2018,Buck Showalter,Carlos Carrasco,C,"P,SP,BE,IL",Cle
+2018,Buck Showalter,Dallas Keuchel,C,"P,SP,BE,IL",Hou
+2018,Buck Showalter,Eric Hosmer,2B,"1B,1B/3B,UTIL,BE,IL,IF",SD
+2018,Buck Showalter,Lorenzo Cain,1B/3B,"OF,CF,UTIL,BE,IL",Mil
+2018,Buck Showalter,Adam Jones,1B/3B,"OF,CF,RF,DH,UTIL,BE,IL",Bal
+2018,Buck Showalter,Cody Allen,RF,"P,RP,BE,IL",Cle
+2018,Buck Showalter,Javier Baez,OF,"2B,3B,SS,2B/SS,1B/3B,UTIL,BE,IL,IF",ChC
+2018,Buck Showalter,J.T. Realmuto,1B,"C,1B,1B/3B,UTIL,BE,IL,IF",Mia
+2018,Buck Showalter,Wade Davis,RF,"P,RP,BE,IL",Col
+2018,Buck Showalter,Patrick Corbin,C,"P,SP,BE,IL",Wsh
+2018,Buck Showalter,Eugenio Suarez,SS,"3B,1B/3B,UTIL,BE,IL,IF",Cin
+2018,Buck Showalter,Trevor Williams,C,"P,SP,BE,IL",Pit
+2018,Buck Showalter,Gregory Polanco,LF,"OF,LF,RF,UTIL,BE,IL",Pit
+2018,Buck Showalter,Lance McCullers Jr.,C,"P,SP,BE,IL",Hou
+2018,Buck Showalter,CC Sabathia,C,"P,SP,BE,IL",NYY
+2018,Buck Showalter,Jed Lowrie,3B,"2B,3B,2B/SS,1B/3B,UTIL,BE,IL,IF",Oak
+2018,Buck Showalter,Chase Anderson,C,"P,SP,BE,IL",Mil
+2018,Buck Showalter,Lance Lynn,C,"P,SP,BE,IL",Tex
+2018,Buck Showalter,Kendrys Morales,CF,"1B,1B/3B,DH,UTIL,BE,IL,IF",Tor
+2018,Buck Showalter,Chris Taylor,3B,"2B,SS,OF,2B/SS,LF,CF,UTIL,BE,IL,IF",LAD
+2018,Buck Showalter,Shohei Ohtani,C,"DH,UTIL,P,SP,BE,IL",LAA
+2018,Buck Showalter,Daniel Poncedeleon,C,"P,SP,RP,BE,IL",StL
+2018,Harper Barely Know Her,Nolan Arenado,SS,"3B,1B/3B,UTIL,BE,IL,IF",Col
+2018,Harper Barely Know Her,Joey Votto,2B,"1B,1B/3B,UTIL,BE,IL,IF",Cin
+2018,Harper Barely Know Her,Cody Bellinger,2B,"1B,OF,1B/3B,LF,CF,UTIL,BE,IL,IF",LAD
+2018,Harper Barely Know Her,Edwin Encarnacion,2B,"1B,1B/3B,DH,UTIL,BE,IL,IF",Sea
+2018,Harper Barely Know Her,Rhys Hoskins,2B,"1B,OF,1B/3B,LF,UTIL,BE,IL,IF",Phi
+2018,Harper Barely Know Her,Khris Davis,2B/SS,"OF,LF,DH,UTIL,BE,IL",Oak
+2018,Harper Barely Know Her,Masahiro Tanaka,C,"P,SP,BE,IL",NYY
+2018,Harper Barely Know Her,David Price,C,"P,SP,BE,IL",Bos
+2018,Harper Barely Know Her,Gio Gonzalez,C,"P,SP,BE,IL",Mil
+2018,Harper Barely Know Her,Kyle Schwarber,2B/SS,"OF,LF,UTIL,BE,IL",ChC
+2018,Harper Barely Know Her,Rick Porcello,C,"P,SP,BE,IL",Bos
+2018,Harper Barely Know Her,J.A. Happ,C,"P,SP,BE,IL",NYY
+2018,Harper Barely Know Her,Andrelton Simmons,OF,"SS,2B/SS,UTIL,BE,IL,IF",LAA
+2018,Harper Barely Know Her,Nick Pivetta,C,"P,SP,BE,IL",Phi
+2018,Harper Barely Know Her,Sean Newcomb,C,"P,SP,BE,IL",Atl
+2018,Harper Barely Know Her,Yasmani Grandal,1B,"C,UTIL,BE,IL",LAD
+2018,Harper Barely Know Her,Marco Gonzales,C,"P,SP,BE,IL",Sea
+2018,Harper Barely Know Her,Zach Eflin,RF,"P,SP,RP,BE,IL",Phi
+2018,Harper Barely Know Her,Wade LeBlanc,RF,"P,SP,RP,BE,IL",Sea
+2018,Harper Barely Know Her,Mike Leake,C,"P,SP,BE,IL",Sea
+2018,Harper Barely Know Her,Rougned Odor,3B,"2B,2B/SS,DH,UTIL,BE,IL,IF",Tex
+2018,Harper Barely Know Her,Dan Straily,C,"P,SP,BE,IL",Mia
+2018,Harper Barely Know Her,Mallex Smith,1B/3B,"OF,LF,CF,RF,UTIL,BE,IL",Sea
+2018,Harper Barely Know Her,A.J. Minter,RF,"P,RP,BE,IL",Atl
+2018,Harper Barely Know Her,Justin Bour,2B,"1B,1B/3B,UTIL,BE,IL,IF",LAA
+2018,Harper Barely Know Her,John Gant,RF,"P,SP,RP,BE,IL",StL
+2018,Magic Man,Francisco Lindor,OF,"SS,2B/SS,UTIL,BE,IL,IF",Cle
+2018,Magic Man,Aaron Judge,LF,"OF,RF,DH,UTIL,BE,IL",NYY
+2018,Magic Man,Anthony Rendon,SS,"3B,1B/3B,UTIL,BE,IL,IF",Wsh
+2018,Magic Man,Andrew McCutchen,1B/3B,"OF,LF,CF,RF,UTIL,BE,IL",Phi
+2018,Magic Man,Jake Arrieta,C,"P,SP,BE,IL",Phi
+2018,Magic Man,Salvador Perez,1B,"C,DH,UTIL,BE,IL",KC
+2018,Magic Man,Zack Godley,C,"P,SP,BE,IL",Ari
+2018,Magic Man,Whit Merrifield,3B,"2B,OF,2B/SS,CF,DH,UTIL,BE,IL,IF",KC
+2018,Magic Man,Julio Teheran,C,"P,SP,BE,IL",Atl
+2018,Magic Man,Blake Snell,C,"P,SP,BE,IL",TB
+2018,Magic Man,Walker Buehler,C,"P,SP,RP,BE,IL",LAD
+2018,Magic Man,Eddie Rosario,2B/SS,"OF,LF,DH,UTIL,BE,IL",Min
+2018,Magic Man,Blake Treinen,RF,"P,RP,BE,IL",Oak
+2018,Magic Man,Giancarlo Stanton,LF,"OF,LF,RF,DH,UTIL,BE,IL",NYY
+2018,Magic Man,Mike Foltynewicz,C,"P,SP,BE,IL",Atl
+2018,Magic Man,Jesus Aguilar,2B,"1B,1B/3B,UTIL,BE,IL,IF",Mil
+2018,Magic Man,Jon Gray,C,"P,SP,BE,IL",Col
+2018,Magic Man,Josh Hader,RF,"P,RP,BE,IL",Mil
+2018,Magic Man,Jurickson Profar,2B/SS,"1B,2B,3B,SS,OF,2B/SS,1B/3B,LF,UTIL,BE,IL,IF",Oak
+2018,Magic Man,Pedro Strop,RF,"P,RP,BE,IL",ChC
+2018,Magic Man,Sergio Romo,RF,"P,SP,RP,BE,IL",TB
+2018,Magic Man,Melky Cabrera,2B/SS,"OF,LF,RF,UTIL,BE,IL",Cle
+2018,Magic Man,Brad Keller,C,"P,SP,RP,BE,IL",KC
+2018,Magic Man,Robinson Cano,3B,"1B,2B,2B/SS,1B/3B,UTIL,BE,IL,IF",NYM
+2018,Magic Man,Wade Miley,C,"P,SP,BE,IL",Mil
+2018,Napoli  Headed Hoes,Mike Trout,1B/3B,"OF,CF,DH,UTIL,BE,IL",LAA
+2018,Napoli  Headed Hoes,Carlos Correa,OF,"SS,2B/SS,UTIL,BE,IL,IF",Hou
+2018,Napoli  Headed Hoes,Anthony Rizzo,2B,"1B,1B/3B,UTIL,BE,IL,IF",ChC
+2018,Napoli  Headed Hoes,Craig Kimbrel,RF,"P,RP,BE,IL",Bos
+2018,Napoli  Headed Hoes,Andrew Benintendi,2B/SS,"OF,LF,CF,UTIL,BE,IL",Bos
+2018,Napoli  Headed Hoes,Carlos Martinez,C,"P,SP,RP,BE,IL",StL
+2018,Napoli  Headed Hoes,A.J. Pollock,1B/3B,"OF,CF,UTIL,BE,IL",Ari
+2018,Napoli  Headed Hoes,DJ LeMahieu,3B,"2B,2B/SS,UTIL,BE,IL,IF",Col
+2018,Napoli  Headed Hoes,Mike Moustakas,SS,"3B,1B/3B,DH,UTIL,BE,IL,IF",Mil
+2018,Napoli  Headed Hoes,Ken Giles,RF,"P,RP,BE,IL",Tor
+2018,Napoli  Headed Hoes,Luke Weaver,C,"P,SP,RP,BE,IL",Ari
+2018,Napoli  Headed Hoes,Edwin Diaz,RF,"P,RP,BE,IL",NYM
+2018,Napoli  Headed Hoes,Eduardo Rodriguez,C,"P,SP,BE,IL",Bos
+2018,Napoli  Headed Hoes,Wilson Ramos,1B,"C,UTIL,BE,IL",NYM
+2018,Napoli  Headed Hoes,Tyler Skaggs,C,"P,SP,BE,IL",LAA
+2018,Napoli  Headed Hoes,Asdrubal Cabrera,OF,"2B,3B,SS,2B/SS,1B/3B,UTIL,BE,IL,IF",Phi
+2018,Napoli  Headed Hoes,Kyle Gibson,C,"P,SP,BE,IL",Min
+2018,Napoli  Headed Hoes,Jose Martinez,2B,"1B,OF,1B/3B,LF,RF,UTIL,BE,IL,IF",StL
+2018,Napoli  Headed Hoes,Kyle Freeland,C,"P,SP,BE,IL",Col
+2018,Napoli  Headed Hoes,Steven Matz,C,"P,SP,BE,IL",NYM
+2018,Napoli  Headed Hoes,Frankie Montas,RF,"P,SP,RP,BE,IL",Oak
+2018,Napoli  Headed Hoes,Jhoulys Chacin,C,"P,SP,BE,IL",Mil
+2018,Napoli  Headed Hoes,Carlos Rodon,C,"P,SP,BE,IL",ChW
+2018,Napoli  Headed Hoes,Tyler Anderson,C,"P,SP,BE,IL",Col
+2018,Napoli  Headed Hoes,Johan Camargo,OF,"3B,SS,2B/SS,1B/3B,UTIL,BE,IL,IF",Atl
+2018,Napoli  Headed Hoes,Yan Gomes,1B,"C,UTIL,BE,IL",Wsh

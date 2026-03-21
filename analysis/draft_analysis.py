@@ -22,27 +22,58 @@ OUTPUT_DIR  = Path("output")
 # ── Team name aliases ──────────────────────────────────────────────────────
 # Maps all historical names → canonical current name
 TEAM_ALIASES = {
-    # Your team
-    "Buck Showalter":     "Craig Albernaz",
-    "Brandon Hyde":       "Craig Albernaz",
-    "Tony Mansolino":     "Craig Albernaz",
-    "Craig Albernaz":     "Craig Albernaz",
+    # Luke Inglis — always named after current Orioles manager
+    "Buck Showalter":     "Luke Inglis",
+    "Brandon Hyde":       "Luke Inglis",
+    "Tony Mansolino":     "Luke Inglis",
 
-    # Consistent teams
-    "Smokin' Bases":               "Smokin' Bases",
-    "Delray Beach Air Biscuits":   "Delray Beach Air Biscuits",
-    "Cream City Cowtippers":       "Cream City Cowtippers",
-    "Lisa dANN":                   "Lisa dANN",
-    "Daisy + Shay Bel-Airs":      "Daisy + Shay Bel-Airs",
-    "Shay Bel-Air GMY's":         "Daisy + Shay Bel-Airs",
-    "MOArch Redbirds":             "MOArch Redbirds",
-    "The G.O.A.T":                 "The G.O.A.T",
-    "Cash Betts Only":             "Cash Betts Only",
-    "The Houston Asstros":         "The Houston Asstros",
-    "Pfaadt Ass Trouts":           "The Houston Asstros",
+    # Sean Fitzpatrick
+    "Smokin' Bases":               "Sean Fitzpatrick",
+
+    # Ethan Wayne
+    "Delray Beach Air Biscuits":   "Ethan Wayne",
+
+    # Joel Seagraves
+    "Cream City Cowtippers":       "Joel Seagraves",
+    "Moooooose-Yeli Bombers":      "Joel Seagraves",
+    "Moooooose-Yeti Bombers":      "Joel Seagraves",
+    "Comeback Tour":               "Joel Seagraves",
+
+    # Daniel Caron
+    "Lisa dANN":                   "Daniel Caron",
+
+    # Zack Kirstein
+    "Daisy + Shay Bel-Airs":      "Zack Kirstein",
+    "Shay Bel-Air GMY's":         "Zack Kirstein",
+    "Bel Air GMY's":              "Zack Kirstein",
+    "NY GMY's":                   "Zack Kirstein",
+
+    # John Ballantine
+    "MOArch Redbirds":             "John Ballantine",
+    "Goldschmidt Happens":         "John Ballantine",
+
+    # Tim Van Dalsum
+    "The G.O.A.T":                 "Tim Van Dalsum",
+    "Betts Against Us":            "Tim Van Dalsum",
+    "Blue Haderade":               "Tim Van Dalsum",
+    "Wander Vision":               "Tim Van Dalsum",
+
+    # Ricky Krause & Michael Cornuta
+    "Cash Betts Only":             "Ricky Krause & Michael Cornuta",
+
+    # Roger Chaufournier & Lee Inglis — many team names over the years
+    "The Houston Asstros":         "Roger Chaufournier & Lee Inglis",
+    "Pfaadt Ass Trouts":           "Roger Chaufournier & Lee Inglis",
+    "Soto Baggins":                "Roger Chaufournier & Lee Inglis",
+    "The Basitt Hounds":           "Roger Chaufournier & Lee Inglis",
+    "PeeWee Yermin":               "Roger Chaufournier & Lee Inglis",
+    "A Song of Bryce and Fire":    "Roger Chaufournier & Lee Inglis",
+    "A Song of  Bryce and Fire":   "Roger Chaufournier & Lee Inglis",
+    "Harper Barely Know Her":      "Roger Chaufournier & Lee Inglis",
+    "Triple A  Titties":           "Roger Chaufournier & Lee Inglis",
 }
 
-MY_TEAM = "Craig Albernaz"
+MY_TEAM = "Luke Inglis"
 
 # ── Position classification from eligible_slots ───────────────────────────
 def classify_position(eligible_slots: str) -> str:

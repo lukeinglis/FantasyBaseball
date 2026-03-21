@@ -283,24 +283,39 @@ elif page == "Opponent Scouting":
         st.error("Run `python3 analysis/draft_analysis.py` first.")
         st.stop()
 
-    MY_TEAM = "Craig Albernaz"
+    MY_TEAM = "Luke Inglis"
 
     TEAM_ALIASES = {
-        "Buck Showalter": "Craig Albernaz",
-        "Brandon Hyde": "Craig Albernaz",
-        "Tony Mansolino": "Craig Albernaz",
-        "Craig Albernaz": "Craig Albernaz",
-        "Smokin' Bases": "Smokin' Bases",
-        "Delray Beach Air Biscuits": "Delray Beach Air Biscuits",
-        "Cream City Cowtippers": "Cream City Cowtippers",
-        "Lisa dANN": "Lisa dANN",
-        "Daisy + Shay Bel-Airs": "Daisy + Shay Bel-Airs",
-        "Shay Bel-Air GMY's": "Daisy + Shay Bel-Airs",
-        "MOArch Redbirds": "MOArch Redbirds",
-        "The G.O.A.T": "The G.O.A.T",
-        "Cash Betts Only": "Cash Betts Only",
-        "The Houston Asstros": "The Houston Asstros",
-        "Pfaadt Ass Trouts": "The Houston Asstros",
+        "Buck Showalter": "Luke Inglis",
+        "Brandon Hyde": "Luke Inglis",
+        "Tony Mansolino": "Luke Inglis",
+        "Smokin' Bases": "Sean Fitzpatrick",
+        "Delray Beach Air Biscuits": "Ethan Wayne",
+        "Cream City Cowtippers": "Joel Seagraves",
+        "Moooooose-Yeli Bombers": "Joel Seagraves",
+        "Moooooose-Yeti Bombers": "Joel Seagraves",
+        "Comeback Tour": "Joel Seagraves",
+        "Lisa dANN": "Daniel Caron",
+        "Daisy + Shay Bel-Airs": "Zack Kirstein",
+        "Shay Bel-Air GMY's": "Zack Kirstein",
+        "Bel Air GMY's": "Zack Kirstein",
+        "NY GMY's": "Zack Kirstein",
+        "MOArch Redbirds": "John Ballantine",
+        "Goldschmidt Happens": "John Ballantine",
+        "The G.O.A.T": "Tim Van Dalsum",
+        "Betts Against Us": "Tim Van Dalsum",
+        "Blue Haderade": "Tim Van Dalsum",
+        "Wander Vision": "Tim Van Dalsum",
+        "Cash Betts Only": "Ricky Krause & Michael Cornuta",
+        "The Houston Asstros": "Roger Chaufournier & Lee Inglis",
+        "Pfaadt Ass Trouts": "Roger Chaufournier & Lee Inglis",
+        "Soto Baggins": "Roger Chaufournier & Lee Inglis",
+        "The Basitt Hounds": "Roger Chaufournier & Lee Inglis",
+        "PeeWee Yermin": "Roger Chaufournier & Lee Inglis",
+        "A Song of Bryce and Fire": "Roger Chaufournier & Lee Inglis",
+        "A Song of  Bryce and Fire": "Roger Chaufournier & Lee Inglis",
+        "Harper Barely Know Her": "Roger Chaufournier & Lee Inglis",
+        "Triple A  Titties": "Roger Chaufournier & Lee Inglis",
     }
 
     drafts["canonical_team"] = drafts["team"].map(TEAM_ALIASES)
@@ -448,7 +463,7 @@ elif page == "Opponent Scouting":
 
 elif page == "League History":
     st.title("📜 League History")
-    st.caption("Tampa's Finest — 2016 through 2025")
+    st.caption("Tampa's Finest — 2015 through 2025")
 
     standings_all = load_standings_all()
     if standings_all is None:
@@ -456,11 +471,35 @@ elif page == "League History":
         st.stop()
 
     TEAM_ALIASES = {
-        "Buck Showalter": "Craig Albernaz",
-        "Brandon Hyde": "Craig Albernaz",
-        "Tony Mansolino": "Craig Albernaz",
-        "Shay Bel-Air GMY's": "Daisy + Shay Bel-Airs",
-        "Pfaadt Ass Trouts": "The Houston Asstros",
+        "Buck Showalter": "Luke Inglis",
+        "Brandon Hyde": "Luke Inglis",
+        "Tony Mansolino": "Luke Inglis",
+        "Smokin' Bases": "Sean Fitzpatrick",
+        "Delray Beach Air Biscuits": "Ethan Wayne",
+        "Cream City Cowtippers": "Joel Seagraves",
+        "Moooooose-Yeti Bombers": "Joel Seagraves",
+        "Comeback Tour": "Joel Seagraves",
+        "Lisa dANN": "Daniel Caron",
+        "Daisy + Shay Bel-Airs": "Zack Kirstein",
+        "Shay Bel-Air GMY's": "Zack Kirstein",
+        "Bel Air GMY's": "Zack Kirstein",
+        "NY GMY's": "Zack Kirstein",
+        "MOArch Redbirds": "John Ballantine",
+        "Goldschmidt Happens": "John Ballantine",
+        "The G.O.A.T": "Tim Van Dalsum",
+        "Betts Against Us": "Tim Van Dalsum",
+        "Blue Haderade": "Tim Van Dalsum",
+        "Wander Vision": "Tim Van Dalsum",
+        "Cash Betts Only": "Ricky Krause & Michael Cornuta",
+        "The Houston Asstros": "Roger Chaufournier & Lee Inglis",
+        "Pfaadt Ass Trouts": "Roger Chaufournier & Lee Inglis",
+        "Soto Baggins": "Roger Chaufournier & Lee Inglis",
+        "The Basitt Hounds": "Roger Chaufournier & Lee Inglis",
+        "PeeWee Yermin": "Roger Chaufournier & Lee Inglis",
+        "A Song of Bryce and Fire": "Roger Chaufournier & Lee Inglis",
+        "A Song of  Bryce and Fire": "Roger Chaufournier & Lee Inglis",
+        "Harper Barely Know Her": "Roger Chaufournier & Lee Inglis",
+        "Triple A  Titties": "Roger Chaufournier & Lee Inglis",
     }
     standings_all["canonical"] = standings_all["Team"].map(
         lambda t: TEAM_ALIASES.get(t, t)

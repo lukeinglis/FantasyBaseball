@@ -32,9 +32,10 @@ import pandas as pd
 from pathlib import Path
 
 LEAGUE_ID = 4739
-# ESPN made older seasons (pre-2019) harder to access via the API.
-# 2019 is the earliest reliably available year.
-AVAILABLE_YEARS = list(range(2019, 2027))
+# ESPN API availability varies by season. 2019+ is reliable; 2015-2018 may
+# return partial data (draft/rosters often available, matchups less so).
+# load_league() will catch failures gracefully per year.
+AVAILABLE_YEARS = list(range(2015, 2027))
 
 BATTING_CATS  = ["H", "R", "HR", "TB", "RBI", "BB", "SB", "AVG"]
 PITCHING_CATS = ["K", "QS", "W", "L", "SV", "HD", "ERA", "WHIP"]

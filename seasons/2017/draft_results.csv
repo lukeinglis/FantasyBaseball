@@ -1,0 +1,241 @@
+year,round,pick,overall,team,player_name,keeper
+2017,1,1,0,Smokin' Bases,Mike Trout,False
+2017,1,2,0,Bel Air GMY's,Mookie Betts,False
+2017,1,3,0,Jobu's VooDoo Project,Jose Altuve,False
+2017,1,4,0,Harper Barely Know Her,Nolan Arenado,False
+2017,1,5,0,Delray Beach Air Biscuits,Paul Goldschmidt,False
+2017,1,6,0,Buck Showalter,Clayton Kershaw,False
+2017,1,7,0,Sale For The Title,Manny Machado,False
+2017,1,8,0,Napoli  Headed Hoes,Kris Bryant,False
+2017,1,9,0,Teheran It Up,Josh Donaldson,False
+2017,1,10,0,Rum Springer,Miguel Cabrera,False
+2017,2,1,0,Rum Springer,Max Scherzer,False
+2017,2,2,0,Teheran It Up,Madison Bumgarner,False
+2017,2,3,0,Napoli  Headed Hoes,Bryce Harper,False
+2017,2,4,0,Sale For The Title,Chris Sale,False
+2017,2,5,0,Buck Showalter,Trea Turner,False
+2017,2,6,0,Delray Beach Air Biscuits,Charlie Blackmon,False
+2017,2,7,0,Harper Barely Know Her,Joey Votto,False
+2017,2,8,0,Jobu's VooDoo Project,Noah Syndergaard,False
+2017,2,9,0,Bel Air GMY's,Anthony Rizzo,False
+2017,2,10,0,Smokin' Bases,Carlos Correa,False
+2017,3,1,0,Smokin' Bases,Corey Kluber,False
+2017,3,2,0,Bel Air GMY's,Edwin Encarnacion,False
+2017,3,3,0,Jobu's VooDoo Project,Yoenis Cespedes,False
+2017,3,4,0,Harper Barely Know Her,Corey Seager,False
+2017,3,5,0,Delray Beach Air Biscuits,Starling Marte,False
+2017,3,6,0,Buck Showalter,Jake Arrieta,False
+2017,3,7,0,Sale For The Title,Jon Lester,False
+2017,3,8,0,Napoli  Headed Hoes,Francisco Lindor,False
+2017,3,9,0,Teheran It Up,Daniel Murphy,False
+2017,3,10,0,Rum Springer,Giancarlo Stanton,False
+2017,4,1,0,Rum Springer,George Springer,False
+2017,4,2,0,Teheran It Up,Johnny Cueto,False
+2017,4,3,0,Napoli  Headed Hoes,Xander Bogaerts,False
+2017,4,4,0,Sale For The Title,Robinson Cano,False
+2017,4,5,0,Buck Showalter,Jonathan Villar,False
+2017,4,6,0,Delray Beach Air Biscuits,Freddie Freeman,False
+2017,4,7,0,Harper Barely Know Her,Andrew McCutchen,False
+2017,4,8,0,Jobu's VooDoo Project,Nelson Cruz,False
+2017,4,9,0,Bel Air GMY's,Brian Dozier,False
+2017,4,10,0,Smokin' Bases,Matt Carpenter,False
+2017,5,1,0,Smokin' Bases,Yu Darvish,False
+2017,5,2,0,Bel Air GMY's,Trevor Story,False
+2017,5,3,0,Jobu's VooDoo Project,Wil Myers,False
+2017,5,4,0,Harper Barely Know Her,Buster Posey,False
+2017,5,5,0,Delray Beach Air Biscuits,Carlos Gonzalez,False
+2017,5,6,0,Buck Showalter,Dee Gordon,False
+2017,5,7,0,Sale For The Title,Jacob deGrom,False
+2017,5,8,0,Napoli  Headed Hoes,Christian Yelich,False
+2017,5,9,0,Teheran It Up,Adrian Beltre,False
+2017,5,10,0,Rum Springer,Ryan Braun,False
+2017,6,1,0,Rum Springer,Jose Abreu,False
+2017,6,2,0,Teheran It Up,Justin Verlander,False
+2017,6,3,0,Napoli  Headed Hoes,Carlos Martinez,False
+2017,6,4,0,Sale For The Title,Gregory Polanco,False
+2017,6,5,0,Buck Showalter,Zach Britton,False
+2017,6,6,0,Delray Beach Air Biscuits,Kyle Seager,False
+2017,6,7,0,Harper Barely Know Her,Adam Jones,False
+2017,6,8,0,Jobu's VooDoo Project,Chris Archer,False
+2017,6,9,0,Bel Air GMY's,A.J. Pollock,False
+2017,6,10,0,Smokin' Bases,Aroldis Chapman,False
+2017,7,1,0,Smokin' Bases,Justin Upton,False
+2017,7,2,0,Bel Air GMY's,Billy Hamilton,False
+2017,7,3,0,Jobu's VooDoo Project,Kyle Hendricks,False
+2017,7,4,0,Harper Barely Know Her,Stephen Strasburg,False
+2017,7,5,0,Delray Beach Air Biscuits,Rougned Odor,False
+2017,7,6,0,Buck Showalter,Kenley Jansen,False
+2017,7,7,0,Sale For The Title,Kyle Schwarber,False
+2017,7,8,0,Napoli  Headed Hoes,J.D. Martinez,False
+2017,7,9,0,Teheran It Up,Ian Kinsler,False
+2017,7,10,0,Rum Springer,Masahiro Tanaka,False
+2017,8,1,0,Rum Springer,Gerrit Cole,False
+2017,8,2,0,Teheran It Up,Wade Davis,False
+2017,8,3,0,Napoli  Headed Hoes,Carlos Carrasco,False
+2017,8,4,0,Sale For The Title,Chris Davis,False
+2017,8,5,0,Buck Showalter,Mark Trumbo,False
+2017,8,6,0,Delray Beach Air Biscuits,Mark Melancon,False
+2017,8,7,0,Harper Barely Know Her,Jose Bautista,False
+2017,8,8,0,Jobu's VooDoo Project,Seung-Hwan Oh,False
+2017,8,9,0,Bel Air GMY's,Jonathan Lucroy,False
+2017,8,10,0,Smokin' Bases,Hanley Ramirez,False
+2017,9,1,0,Smokin' Bases,Alex Bregman,False
+2017,9,2,0,Bel Air GMY's,Jose Quintana,False
+2017,9,3,0,Jobu's VooDoo Project,Jean Segura,False
+2017,9,4,0,Harper Barely Know Her,Rick Porcello,False
+2017,9,5,0,Delray Beach Air Biscuits,Roberto Osuna,False
+2017,9,6,0,Buck Showalter,Carlos Santana,False
+2017,9,7,0,Sale For The Title,Troy Tulowitzki,False
+2017,9,8,0,Napoli  Headed Hoes,DJ LeMahieu,False
+2017,9,9,0,Teheran It Up,Matt Kemp,False
+2017,9,10,0,Rum Springer,Gary Sanchez,False
+2017,10,1,0,Rum Springer,Dustin Pedroia,False
+2017,10,2,0,Teheran It Up,Julio Teheran,False
+2017,10,3,0,Napoli  Headed Hoes,Edwin Diaz,False
+2017,10,4,0,Sale For The Title,Andrew Benintendi,False
+2017,10,5,0,Buck Showalter,Todd Frazier,False
+2017,10,6,0,Delray Beach Air Biscuits,Danny Duffy,False
+2017,10,7,0,Harper Barely Know Her,Khris Davis,False
+2017,10,8,0,Jobu's VooDoo Project,Cole Hamels,False
+2017,10,9,0,Bel Air GMY's,Marcus Stroman,False
+2017,10,10,0,Smokin' Bases,Kevin Gausman,False
+2017,11,1,0,Smokin' Bases,Eric Hosmer,False
+2017,11,2,0,Bel Air GMY's,Evan Longoria,False
+2017,11,3,0,Jobu's VooDoo Project,Jose Ramirez,False
+2017,11,4,0,Harper Barely Know Her,Craig Kimbrel,False
+2017,11,5,0,Delray Beach Air Biscuits,Stephen Piscotty,False
+2017,11,6,0,Buck Showalter,Jackie Bradley Jr.,False
+2017,11,7,0,Sale For The Title,Andrew Miller,False
+2017,11,8,0,Napoli  Headed Hoes,Kelvin Herrera,False
+2017,11,9,0,Teheran It Up,Willson Contreras,False
+2017,11,10,0,Rum Springer,Michael Brantley,False
+2017,12,1,0,Rum Springer,Ken Giles,False
+2017,12,2,0,Teheran It Up,Carlos Gomez,False
+2017,12,3,0,Napoli  Headed Hoes,Danny Salazar,False
+2017,12,4,0,Sale For The Title,Miguel Sano,False
+2017,12,5,0,Buck Showalter,J.T. Realmuto,False
+2017,12,6,0,Delray Beach Air Biscuits,Kenta Maeda,False
+2017,12,7,0,Harper Barely Know Her,Jason Kipnis,False
+2017,12,8,0,Jobu's VooDoo Project,Alex Colome,False
+2017,12,9,0,Bel Air GMY's,Zack Greinke,False
+2017,12,10,0,Smokin' Bases,Adam Eaton,False
+2017,13,1,0,Smokin' Bases,Rich Hill,False
+2017,13,2,0,Bel Air GMY's,Michael Fulmer,False
+2017,13,3,0,Jobu's VooDoo Project,Greg Bird,False
+2017,13,4,0,Harper Barely Know Her,David Price,False
+2017,13,5,0,Delray Beach Air Biscuits,Aaron Sanchez,False
+2017,13,6,0,Buck Showalter,Felix Hernandez,False
+2017,13,7,0,Sale For The Title,David Robertson,False
+2017,13,8,0,Napoli  Headed Hoes,Albert Pujols,False
+2017,13,9,0,Teheran It Up,Lorenzo Cain,False
+2017,13,10,0,Rum Springer,Dallas Keuchel,False
+2017,14,1,0,Rum Springer,Brad Miller,False
+2017,14,2,0,Teheran It Up,Jeurys Familia,False
+2017,14,3,0,Napoli  Headed Hoes,Cody Allen,False
+2017,14,4,0,Sale For The Title,Yasmani Grandal,False
+2017,14,5,0,Buck Showalter,Jeff Samardzija,False
+2017,14,6,0,Delray Beach Air Biscuits,Anthony Rendon,False
+2017,14,7,0,Harper Barely Know Her,Matt Harvey,False
+2017,14,8,0,Jobu's VooDoo Project,Addison Russell,False
+2017,14,9,0,Bel Air GMY's,Jake Odorizzi,False
+2017,14,10,0,Smokin' Bases,Ian Desmond,False
+2017,15,1,0,Smokin' Bases,Ben Zobrist,False
+2017,15,2,0,Bel Air GMY's,John Lackey,False
+2017,15,3,0,Jobu's VooDoo Project,Pablo Sandoval,False
+2017,15,4,0,Harper Barely Know Her,J.A. Happ,False
+2017,15,5,0,Delray Beach Air Biscuits,Marcell Ozuna,False
+2017,15,6,0,Buck Showalter,Dexter Fowler,False
+2017,15,7,0,Sale For The Title,Marco Estrada,False
+2017,15,8,0,Napoli  Headed Hoes,Drew Smyly,False
+2017,15,9,0,Teheran It Up,Javier Baez,False
+2017,15,10,0,Rum Springer,Eduardo Nunez,False
+2017,16,1,0,Rum Springer,AJ Ramos,False
+2017,16,2,0,Teheran It Up,Lance McCullers Jr.,False
+2017,16,3,0,Napoli  Headed Hoes,Matt Shoemaker,False
+2017,16,4,0,Sale For The Title,Adrian Gonzalez,False
+2017,16,5,0,Buck Showalter,Michael Wacha,False
+2017,16,6,0,Delray Beach Air Biscuits,Elvis Andrus,False
+2017,16,7,0,Harper Barely Know Her,Francisco Rodriguez,False
+2017,16,8,0,Jobu's VooDoo Project,Odubel Herrera,False
+2017,16,9,0,Bel Air GMY's,Tanner Roark,False
+2017,16,10,0,Smokin' Bases,Aaron Nola,False
+2017,17,1,0,Smokin' Bases,Jon Gray,False
+2017,17,2,0,Bel Air GMY's,Jameson Taillon,False
+2017,17,3,0,Jobu's VooDoo Project,Steven Matz,False
+2017,17,4,0,Harper Barely Know Her,Drew Pomeranz,False
+2017,17,5,0,Delray Beach Air Biscuits,Brandon Belt,False
+2017,17,6,0,Buck Showalter,Evan Gattis,False
+2017,17,7,0,Sale For The Title,Sonny Gray,False
+2017,17,8,0,Napoli  Headed Hoes,Salvador Perez,False
+2017,17,9,0,Teheran It Up,Jason Heyward,False
+2017,17,10,0,Rum Springer,Garrett Richards,False
+2017,18,1,0,Rum Springer,Julio Urias,False
+2017,18,2,0,Teheran It Up,Gio Gonzalez,False
+2017,18,3,0,Napoli  Headed Hoes,Kole Calhoun,False
+2017,18,4,0,Sale For The Title,Jay Bruce,False
+2017,18,5,0,Buck Showalter,Lance Lynn,False
+2017,18,6,0,Delray Beach Air Biscuits,Justin Turner,False
+2017,18,7,0,Harper Barely Know Her,Michael Pineda,False
+2017,18,8,0,Jobu's VooDoo Project,Aledmys Diaz,False
+2017,18,9,0,Bel Air GMY's,Sean Manaea,False
+2017,18,10,0,Smokin' Bases,Tony Watson,False
+2017,19,1,0,Smokin' Bases,James Paxton,False
+2017,19,2,0,Bel Air GMY's,Matt Moore,False
+2017,19,3,0,Jobu's VooDoo Project,Jim Johnson,False
+2017,19,4,0,Harper Barely Know Her,Adam Wainwright,False
+2017,19,5,0,Delray Beach Air Biscuits,Adam Duvall,False
+2017,19,6,0,Buck Showalter,Jonathan Schoop,False
+2017,19,7,0,Sale For The Title,Carlos Beltran,False
+2017,19,8,0,Napoli  Headed Hoes,Robbie Ray,False
+2017,19,9,0,Teheran It Up,Yasiel Puig,False
+2017,19,10,0,Rum Springer,Vince Velasquez,False
+2017,20,1,0,Rum Springer,Hisashi Iwakuma,False
+2017,20,2,0,Teheran It Up,Ivan Nova,False
+2017,20,3,0,Napoli  Headed Hoes,Sam Dyson,False
+2017,20,4,0,Sale For The Title,Ian Kennedy,False
+2017,20,5,0,Buck Showalter,Dylan Bundy,False
+2017,20,6,0,Delray Beach Air Biscuits,Dellin Betances,False
+2017,20,7,0,Harper Barely Know Her,Jordan Zimmermann,False
+2017,20,8,0,Jobu's VooDoo Project,Jason Hammel,False
+2017,20,9,0,Bel Air GMY's,Taijuan Walker,False
+2017,20,10,0,Smokin' Bases,Jose Peraza,False
+2017,21,1,0,Smokin' Bases,Yadier Molina,False
+2017,21,2,0,Bel Air GMY's,Jharel Cotton,False
+2017,21,3,0,Jobu's VooDoo Project,Russell Martin,False
+2017,21,4,0,Harper Barely Know Her,Ervin Santana,False
+2017,21,5,0,Delray Beach Air Biscuits,Raisel Iglesias,False
+2017,21,6,0,Buck Showalter,C.J. Cron,False
+2017,21,7,0,Sale For The Title,Rajai Davis,False
+2017,21,8,0,Napoli  Headed Hoes,Carlos Rodon,False
+2017,21,9,0,Teheran It Up,Trevor Bauer,False
+2017,21,10,0,Rum Springer,Steven Wright,False
+2017,22,1,0,Rum Springer,Hunter Pence,False
+2017,22,2,0,Teheran It Up,Matt Wieters,False
+2017,22,3,0,Napoli  Headed Hoes,Joc Pederson,False
+2017,22,4,0,Sale For The Title,Santiago Casilla,False
+2017,22,5,0,Buck Showalter,Brandon Crawford,False
+2017,22,6,0,Delray Beach Air Biscuits,Brian McCann,False
+2017,22,7,0,Harper Barely Know Her,Randal Grichuk,False
+2017,22,8,0,Jobu's VooDoo Project,Jose Reyes,False
+2017,22,9,0,Bel Air GMY's,Addison Reed,False
+2017,22,10,0,Smokin' Bases,Eduardo Rodriguez,False
+2017,23,1,0,Smokin' Bases,Daniel Norris,False
+2017,23,2,0,Bel Air GMY's,Cam Bedrosian,False
+2017,23,3,0,Jobu's VooDoo Project,Zach Davies,False
+2017,23,4,0,Harper Barely Know Her,Aaron Judge,False
+2017,23,5,0,Delray Beach Air Biscuits,Anthony DeSclafani,False
+2017,23,6,0,Buck Showalter,Neftali Feliz,False
+2017,23,7,0,Sale For The Title,Nicholas Castellanos,False
+2017,23,8,0,Napoli  Headed Hoes,Jedd Gyorko,False
+2017,23,9,0,Teheran It Up,Alex Cobb,False
+2017,23,10,0,Rum Springer,Tyler Glasnow,False
+2017,24,1,0,Rum Springer,Francisco Liriano,False
+2017,24,2,0,Teheran It Up,Jerad Eickhoff,False
+2017,24,3,0,Napoli  Headed Hoes,Brandon Maurer,False
+2017,24,4,0,Sale For The Title,David Peralta,False
+2017,24,5,0,Buck Showalter,Chris Tillman,False
+2017,24,6,0,Delray Beach Air Biscuits,Joe Ross,False
+2017,24,7,0,Harper Barely Know Her,Blake Snell,False
+2017,24,8,0,Jobu's VooDoo Project,Lucas Duda,False
+2017,24,9,0,Bel Air GMY's,Byron Buxton,False
+2017,24,10,0,Smokin' Bases,Maikel Franco,False

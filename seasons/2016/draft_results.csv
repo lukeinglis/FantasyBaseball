@@ -1,0 +1,241 @@
+year,round,pick,overall,team,player_name,keeper
+2016,1,1,0,Magic Man,Bryce Harper,False
+2016,1,2,0,Delray Beach Air Biscuits,Mike Trout,False
+2016,1,3,0,Napoli  Headed Hoes,Paul Goldschmidt,False
+2016,1,4,0,Bel Air GMY's,Clayton Kershaw,False
+2016,1,5,0,Buck Showalter,Manny Machado,False
+2016,1,6,0,Smokin' Bases,Giancarlo Stanton,False
+2016,1,7,0,Mookie Monsters,Max Scherzer,False
+2016,1,8,0,RollieFingers YerMom,Jose Altuve,False
+2016,1,9,0,Harper Barely Know Her,Nolan Arenado,False
+2016,1,10,0,Pedroia Owns U,Andrew McCutchen,False
+2016,2,1,0,Pedroia Owns U,Josh Donaldson,False
+2016,2,2,0,Harper Barely Know Her,Jose Bautista,False
+2016,2,3,0,RollieFingers YerMom,Carlos Correa,False
+2016,2,4,0,Mookie Monsters,Mookie Betts,False
+2016,2,5,0,Smokin' Bases,Anthony Rizzo,False
+2016,2,6,0,Buck Showalter,Jake Arrieta,False
+2016,2,7,0,Bel Air GMY's,Miguel Cabrera,False
+2016,2,8,0,Napoli  Headed Hoes,Jose Abreu,False
+2016,2,9,0,Delray Beach Air Biscuits,Dee Gordon,False
+2016,2,10,0,Magic Man,Chris Sale,False
+2016,3,1,0,Magic Man,David Price,False
+2016,3,2,0,Delray Beach Air Biscuits,Kris Bryant,False
+2016,3,3,0,Napoli  Headed Hoes,J.D. Martinez,False
+2016,3,4,0,Bel Air GMY's,Madison Bumgarner,False
+2016,3,5,0,Buck Showalter,Matt Harvey,False
+2016,3,6,0,Smokin' Bases,Charlie Blackmon,False
+2016,3,7,0,Mookie Monsters,Joey Votto,False
+2016,3,8,0,RollieFingers YerMom,Jacob deGrom,False
+2016,3,9,0,Harper Barely Know Her,Edwin Encarnacion,False
+2016,3,10,0,Pedroia Owns U,Gerrit Cole,False
+2016,4,1,0,Pedroia Owns U,Corey Kluber,False
+2016,4,2,0,Harper Barely Know Her,Chris Davis,False
+2016,4,3,0,RollieFingers YerMom,Justin Upton,False
+2016,4,4,0,Mookie Monsters,Dallas Keuchel,False
+2016,4,5,0,Smokin' Bases,Buster Posey,False
+2016,4,6,0,Buck Showalter,Miguel Sano,False
+2016,4,7,0,Bel Air GMY's,Starling Marte,False
+2016,4,8,0,Napoli  Headed Hoes,A.J. Pollock,False
+2016,4,9,0,Delray Beach Air Biscuits,George Springer,False
+2016,4,10,0,Magic Man,Nelson Cruz,False
+2016,5,1,0,Magic Man,Troy Tulowitzki,False
+2016,5,2,0,Delray Beach Air Biscuits,Zack Greinke,False
+2016,5,3,0,Napoli  Headed Hoes,Matt Carpenter,False
+2016,5,4,0,Bel Air GMY's,Robinson Cano,False
+2016,5,5,0,Buck Showalter,Noah Syndergaard,False
+2016,5,6,0,Smokin' Bases,Stephen Strasburg,False
+2016,5,7,0,Mookie Monsters,Brian Dozier,False
+2016,5,8,0,RollieFingers YerMom,Felix Hernandez,False
+2016,5,9,0,Harper Barely Know Her,Carlos Gomez,False
+2016,5,10,0,Pedroia Owns U,Adam Jones,False
+2016,6,1,0,Pedroia Owns U,,False
+2016,6,2,0,Harper Barely Know Her,Craig Kimbrel,False
+2016,6,3,0,RollieFingers YerMom,Todd Frazier,False
+2016,6,4,0,Mookie Monsters,Yoenis Cespedes,False
+2016,6,5,0,Smokin' Bases,Sonny Gray,False
+2016,6,6,0,Buck Showalter,Kyle Schwarber,False
+2016,6,7,0,Bel Air GMY's,Lorenzo Cain,False
+2016,6,8,0,Napoli  Headed Hoes,Chris Archer,False
+2016,6,9,0,Delray Beach Air Biscuits,Kenley Jansen,False
+2016,6,10,0,Magic Man,Prince Fielder,False
+2016,7,1,0,Magic Man,Johnny Cueto,False
+2016,7,2,0,Delray Beach Air Biscuits,Jeurys Familia,False
+2016,7,3,0,Napoli  Headed Hoes,Xander Bogaerts,False
+2016,7,4,0,Bel Air GMY's,Carlos Carrasco,False
+2016,7,5,0,Buck Showalter,Adam Wainwright,False
+2016,7,6,0,Smokin' Bases,Wade Davis,False
+2016,7,7,0,Mookie Monsters,Maikel Franco,False
+2016,7,8,0,RollieFingers YerMom,Eric Hosmer,False
+2016,7,9,0,Harper Barely Know Her,Carlos Gonzalez,False
+2016,7,10,0,Pedroia Owns U,Freddie Freeman,False
+2016,8,1,0,Pedroia Owns U,Ian Kinsler,False
+2016,8,2,0,Harper Barely Know Her,Jon Lester,False
+2016,8,3,0,RollieFingers YerMom,Cole Hamels,False
+2016,8,4,0,Mookie Monsters,Hunter Pence,False
+2016,8,5,0,Smokin' Bases,Adrian Beltre,False
+2016,8,6,0,Buck Showalter,Marcus Stroman,False
+2016,8,7,0,Bel Air GMY's,Jason Heyward,False
+2016,8,8,0,Napoli  Headed Hoes,Carlos Martinez,False
+2016,8,9,0,Delray Beach Air Biscuits,Francisco Lindor,False
+2016,8,10,0,Magic Man,Adrian Gonzalez,False
+2016,9,1,0,Magic Man,Yasiel Puig,False
+2016,9,2,0,Delray Beach Air Biscuits,Albert Pujols,False
+2016,9,3,0,Napoli  Headed Hoes,Trevor Rosenthal,False
+2016,9,4,0,Bel Air GMY's,Corey Seager,False
+2016,9,5,0,Buck Showalter,Ryan Braun,False
+2016,9,6,0,Smokin' Bases,David Ortiz,False
+2016,9,7,0,Mookie Monsters,Michael Brantley,False
+2016,9,8,0,RollieFingers YerMom,Jonathan Lucroy,False
+2016,9,9,0,Harper Barely Know Her,Aroldis Chapman,False
+2016,9,10,0,Pedroia Owns U,Ian Desmond,False
+2016,10,1,0,Pedroia Owns U,Jordan Zimmermann,False
+2016,10,2,0,Harper Barely Know Her,Jeff Samardzija,False
+2016,10,3,0,RollieFingers YerMom,Danny Salazar,False
+2016,10,4,0,Mookie Monsters,Mark Melancon,False
+2016,10,5,0,Smokin' Bases,Garrett Richards,False
+2016,10,6,0,Buck Showalter,Zach Britton,False
+2016,10,7,0,Bel Air GMY's,Kyle Seager,False
+2016,10,8,0,Napoli  Headed Hoes,Christian Yelich,False
+2016,10,9,0,Delray Beach Air Biscuits,John Lackey,False
+2016,10,10,0,Magic Man,DJ LeMahieu,False
+2016,11,1,0,Magic Man,Michael Wacha,False
+2016,11,2,0,Delray Beach Air Biscuits,Scott Kazmir,False
+2016,11,3,0,Napoli  Headed Hoes,Hanley Ramirez,False
+2016,11,4,0,Bel Air GMY's,Cody Allen,False
+2016,11,5,0,Buck Showalter,Gregory Polanco,False
+2016,11,6,0,Smokin' Bases,Ben Revere,False
+2016,11,7,0,Mookie Monsters,Masahiro Tanaka,False
+2016,11,8,0,RollieFingers YerMom,Matt Kemp,False
+2016,11,9,0,Harper Barely Know Her,Rougned Odor,False
+2016,11,10,0,Pedroia Owns U,Billy Hamilton,False
+2016,12,1,0,Pedroia Owns U,Ken Giles,False
+2016,12,2,0,Harper Barely Know Her,Brian McCann,False
+2016,12,3,0,RollieFingers YerMom,Jose Quintana,False
+2016,12,4,0,Mookie Monsters,Hector Rondon,False
+2016,12,5,0,Smokin' Bases,Anthony Rendon,False
+2016,12,6,0,Buck Showalter,Huston Street,False
+2016,12,7,0,Bel Air GMY's,Salvador Perez,False
+2016,12,8,0,Napoli  Headed Hoes,Tyson Ross,False
+2016,12,9,0,Delray Beach Air Biscuits,Jacoby Ellsbury,False
+2016,12,10,0,Magic Man,Michael Pineda,False
+2016,13,1,0,Magic Man,Luis Severino,False
+2016,13,2,0,Delray Beach Air Biscuits,Justin Verlander,False
+2016,13,3,0,Napoli  Headed Hoes,Drew Smyly,False
+2016,13,4,0,Bel Air GMY's,Taijuan Walker,False
+2016,13,5,0,Buck Showalter,Addison Russell,False
+2016,13,6,0,Smokin' Bases,Hisashi Iwakuma,False
+2016,13,7,0,Mookie Monsters,Shelby Miller,False
+2016,13,8,0,RollieFingers YerMom,David Robertson,False
+2016,13,9,0,Harper Barely Know Her,Brandon Crawford,False
+2016,13,10,0,Pedroia Owns U,Evan Longoria,False
+2016,14,1,0,Pedroia Owns U,Gio Gonzalez,False
+2016,14,2,0,Harper Barely Know Her,Collin McHugh,False
+2016,14,3,0,RollieFingers YerMom,Jonathan Papelbon,False
+2016,14,4,0,Mookie Monsters,Ketel Marte,False
+2016,14,5,0,Smokin' Bases,Julio Teheran,False
+2016,14,6,0,Buck Showalter,Russell Martin,False
+2016,14,7,0,Bel Air GMY's,Jake Odorizzi,False
+2016,14,8,0,Napoli  Headed Hoes,David Peralta,False
+2016,14,9,0,Delray Beach Air Biscuits,A.J. Ramos,False
+2016,14,10,0,Magic Man,Yu Darvish,False
+2016,15,1,0,Magic Man,Francisco Liriano,False
+2016,15,2,0,Delray Beach Air Biscuits,Ben Zobrist,False
+2016,15,3,0,Napoli  Headed Hoes,Jason Kipnis,False
+2016,15,4,0,Bel Air GMY's,,False
+2016,15,5,0,Buck Showalter,Francisco Rodriguez,False
+2016,15,6,0,Smokin' Bases,Steven Matz,False
+2016,15,7,0,Mookie Monsters,Santiago Casilla,False
+2016,15,8,0,RollieFingers YerMom,Jay Bruce,False
+2016,15,9,0,Harper Barely Know Her,Patrick Corbin,False
+2016,15,10,0,Pedroia Owns U,Travis d'Arnaud,False
+2016,16,1,0,Pedroia Owns U,Brad Ziegler,False
+2016,16,2,0,Harper Barely Know Her,Alex Rodriguez,False
+2016,16,3,0,RollieFingers YerMom,James Shields,False
+2016,16,4,0,Mookie Monsters,Kyle Hendricks,False
+2016,16,5,0,Smokin' Bases,Raisel Iglesias,False
+2016,16,6,0,Buck Showalter,Adam Eaton,False
+2016,16,7,0,Bel Air GMY's,Carlos Rodon,False
+2016,16,8,0,Napoli  Headed Hoes,Jaime Garcia,False
+2016,16,9,0,Delray Beach Air Biscuits,Mike Fiers,False
+2016,16,10,0,Magic Man,Anibal Sanchez,False
+2016,17,1,0,Magic Man,Josh Harrison,False
+2016,17,2,0,Delray Beach Air Biscuits,Drew Storen,False
+2016,17,3,0,Napoli  Headed Hoes,Wei-Yin Chen,False
+2016,17,4,0,Bel Air GMY's,Kole Calhoun,False
+2016,17,5,0,Buck Showalter,Billy Burns,False
+2016,17,6,0,Smokin' Bases,Shin-Soo Choo,False
+2016,17,7,0,Mookie Monsters,Danny Valencia,False
+2016,17,8,0,RollieFingers YerMom,Wil Myers,False
+2016,17,9,0,Harper Barely Know Her,Daniel Murphy,False
+2016,17,10,0,Pedroia Owns U,Clay Buchholz,False
+2016,18,1,0,Pedroia Owns U,Victor Martinez,False
+2016,18,2,0,Harper Barely Know Her,Andrew Heaney,False
+2016,18,3,0,RollieFingers YerMom,Mike Leake,False
+2016,18,4,0,Mookie Monsters,Andrew Cashner,False
+2016,18,5,0,Smokin' Bases,Kenta Maeda,False
+2016,18,6,0,Buck Showalter,Glen Perkins,False
+2016,18,7,0,Bel Air GMY's,Kevin Gausman,False
+2016,18,8,0,Napoli  Headed Hoes,Alex Wood,False
+2016,18,9,0,Delray Beach Air Biscuits,J.T. Realmuto,False
+2016,18,10,0,Magic Man,Yadier Molina,False
+2016,19,1,0,Magic Man,Andrew Miller,False
+2016,19,2,0,Delray Beach Air Biscuits,Kolten Wong,False
+2016,19,3,0,Napoli  Headed Hoes,Anthony DeSclafani,False
+2016,19,4,0,Bel Air GMY's,Brandon Belt,False
+2016,19,5,0,Buck Showalter,R.A. Dickey,False
+2016,19,6,0,Smokin' Bases,Elvis Andrus,False
+2016,19,7,0,Mookie Monsters,Byung Ho Park,False
+2016,19,8,0,RollieFingers YerMom,Alex Gordon,False
+2016,19,9,0,Harper Barely Know Her,Joe Ross,False
+2016,19,10,0,Pedroia Owns U,Matt Holliday,False
+2016,20,1,0,Pedroia Owns U,Dustin Pedroia,False
+2016,20,2,0,Harper Barely Know Her,Corey Dickerson,False
+2016,20,3,0,RollieFingers YerMom,Joc Pederson,False
+2016,20,4,0,Mookie Monsters,Francisco Cervelli,False
+2016,20,5,0,Smokin' Bases,Lucas Duda,False
+2016,20,6,0,Buck Showalter,Eduardo Rodriguez,False
+2016,20,7,0,Bel Air GMY's,Shawn Tolleson,False
+2016,20,8,0,Napoli  Headed Hoes,Steve Cishek,False
+2016,20,9,0,Delray Beach Air Biscuits,Ender Inciarte,False
+2016,20,10,0,Magic Man,Jose Reyes,False
+2016,21,1,0,Magic Man,Mark Trumbo,False
+2016,21,2,0,Delray Beach Air Biscuits,Dellin Betances,False
+2016,21,3,0,Napoli  Headed Hoes,Trea Turner,False
+2016,21,4,0,Bel Air GMY's,Aaron Nola,False
+2016,21,5,0,Buck Showalter,Starlin Castro,False
+2016,21,6,0,Smokin' Bases,Jung Ho Kang,False
+2016,21,7,0,Mookie Monsters,Matt Moore,False
+2016,21,8,0,RollieFingers YerMom,Ian Kennedy,False
+2016,21,9,0,Harper Barely Know Her,Evan Gattis,False
+2016,21,10,0,Pedroia Owns U,Marco Estrada,False
+2016,22,1,0,Pedroia Owns U,Yovani Gallardo,False
+2016,22,2,0,Harper Barely Know Her,Randal Grichuk,False
+2016,22,3,0,RollieFingers YerMom,Mike Moustakas,False
+2016,22,4,0,Mookie Monsters,Joe Panik,False
+2016,22,5,0,Smokin' Bases,Lance McCullers,False
+2016,22,6,0,Buck Showalter,Mark Teixeira,False
+2016,22,7,0,Bel Air GMY's,Ervin Santana,False
+2016,22,8,0,Napoli  Headed Hoes,Yasmani Grandal,False
+2016,22,9,0,Delray Beach Air Biscuits,Sean Doolittle,False
+2016,22,10,0,Magic Man,Trevor Bauer,False
+2016,23,1,0,Magic Man,Byron Buxton,False
+2016,23,2,0,Delray Beach Air Biscuits,Dexter Fowler,False
+2016,23,3,0,Napoli  Headed Hoes,Jesse Hahn,False
+2016,23,4,0,Bel Air GMY's,Nathan Eovaldi,False
+2016,23,5,0,Buck Showalter,Jonathan Schoop,False
+2016,23,6,0,Smokin' Bases,Jason Hammel,False
+2016,23,7,0,Mookie Monsters,Trevor Story,False
+2016,23,8,0,RollieFingers YerMom,Jeremy Jeffress,False
+2016,23,9,0,Harper Barely Know Her,Brad Miller,False
+2016,23,10,0,Pedroia Owns U,Doug Fister,False
+2016,24,1,0,Pedroia Owns U,Adam Conley,False
+2016,24,2,0,Harper Barely Know Her,Mark Buehrle,False
+2016,24,3,0,RollieFingers YerMom,Matt Garza,False
+2016,24,4,0,Mookie Monsters,Justin Turner,False
+2016,24,5,0,Smokin' Bases,Jake McGee,False
+2016,24,6,0,Buck Showalter,Chris Tillman,False
+2016,24,7,0,Bel Air GMY's,Phil Hughes,False
+2016,24,8,0,Napoli  Headed Hoes,Joe Kelly,False
+2016,24,9,0,Delray Beach Air Biscuits,Devin Mesoraco,False
+2016,24,10,0,Magic Man,Fernando Rodney,False

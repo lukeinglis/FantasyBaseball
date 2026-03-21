@@ -1,7 +1,7 @@
 # Tim Van Dalsum
 
-**Seasons in league:** 6  
-**Avg finish:** #6.5  
+**Seasons in league:** 10  
+**Avg finish:** #6.4  
 **Best finish:** #2  
 **Championships:** 0
 
@@ -9,6 +9,10 @@
 
 | Year | Team Name | Finish | W | L | T |
 |---|---|---|---|---|---|
+| 2015 | Pedroia Owns U | #8 | 100 | 159 | 29 |
+| 2016 | Pedroia Owns U | #7 | 109 | 147 | 32 |
+| 2017 | Rum Springer | #2 | 127 | 127 | 34 |
+| 2018 | Dirty Sanchez | #8 | 117 | 138 | 33 |
 | 2019 | Betts Against Us | #8 | 99 | 166 | 23 |
 | 2021 | Comeback Tour | #2 | 150 | 122 | 16 |
 | 2022 | The G.O.A.T | #6 | 135 | 137 | 16 |
