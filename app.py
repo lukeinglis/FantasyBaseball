@@ -85,6 +85,54 @@ BATTING_CATS  = ["H", "R", "HR", "TB", "RBI", "BB", "SB", "AVG"]
 PITCHING_CATS = ["K", "QS", "W", "L", "SV", "HD", "ERA", "WHIP"]
 RATE_CATS     = {"AVG", "ERA", "WHIP"}   # averaged, not summed
 
+# 2026 draft: Round 1 order (snake thereafter). Short name → full owner label.
+NUM_TEAMS_DRAFT = 10
+DRAFT_ORDER_2026 = [
+    ("Zach", "Zack Kirstein"),
+    ("Ricky", "Ricky Krause & Michael Cornuta"),
+    ("Luke", "Luke Inglis"),
+    ("Roger", "Roger Chaufournier & Lee Inglis"),
+    ("Ethan", "Ethan Wayne"),
+    ("Fitzy", "Sean Fitzpatrick"),
+    ("Dan", "Daniel Caron"),
+    ("Tim", "Tim Van Dalsum"),
+    ("Jb", "John Ballantine"),
+    ("Joel", "Joel Seagraves"),
+]
+
+
+def draft_owner_index(num_picks_so_far: int):
+    """
+    Snake draft: which slot in DRAFT_ORDER_2026 (0–9) picks next, given
+    num_picks_so_far players already drafted.
+    """
+    if num_picks_so_far < 0:
+        return None
+    rnd = num_picks_so_far // NUM_TEAMS_DRAFT
+    slot = num_picks_so_far % NUM_TEAMS_DRAFT
+    if rnd % 2 == 0:
+        return slot
+    return NUM_TEAMS_DRAFT - 1 - slot
+
+
+def draft_owner_on_the_clock(num_picks_so_far: int):
+    """
+    Snake draft: pick index num_picks_so_far is next (0-based).
+    Odd rounds (1st, 3rd, …): order left-to-right; even rounds: reversed.
+    """
+    idx = draft_owner_index(num_picks_so_far)
+    if idx is None:
+        return None
+    return DRAFT_ORDER_2026[idx]
+
+
+def snake_round_and_overall_pick(num_picks_so_far: int):
+    """1-based round number and overall pick number for the *next* selection."""
+    overall = num_picks_so_far + 1
+    rnd = num_picks_so_far // NUM_TEAMS_DRAFT + 1
+    return rnd, overall
+
+
 # ── Data loading ──────────────────────────────────────────────────────────────
 
 @st.cache_data
@@ -108,6 +156,13 @@ def load_rankings():
         if "Pos_old" in df.columns:
             df["Pos"] = df["Pos"].fillna(df["Pos_old"])
             df.drop(columns=["Pos_old"], inplace=True)
+    # Rank within each position label (1 = best projected z at that position)
+    pos_key = df["Pos"].fillna("—")
+    df["Pos_Rank"] = (
+        df.groupby(pos_key, sort=False)["z_total"]
+        .rank(ascending=False, method="min")
+        .astype(int)
+    )
     return df
 
 @st.cache_data
@@ -185,10 +240,13 @@ n_mine    = len(st.session_state.my_picks)
 st.sidebar.markdown(f"### 📋 Draft Status")
 st.sidebar.markdown(f"**{n_drafted}** players off the board  |  **{n_mine}** my picks")
 
-if n_drafted > 0:
-    round_num = (n_drafted // 10) + 1
-    pick_in_round = (n_drafted % 10) + 1
-    st.sidebar.caption(f"Approx round {round_num}, pick {pick_in_round}")
+on_clock = draft_owner_on_the_clock(n_drafted)
+if on_clock:
+    short, full = on_clock
+    rnd, overall_pick = snake_round_and_overall_pick(n_drafted)
+    st.sidebar.caption(f"Next: **Round {rnd}** · Pick **{overall_pick}** — {short} ({full})")
+elif n_drafted == 0:
+    st.sidebar.caption("Draft not started — Round 1 · Pick 1 on the clock")
 
 # Undo last pick
 col_a, col_b = st.sidebar.columns(2)
@@ -252,7 +310,7 @@ if st.sidebar.button("Update Rankings", use_container_width=True):
 
 if page == "Draft Board":
     st.title("⚾ Draft Board")
-    st.caption("ESPN 2026 projected stats · league-specific category weights · click a player to draft them")
+    st.caption("ESPN 2026 projected stats · league-specific category weights · confirm picks below")
 
     rankings = load_rankings()
     if rankings is None:
@@ -260,6 +318,57 @@ if page == "Draft Board":
         st.stop()
 
     drafted_set = set(st.session_state.drafted)
+
+    # ── 2026 draft order (Round 1; snake) + who’s on the clock ──
+    oc = draft_owner_on_the_clock(n_drafted)
+    rnd_next, overall_next = snake_round_and_overall_pick(n_drafted)
+    next_idx = draft_owner_index(n_drafted)
+    order_cols = st.columns(NUM_TEAMS_DRAFT)
+    for i, (short, full) in enumerate(DRAFT_ORDER_2026):
+        with order_cols[i]:
+            is_next = next_idx is not None and i == next_idx
+            label = f"**{i + 1}.** ⏱ {short}" if is_next else f"**{i + 1}.** {short}"
+            st.markdown(label, help=full)
+    if oc:
+        st.info(f"**On the clock:** {oc[1]} · next pick is **Round {rnd_next}**, **#{overall_next}** overall (short: **{oc[0]}**).")
+
+    with st.expander("What is **z** (z_total)?", expanded=False):
+        st.markdown(
+            """
+**`z_total`** is a **weighted fantasy score** built from your league’s category weights, not ESPN’s ranks.
+
+- For each scoring category (e.g. HR, K, ERA), we turn a player’s **projected stat** into a **z-score** vs the draftable player pool: how many standard deviations above or below average they are.
+- Categories where **lower is better** (ERA, WHIP, L) are flipped so a better stat still gives a higher z-score.
+- Each category z-score is multiplied by that category’s **importance in Tampa’s Finest** (from years of matchup history), then summed into **`z_total`**.
+- **`Pos#` / Pos_Rank** is rank **within that position only** (1 = best projected z among players with the same position tag).
+
+Higher **`z_total`** ⇒ stronger fit for *this* league’s scoring; use **`Pos#`** to see positional strength.
+            """
+        )
+
+    # ── My drafted players (stay on this page) ──
+    my_picks = st.session_state.my_picks
+    if my_picks:
+        st.subheader("My drafted players")
+        my_df = rankings[rankings["Name"].isin(my_picks)].copy()
+        ord_map = {n: i for i, n in enumerate(my_picks)}
+        my_df["_draft_order"] = my_df["Name"].map(ord_map)
+        my_df = my_df.sort_values("_draft_order").drop(columns=["_draft_order"])
+        stat_cols = [c for c in BATTING_CATS + PITCHING_CATS if c in my_df.columns]
+        show_my = ["Name", "Team", "Pos", "Pos_Rank", "Overall_Rank", "z_total"] + stat_cols
+        if "espn_rank" in my_df.columns:
+            show_my = ["Name", "Team", "Pos", "Pos_Rank", "Overall_Rank", "espn_rank", "z_total"] + stat_cols
+        show_my = [c for c in show_my if c in my_df.columns]
+        st.dataframe(
+            my_df[show_my].reset_index(drop=True),
+            use_container_width=True,
+            height=min(120 + 36 * len(my_df), 420),
+        )
+        st.caption(f"{len(my_picks)} pick(s) recorded — rows are in the order you confirmed picks (first pick at top).")
+    else:
+        st.info("No **my picks** yet — confirm a pick below with **This is MY pick** checked.")
+
+    st.markdown("---")
 
     # ── Filters ──
     col_f1, col_f2, col_f3, col_f4 = st.columns([2, 2, 2, 3])
@@ -288,15 +397,16 @@ if page == "Draft Board":
         df = df[~df["drafted"]]
 
     # ── Top 5 value callout ──
-    avail = rankings[~rankings["Name"].isin(drafted_set)]
+    avail = rankings[~rankings["Name"].isin(drafted_set)].sort_values("z_total", ascending=False)
     top5 = avail.head(5)
     cols = st.columns(5)
     for i, (_, row) in enumerate(top5.iterrows()):
         with cols[i]:
             pos_label = row.get("Pos", row["Type"])
+            pr = int(row["Pos_Rank"]) if pd.notna(row.get("Pos_Rank")) else "—"
             st.metric(
                 f"#{int(row.get('Overall_Rank', i+1))} {row['Name']}",
-                f"{row['Team']} · {pos_label}",
+                f"{row['Team']} · {pos_label} · Pos#{pr}",
                 f"z={row['z_total']:.2f}"
             )
 
@@ -333,33 +443,32 @@ if page == "Draft Board":
                     else:
                         st.info(f"{name} already drafted.")
 
-    # ── Main table ──
+    # ── Main table (WR# = overall, Pos# = position rank, all projected counting stats) ──
     has_espn = "espn_rank" in df.columns
-    bat_cols = ["Name", "Team", "Pos", "z_total", "H", "R", "HR", "TB", "RBI", "BB", "SB", "AVG"]
-    pit_cols = ["Name", "Team", "Pos", "z_total", "K", "QS", "W", "L", "SV", "HD", "ERA", "WHIP"]
-    all_cols = ["Name", "Team", "Pos", "Type", "z_total"]
+    bat_stat_cols = [c for c in BATTING_CATS if c in df.columns]
+    pit_stat_cols = [c for c in PITCHING_CATS if c in df.columns]
 
+    rank_cols = ["Overall_Rank", "Pos_Rank"]
     if has_espn:
-        rank_cols = ["Overall_Rank", "espn_rank"]
-    else:
-        rank_cols = ["Overall_Rank"]
+        rank_cols = rank_cols + ["espn_rank"]
 
+    base = ["Name", "Team", "Pos", "z_total"]
     if player_type == "Batters":
-        show_cols = rank_cols + bat_cols
+        show_cols = rank_cols + base + bat_stat_cols
     elif player_type == "Pitchers":
-        show_cols = rank_cols + pit_cols
+        show_cols = rank_cols + base + pit_stat_cols
     else:
-        show_cols = rank_cols + all_cols
+        show_cols = rank_cols + base + ["Type"] + bat_stat_cols + pit_stat_cols
 
     show_cols = [c for c in show_cols if c in df.columns]
     display_df = df[show_cols + (["drafted"] if "drafted" in df.columns and not show_avail else [])].copy()
     display_df = display_df.reset_index(drop=True)
 
+    rename_map = {"Overall_Rank": "WR#", "Pos_Rank": "Pos#"}
     if has_espn:
+        rename_map["espn_rank"] = "ESPN#"
         display_df["Diff"] = display_df["Overall_Rank"] - display_df["espn_rank"]
-        display_df = display_df.rename(columns={
-            "Overall_Rank": "WR#", "espn_rank": "ESPN#"
-        })
+    display_df = display_df.rename(columns=rename_map)
 
     def colour_z(val):
         if not isinstance(val, (int, float)): return ""
