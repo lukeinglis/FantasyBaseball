@@ -1,12 +1,13 @@
 "use client";
 
-import { useState, useEffect, useMemo, useCallback } from "react";
+import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import type { Player } from "@/lib/data";
 
 // ── Draft order ───────────────────────────────────────────────────────────────
 
 const DRAFT_ORDER = ["Zach", "Ricky", "Luke", "Roger", "Ethan", "Fitzy", "Dan", "Tim", "JB", "Joel"];
 const TEAM_COUNT = 10;
+const TOTAL_ROUNDS = 24;
 const MY_NAME = "Luke";
 
 function getDrafter(pickIndex: number) {
@@ -15,6 +16,14 @@ function getDrafter(pickIndex: number) {
   const idx = (round - 1) % 2 === 0 ? pickInRound : TEAM_COUNT - 1 - pickInRound;
   return { name: DRAFT_ORDER[idx], round, pick: pickInRound + 1 };
 }
+
+// Full snake draft sequence — all picks across all rounds
+const FULL_SEQUENCE = Array.from({ length: TOTAL_ROUNDS * TEAM_COUNT }, (_, i) => {
+  const round = Math.floor(i / TEAM_COUNT);
+  const pickInRound = i % TEAM_COUNT;
+  const idx = round % 2 === 0 ? pickInRound : TEAM_COUNT - 1 - pickInRound;
+  return { overall: i, round: round + 1, pick: pickInRound + 1, drafter: DRAFT_ORDER[idx] };
+});
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
@@ -69,6 +78,7 @@ export default function DraftBoardPage() {
   const [showAvail, setShowAvail] = useState(true);
   // Who is actively picking — null means auto-follow draft order
   const [selectedDrafter, setSelectedDrafter] = useState<string | null>(null);
+  const currentPickRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     fetch("/api/rankings").then((r) => r.json()).then(setPlayers);
@@ -124,6 +134,11 @@ export default function DraftBoardPage() {
   }, [dedupedPlayers, typeFilter, posFilter, search, showAvail, draftedSet]);
 
   const drafter = useMemo(() => getDrafter(session.drafted.length), [session.drafted.length]);
+
+  // Scroll current pick into view whenever it advances
+  useEffect(() => {
+    currentPickRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+  }, [session.drafted.length]);
 
   // Effective drafter: manual selection overrides auto
   const activeDrafter = selectedDrafter ?? drafter.name;
@@ -450,62 +465,90 @@ export default function DraftBoardPage() {
         {/* ── Sidebar ────────────────────────────────────────────────────── */}
         <div className="space-y-4">
 
-          {/* Draft Order — click a name to set the active drafter */}
+          {/* Draft ticker — full scrollable pick list */}
           <div className="rounded-lg border border-border bg-surface">
             <div className="border-b border-border px-3 py-2">
               <div className="flex items-center justify-between">
                 <h2 className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Draft Order</h2>
-                <span className="text-[10px] text-slate-700">tap to select</span>
+                {selectedDrafter && (
+                  <button onClick={() => setSelectedDrafter(null)}
+                    className="text-[10px] text-slate-600 hover:text-slate-400">
+                    clear
+                  </button>
+                )}
               </div>
             </div>
-            <div className="px-2 py-2 space-y-0.5">
-              {DRAFT_ORDER.map((name, i) => {
-                const isOnClock = name === drafter.name;
-                const isSelected = name === activeDrafter;
-                const isMe = name === MY_NAME;
-                const isManuallySet = selectedDrafter !== null;
-                return (
-                  <button key={name}
-                    onClick={() => setSelectedDrafter(name === selectedDrafter ? null : name)}
-                    className={`flex w-full items-center gap-2 rounded px-2 py-1.5 text-[12px] text-left transition-colors ${
-                      isSelected
-                        ? isMe
-                          ? "bg-amber-500/15 ring-1 ring-amber-500/30"
-                          : "bg-blue-500/10 ring-1 ring-blue-500/20"
-                        : "hover:bg-white/5"
-                    }`}>
-                    <span className="w-4 font-mono text-[10px] text-slate-700">{i + 1}</span>
-                    <span className={[
-                      "flex-1",
-                      isSelected && isMe ? "font-bold text-amber-300" :
-                      isSelected ? "font-bold text-blue-300" :
-                      isMe ? "font-semibold text-amber-400/60" :
-                      "text-slate-400",
-                    ].join(" ")}>
-                      {name}
-                    </span>
-                    <span className="flex gap-1">
-                      {isOnClock && !isManuallySet && (
-                        <span className="text-[10px] font-medium text-amber-400">clock</span>
+
+            <div className="overflow-y-auto" style={{ height: "520px" }}>
+              {FULL_SEQUENCE.map((pick) => {
+                const isPast = pick.overall < session.drafted.length;
+                const isCurrent = pick.overall === session.drafted.length;
+                const isFuture = pick.overall > session.drafted.length;
+                const draftedPlayer = session.drafted[pick.overall];
+                const isMe = pick.drafter === MY_NAME;
+                const isSelected = pick.drafter === activeDrafter;
+                const isManual = selectedDrafter !== null;
+
+                if (isPast) {
+                  return (
+                    <div key={pick.overall}
+                      className="flex items-center gap-2 border-b border-border/20 px-3 py-1.5 opacity-40">
+                      <span className="w-8 font-mono text-[10px] text-slate-600">
+                        {pick.round}.{pick.pick}
+                      </span>
+                      <span className={`w-14 text-[11px] ${isMe ? "text-amber-400/70" : "text-slate-500"}`}>
+                        {pick.drafter}
+                      </span>
+                      <span className="flex-1 truncate text-[11px] text-slate-400">{draftedPlayer ?? ""}</span>
+                    </div>
+                  );
+                }
+
+                if (isCurrent) {
+                  return (
+                    <div key={pick.overall} ref={currentPickRef}
+                      className={`flex items-center gap-2 border-b border-amber-500/20 px-3 py-2.5 ${
+                        isMe ? "bg-amber-500/10" : "bg-white/5"
+                      }`}>
+                      <span className="w-8 font-mono text-[10px] text-slate-500">
+                        {pick.round}.{pick.pick}
+                      </span>
+                      <span className={`flex-1 text-[13px] font-bold ${isMe ? "text-amber-300" : "text-white"}`}>
+                        {pick.drafter}
+                      </span>
+                      <span className="text-[10px] font-semibold text-amber-400">ON CLOCK</span>
+                    </div>
+                  );
+                }
+
+                // Future picks — clickable to set active drafter
+                if (isFuture) {
+                  return (
+                    <button key={pick.overall}
+                      onClick={() => setSelectedDrafter(pick.drafter === selectedDrafter ? null : pick.drafter)}
+                      className={`flex w-full items-center gap-2 border-b border-border/20 px-3 py-1.5 text-left transition-colors ${
+                        isSelected && isManual
+                          ? isMe ? "bg-amber-500/10" : "bg-blue-500/8"
+                          : "hover:bg-white/[0.03]"
+                      }`}>
+                      <span className="w-8 font-mono text-[10px] text-slate-700">
+                        {pick.round}.{pick.pick}
+                      </span>
+                      <span className={`flex-1 text-[11px] ${
+                        isSelected && isManual && isMe ? "font-semibold text-amber-400" :
+                        isSelected && isManual ? "font-semibold text-blue-400" :
+                        isMe ? "text-amber-400/50" : "text-slate-600"
+                      }`}>
+                        {pick.drafter}
+                      </span>
+                      {isSelected && isManual && (
+                        <span className={`text-[10px] ${isMe ? "text-amber-500" : "text-blue-500"}`}>●</span>
                       )}
-                      {isSelected && isManuallySet && (
-                        <span className={`text-[10px] font-medium ${isMe ? "text-amber-400" : "text-blue-400"}`}>
-                          active
-                        </span>
-                      )}
-                    </span>
-                  </button>
-                );
+                    </button>
+                  );
+                }
               })}
             </div>
-            {selectedDrafter && (
-              <div className="border-t border-border/40 px-3 py-2">
-                <button onClick={() => setSelectedDrafter(null)}
-                  className="text-[11px] text-slate-600 hover:text-slate-400">
-                  Clear — follow draft order
-                </button>
-              </div>
-            )}
           </div>
 
         </div>
