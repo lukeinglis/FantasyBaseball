@@ -23,6 +23,10 @@ env/
 # pybaseball cache
 appdir_cache/
 
+# output/ — only data files belong here, not build artifacts
+output/*.js
+output/*.html
+
 # Next.js web app build artifacts (web/ source is tracked)
 web/node_modules/
 web/.next/
