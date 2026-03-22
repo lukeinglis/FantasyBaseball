@@ -7,6 +7,7 @@ import type { Player } from "@/lib/data";
 
 const DRAFT_ORDER = ["Zach", "Ricky", "Luke", "Roger", "Ethan", "Fitzy", "Dan", "Tim", "JB", "Joel"];
 const TEAM_COUNT = 10;
+const MY_NAME = "Luke";
 
 function getDrafter(pickIndex: number) {
   const round = Math.floor(pickIndex / TEAM_COUNT) + 1;
@@ -66,8 +67,8 @@ export default function DraftBoardPage() {
   const [posFilter, setPosFilter] = useState<string[]>([]);
   const [search, setSearch] = useState("");
   const [showAvail, setShowAvail] = useState(true);
-  const [draftInput, setDraftInput] = useState("");
-  const [isMine, setIsMine] = useState(true);
+  // Who is actively picking — null means auto-follow draft order
+  const [selectedDrafter, setSelectedDrafter] = useState<string | null>(null);
 
   useEffect(() => {
     fetch("/api/rankings").then((r) => r.json()).then(setPlayers);
@@ -82,11 +83,21 @@ export default function DraftBoardPage() {
     return m;
   }, [players]);
 
+  // Deduplicate players by name
+  const dedupedPlayers = useMemo(() => {
+    const seen = new Set<string>();
+    return players.filter((p) => {
+      if (seen.has(p.name)) return false;
+      seen.add(p.name);
+      return true;
+    });
+  }, [players]);
+
   // Position rank among available players
   const posRanks = useMemo(() => {
     const map = new Map<string, number>();
     const byPos: Record<string, Player[]> = {};
-    for (const p of players) {
+    for (const p of dedupedPlayers) {
       if (draftedSet.has(p.name)) continue;
       if (!byPos[p.pos]) byPos[p.pos] = [];
       byPos[p.pos].push(p);
@@ -95,24 +106,28 @@ export default function DraftBoardPage() {
       group.forEach((p, i) => map.set(p.name, i + 1));
     }
     return map;
-  }, [players, draftedSet]);
+  }, [dedupedPlayers, draftedSet]);
 
   const positions = useMemo(
-    () => [...new Set(players.map((p) => p.pos).filter(Boolean))].sort(),
-    [players]
+    () => [...new Set(dedupedPlayers.map((p) => p.pos).filter(Boolean))].sort(),
+    [dedupedPlayers]
   );
 
   const filtered = useMemo(() => {
-    let list = players;
+    let list = dedupedPlayers;
     if (typeFilter === "BAT") list = list.filter((p) => p.type === "BAT");
     if (typeFilter === "PIT") list = list.filter((p) => p.type === "PIT");
     if (posFilter.length > 0) list = list.filter((p) => posFilter.includes(p.pos));
     if (search) list = list.filter((p) => p.name.toLowerCase().includes(search.toLowerCase()));
     if (showAvail) list = list.filter((p) => !draftedSet.has(p.name));
     return list;
-  }, [players, typeFilter, posFilter, search, showAvail, draftedSet]);
+  }, [dedupedPlayers, typeFilter, posFilter, search, showAvail, draftedSet]);
 
   const drafter = useMemo(() => getDrafter(session.drafted.length), [session.drafted.length]);
+
+  // Effective drafter: manual selection overrides auto
+  const activeDrafter = selectedDrafter ?? drafter.name;
+  const isMine = activeDrafter === MY_NAME;
 
   // My picks with player data
   const myPickPlayers = useMemo(
@@ -146,7 +161,7 @@ export default function DraftBoardPage() {
   // Scarcity data
   const scarcityData = useMemo(() => {
     return SCARCITY_POSITIONS.map((pos) => {
-      const all = players.filter((p) => p.pos === pos);
+      const all = dedupedPlayers.filter((p) => p.pos === pos);
       const available = all.filter((p) => !draftedSet.has(p.name));
       const totalElite = all.filter((p) => p.zTotal >= 0.5).length;
       const availElite = available.filter((p) => p.zTotal >= 0.5).length;
@@ -154,9 +169,9 @@ export default function DraftBoardPage() {
       const scarcityPct = totalElite > 0 ? Math.round((draftedElite / totalElite) * 100) : 0;
       return { pos, availElite, availSolid: available.filter((p) => p.zTotal >= 0.0).length, scarcityPct };
     });
-  }, [players, draftedSet]);
+  }, [dedupedPlayers, draftedSet]);
 
-  // Stat columns: all 16 when "All", type-specific when filtered
+  // Stat columns
   const statCols = useMemo((): StatCol[] => {
     if (typeFilter === "BAT") return [...BAT_COLS];
     if (typeFilter === "PIT") return [...PIT_COLS];
@@ -172,6 +187,8 @@ export default function DraftBoardPage() {
       body: JSON.stringify({ action: "draft", player: name, isMine: mine }),
     });
     setSession(await res.json());
+    // Auto-advance: clear manual selection so next pick follows draft order
+    setSelectedDrafter(null);
   }, []);
 
   const undoLast = useCallback(async () => {
@@ -181,6 +198,7 @@ export default function DraftBoardPage() {
       body: JSON.stringify({ action: "undo" }),
     });
     setSession(await res.json());
+    setSelectedDrafter(null);
   }, []);
 
   const resetDraft = useCallback(async () => {
@@ -191,18 +209,8 @@ export default function DraftBoardPage() {
       body: JSON.stringify({ action: "reset" }),
     });
     setSession(await res.json());
+    setSelectedDrafter(null);
   }, []);
-
-  const handleConfirmPick = () => {
-    if (!draftInput.trim()) return;
-    const match = players.find((p) =>
-      p.name.toLowerCase().includes(draftInput.trim().toLowerCase())
-    );
-    if (match && !draftedSet.has(match.name)) {
-      draftPlayer(match.name, isMine);
-      setDraftInput("");
-    }
-  };
 
   const togglePos = (pos: string) =>
     setPosFilter((prev) =>
@@ -305,7 +313,7 @@ export default function DraftBoardPage() {
         <div className="min-w-0">
 
           {/* Toolbar */}
-          <div className="mb-5 flex flex-wrap items-center gap-3">
+          <div className="mb-4 flex flex-wrap items-center gap-3">
             <div className="flex items-center gap-3 rounded bg-surface px-3 py-1.5 text-[13px] tabular-nums">
               <span className="text-slate-500">Drafted</span>
               <span className="font-semibold text-white">{session.drafted.length}</span>
@@ -313,9 +321,9 @@ export default function DraftBoardPage() {
               <span className="text-slate-500">Mine</span>
               <span className="font-semibold text-amber-400">{session.myPicks.length}</span>
               <span className="text-slate-700">|</span>
-              <span className="text-slate-500">On the clock:</span>
-              <span className={`font-bold ${drafter.name === "Luke" ? "text-amber-400" : "text-white"}`}>
-                {drafter.name}
+              <span className="text-slate-500">Drafting for:</span>
+              <span className={`font-bold ${isMine ? "text-amber-400" : "text-white"}`}>
+                {activeDrafter}
               </span>
               <span className="text-slate-600">Rd {drafter.round} Pk {drafter.pick}</span>
             </div>
@@ -329,31 +337,6 @@ export default function DraftBoardPage() {
                 Reset
               </button>
             </div>
-          </div>
-
-          {/* Draft input */}
-          <div className="mb-5 flex gap-2">
-            <input
-              type="text"
-              value={draftInput}
-              onChange={(e) => setDraftInput(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && handleConfirmPick()}
-              placeholder="Type player name..."
-              className="min-w-0 flex-1 rounded border border-border bg-surface px-3 py-2 text-sm text-white placeholder:text-slate-600 focus:border-slate-500 focus:outline-none"
-            />
-            <label className="flex items-center gap-1.5 px-2 text-[12px] text-slate-500">
-              <input
-                type="checkbox"
-                checked={isMine}
-                onChange={(e) => setIsMine(e.target.checked)}
-                className="accent-amber-500"
-              />
-              Mine
-            </label>
-            <button onClick={handleConfirmPick}
-              className="rounded bg-blue-600 px-5 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-500">
-              Draft
-            </button>
           </div>
 
           {/* Filters */}
@@ -401,7 +384,7 @@ export default function DraftBoardPage() {
                 <tr>
                   <th className="w-10 px-3 py-2.5 font-medium">#</th>
                   <th className="w-12 px-2 py-2.5 font-medium">POS#</th>
-                  {players[0]?.espnRank !== undefined && (
+                  {dedupedPlayers[0]?.espnRank !== undefined && (
                     <th className="w-14 px-2 py-2.5 font-medium">ESPN</th>
                   )}
                   <th className="min-w-[160px] px-3 py-2.5 font-medium">Player</th>
@@ -411,7 +394,7 @@ export default function DraftBoardPage() {
                   {statCols.map((c) => (
                     <th key={c} className="w-14 px-2 py-2.5 text-right font-medium">{c}</th>
                   ))}
-                  <th className="w-16 px-2 py-2.5"></th>
+                  <th className="px-2 py-2.5"></th>
                 </tr>
               </thead>
               <tbody>
@@ -427,7 +410,7 @@ export default function DraftBoardPage() {
                       <td className="px-2 py-1.5 font-mono text-[11px] text-slate-600">
                         {pr ? `${p.pos}${pr}` : "—"}
                       </td>
-                      {players[0]?.espnRank !== undefined && (
+                      {dedupedPlayers[0]?.espnRank !== undefined && (
                         <td className="px-2 py-1.5 font-mono text-slate-600">{p.espnRank ?? "—"}</td>
                       )}
                       <td className="px-3 py-1.5 font-medium text-slate-100">{p.name}</td>
@@ -441,12 +424,18 @@ export default function DraftBoardPage() {
                           {fmtStat(p, c)}
                         </td>
                       ))}
-                      <td className="px-2 py-1.5 text-right">
+                      <td className="px-2 py-1.5">
                         {!drafted && (
-                          <button onClick={() => draftPlayer(p.name, isMine)}
-                            className="rounded px-2 py-0.5 text-[11px] text-slate-500 transition-colors hover:bg-blue-600/20 hover:text-blue-400">
-                            Draft
-                          </button>
+                          <div className="flex gap-1">
+                            <button onClick={() => draftPlayer(p.name, true)}
+                              className="rounded bg-amber-500/20 px-2 py-0.5 text-[11px] font-medium text-amber-300 transition-colors hover:bg-amber-500/30">
+                              Mine
+                            </button>
+                            <button onClick={() => draftPlayer(p.name, false)}
+                              className="rounded bg-white/5 px-2 py-0.5 text-[11px] text-slate-500 transition-colors hover:bg-white/10 hover:text-slate-300">
+                              Other
+                            </button>
+                          </div>
                         )}
                       </td>
                     </tr>
@@ -456,41 +445,69 @@ export default function DraftBoardPage() {
             </table>
           </div>
           <div className="mt-2 text-[11px] tabular-nums text-slate-600">
-            {filtered.length} players · {players.filter((p) => !draftedSet.has(p.name)).length} available
+            {filtered.length} players · {dedupedPlayers.filter((p) => !draftedSet.has(p.name)).length} available
           </div>
         </div>
 
         {/* ── Sidebar ────────────────────────────────────────────────────── */}
         <div className="space-y-4">
 
-          {/* Draft Order */}
+          {/* Draft Order — click a name to set the active drafter */}
           <div className="rounded-lg border border-border bg-surface">
             <div className="border-b border-border px-3 py-2">
-              <h2 className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Draft Order</h2>
+              <div className="flex items-center justify-between">
+                <h2 className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Draft Order</h2>
+                <span className="text-[10px] text-slate-700">tap to select</span>
+              </div>
             </div>
             <div className="px-2 py-2 space-y-0.5">
               {DRAFT_ORDER.map((name, i) => {
-                const isCurrent = name === drafter.name;
-                const isMe = name === "Luke";
+                const isOnClock = name === drafter.name;
+                const isSelected = name === activeDrafter;
+                const isMe = name === MY_NAME;
+                const isManuallySet = selectedDrafter !== null;
                 return (
-                  <div key={name}
-                    className={`flex items-center gap-2 rounded px-2 py-1.5 text-[12px] ${
-                      isCurrent ? "bg-amber-500/10" : ""
+                  <button key={name}
+                    onClick={() => setSelectedDrafter(name === selectedDrafter ? null : name)}
+                    className={`flex w-full items-center gap-2 rounded px-2 py-1.5 text-[12px] text-left transition-colors ${
+                      isSelected
+                        ? isMe
+                          ? "bg-amber-500/15 ring-1 ring-amber-500/30"
+                          : "bg-blue-500/10 ring-1 ring-blue-500/20"
+                        : "hover:bg-white/5"
                     }`}>
                     <span className="w-4 font-mono text-[10px] text-slate-700">{i + 1}</span>
                     <span className={[
                       "flex-1",
-                      isCurrent ? "font-bold text-amber-300" : isMe ? "font-semibold text-amber-400/70" : "text-slate-400",
+                      isSelected && isMe ? "font-bold text-amber-300" :
+                      isSelected ? "font-bold text-blue-300" :
+                      isMe ? "font-semibold text-amber-400/60" :
+                      "text-slate-400",
                     ].join(" ")}>
                       {name}
                     </span>
-                    {isCurrent && (
-                      <span className="text-[10px] font-medium text-amber-400">clock</span>
-                    )}
-                  </div>
+                    <span className="flex gap-1">
+                      {isOnClock && !isManuallySet && (
+                        <span className="text-[10px] font-medium text-amber-400">clock</span>
+                      )}
+                      {isSelected && isManuallySet && (
+                        <span className={`text-[10px] font-medium ${isMe ? "text-amber-400" : "text-blue-400"}`}>
+                          active
+                        </span>
+                      )}
+                    </span>
+                  </button>
                 );
               })}
             </div>
+            {selectedDrafter && (
+              <div className="border-t border-border/40 px-3 py-2">
+                <button onClick={() => setSelectedDrafter(null)}
+                  className="text-[11px] text-slate-600 hover:text-slate-400">
+                  Clear — follow draft order
+                </button>
+              </div>
+            )}
           </div>
 
         </div>
