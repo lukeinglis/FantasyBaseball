@@ -1,12 +1,16 @@
 """
-Step 2: Generate draft rankings using 2026 Steamer projections + league-derived category weights.
+Step 2: Generate draft rankings using 2026 projected stats + league-derived category weights.
 
 Approach:
-- Fetch 2026 Steamer projections via pybaseball
+- Load 2026 projected stats (ESPN API → Steamer CSV → pybaseball fallback)
 - Calculate z-scores for each category vs. the draftable player pool
 - Apply category weights from category_weights.py
-- Adjust for position scarcity
 - Output ranked CSV cheat sheet
+
+Projection source priority:
+  1. ESPN 2026 projections (run: python3 scripts/fetch_espn_projections.py first)
+  2. FanGraphs Steamer 2026 CSVs (manually download to seasons/2026/projections/)
+  3. pybaseball (falls back to 2025 actuals if 2026 unavailable)
 """
 
 import pandas as pd
@@ -33,6 +37,14 @@ PROJECTIONS_DIR   = "seasons/2026/projections"
 OUTPUT_CSV        = "output/draft_rankings.csv"
 OUTPUT_HTML       = "output/draft_rankings.html"
 
+# ESPN projection CSV filenames (produced by scripts/fetch_espn_projections.py)
+ESPN_BATTER_CSV  = "espn_batters.csv"
+ESPN_PITCHER_CSV = "espn_pitchers.csv"
+
+# Steamer / FanGraphs fallback filenames
+STEAMER_BATTER_CSV  = "steamer_batters.csv"
+STEAMER_PITCHER_CSV = "steamer_pitchers.csv"
+
 # Roster config: Tampa's Finest
 # 10 teams, 24 roster spots (18 starters: C,1B,2B,3B,SS,OF×3,UTIL,SP×5,RP×2,P×2 + 6 bench)
 NUM_TEAMS = 10
@@ -48,6 +60,15 @@ PITCHER_POOL = NUM_TEAMS * (PITCHERS_PER_TEAM + 3)  # ~120 pitchers
 BATTING_CATS = ["H", "R", "HR", "TB", "RBI", "BB", "SB", "AVG"]
 PITCHING_CATS = ["K", "QS", "W", "L", "SV", "HD", "ERA", "WHIP"]
 NEGATIVE_CATS = {"L", "ERA", "WHIP"}
+
+# ESPN proTeamId → MLB abbreviation (for ESPN projection CSVs)
+ESPN_TEAM_MAP = {
+    1:"BAL", 2:"BOS", 3:"LAA", 4:"CWS", 5:"CLE", 6:"DET", 7:"KC", 8:"MIL",
+    9:"MIN", 10:"NYY", 11:"OAK", 12:"SEA", 13:"TEX", 14:"TOR", 15:"ATL",
+    16:"CHC", 17:"CIN", 18:"HOU", 19:"LAD", 20:"WSH", 21:"NYM", 22:"PHI",
+    23:"PIT", 24:"STL", 25:"SD", 26:"SF", 27:"COL", 28:"MIA", 29:"ARI",
+    30:"TB", 0:"FA",
+}
 
 # FanGraphs column name mappings (Steamer projection columns)
 BATTER_COL_MAP = {
@@ -80,12 +101,17 @@ def load_weights():
 
 def fetch_projections():
     """
-    Load 2026 Steamer projections.
+    Load 2026 projected stats.
 
-    Priority:
-      1. seasons/2026/projections/steamer_batters.csv   (manually downloaded from FanGraphs)
-      2. seasons/2026/projections/steamer_pitchers.csv
-      3. pybaseball live fetch (falls back to 2025 actuals if 2026 not yet available)
+    Priority order:
+      1. ESPN 2026 projections  (espn_batters.csv / espn_pitchers.csv)
+         → Produced by: python3 scripts/fetch_espn_projections.py
+      2. Steamer 2026 CSVs      (steamer_batters.csv / steamer_pitchers.csv)
+         → Downloaded from FanGraphs manually
+      3. pybaseball live fetch  (falls back to 2025 actuals if 2026 unavailable)
+
+    To fetch ESPN 2026 projections:
+      ESPN_S2="..." ESPN_SWID="..." python3 scripts/fetch_espn_projections.py
 
     To get Steamer 2026 CSVs from FanGraphs:
       https://www.fangraphs.com/projections.aspx?pos=all&stats=bat&type=steamer
@@ -94,18 +120,35 @@ def fetch_projections():
       -> Export Data button -> save as seasons/2026/projections/steamer_pitchers.csv
     """
     import os
-    batter_csv  = os.path.join(PROJECTIONS_DIR, "steamer_batters.csv")
-    pitcher_csv = os.path.join(PROJECTIONS_DIR, "steamer_pitchers.csv")
 
-    if os.path.exists(batter_csv) and os.path.exists(pitcher_csv):
+    # ── Priority 1: ESPN 2026 projections ──────────────────────────────────
+    espn_bat = os.path.join(PROJECTIONS_DIR, ESPN_BATTER_CSV)
+    espn_pit = os.path.join(PROJECTIONS_DIR, ESPN_PITCHER_CSV)
+
+    if os.path.exists(espn_bat) and os.path.exists(espn_pit):
+        print("Loading ESPN 2026 projected stats...")
+        batters  = pd.read_csv(espn_bat)
+        pitchers = pd.read_csv(espn_pit)
+
+        # Team abbreviations already applied by fetch_espn_projections.py
+
+        print(f"  {len(batters)} batters, {len(pitchers)} pitchers (ESPN 2026 projected)")
+        return batters, pitchers, 2026
+
+    # ── Priority 2: Steamer / FanGraphs CSVs ───────────────────────────────
+    steamer_bat = os.path.join(PROJECTIONS_DIR, STEAMER_BATTER_CSV)
+    steamer_pit = os.path.join(PROJECTIONS_DIR, STEAMER_PITCHER_CSV)
+
+    if os.path.exists(steamer_bat) and os.path.exists(steamer_pit):
         print("Loading 2026 Steamer projections from local CSV files...")
-        batters  = pd.read_csv(batter_csv)
-        pitchers = pd.read_csv(pitcher_csv)
+        batters  = pd.read_csv(steamer_bat)
+        pitchers = pd.read_csv(steamer_pit)
         print(f"  {len(batters)} batters, {len(pitchers)} pitchers (Steamer 2026)")
         return batters, pitchers, 2026
 
-    print("Local Steamer CSVs not found — fetching via pybaseball...")
-    print(f"  (Add CSVs to {PROJECTIONS_DIR}/ for true 2026 projections)")
+    # ── Priority 3: pybaseball live fetch ──────────────────────────────────
+    print("No local projection CSVs found — fetching via pybaseball...")
+    print(f"  Tip: run 'python3 scripts/fetch_espn_projections.py' for true 2026 projections")
 
     try:
         batters  = batting_stats(2026, qual=10, ind=1)
@@ -123,8 +166,8 @@ def fetch_projections():
 
     # Cache to disk so future runs are instant
     os.makedirs(PROJECTIONS_DIR, exist_ok=True)
-    batters.to_csv(batter_csv, index=False)
-    pitchers.to_csv(pitcher_csv, index=False)
+    batters.to_csv(steamer_bat, index=False)
+    pitchers.to_csv(steamer_pit, index=False)
     print(f"  Cached to {PROJECTIONS_DIR}/")
 
     print(f"  {len(batters)} batters, {len(pitchers)} pitchers ({year_used})")
