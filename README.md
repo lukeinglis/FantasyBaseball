@@ -10,8 +10,7 @@ Designed for draft prep, in-season management, and future seasons.
 This repository is the single source of truth for Tampa's Finest baseball data and application code.
 
 - Data + analysis pipeline: `analysis/`, `scripts/`, `seasons/`, `owners/`, `output/`
-- Public web app code (deployed to `baseball.lukeinglis.me`): `web/`
-- Legacy local Streamlit tool: `app.py`
+- Web app code (deployed to `baseball.lukeinglis.me`): `web/`
 
 `baseball.lukeinglis.me` is served by the Vercel `web` project and reads data generated from this same repository.
 
@@ -19,20 +18,17 @@ This repository is the single source of truth for Tampa's Finest baseball data a
 
 ## Inglis War Room
 
-Interactive dashboard for draft prep, opponent scouting, and league history.
+Interactive dashboard for draft prep, opponent scouting, and league history. Deployed at **baseball.lukeinglis.me**.
+
+To run locally:
 
 ```bash
-pip3 install -r requirements.txt
-streamlit run app.py
+cd web && npm run dev
 ```
-
-Then open **http://localhost:8501** in your browser.
-
-Your dad can access it on the same WiFi at **http://10.0.0.182:8501** (no setup needed on his end).
 
 | Page | What's there |
 |---|---|
-| Draft Board | Full ranked cheat sheet — filter by position, search by name, download CSV |
+| Draft Board | Full ranked cheat sheet — filter by position, search by name |
 | Category Intel | What actually predicts winning in this league; key draft takeaways |
 | Opponent Scouting | Per-team draft tendencies — when they take SP/C/RP, recurring targets |
 | League History | Year-by-year champions, standings, 10-year finish heatmap |
@@ -44,7 +40,7 @@ Your dad can access it on the same WiFi at **http://10.0.0.182:8501** (no setup 
 
 ```
 FantasyBaseball/
-├── app.py                         Inglis War Room (Streamlit dashboard)
+├── web/                           Inglis War Room (Next.js — baseball.lukeinglis.me)
 ├── seasons/
 │   ├── 2016/ … 2025/              Historical seasons
 │   │   ├── standings.csv          Final standings + season category totals
@@ -99,7 +95,7 @@ python3 analysis/player_rankings.py
 python3 analysis/draft_analysis.py
 
 # Step 4: launch the War Room
-streamlit run app.py
+cd web && npm run dev
 ```
 
 ---
@@ -184,7 +180,7 @@ Derived via Spearman correlation between per-category win% and overall matchup w
 - [x] Re-derive weights using direct H2H matchup evidence
 - [x] Build opponent draft tendency profiles
 - [x] Build owner directory with per-owner season history
-- [x] Inglis War Room dashboard (Streamlit)
+- [x] Inglis War Room dashboard (Next.js)
 - [ ] Add 2026 Steamer projections CSVs (`seasons/2026/projections/`)
 - [ ] Add ESPN ADP to surface value picks (high z-score, low ADP)
 - [ ] Track 2026 draft results and weekly matchups during the season

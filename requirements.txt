@@ -3,5 +3,3 @@ openpyxl
 scipy
 pybaseball
 requests
-streamlit
-plotly
