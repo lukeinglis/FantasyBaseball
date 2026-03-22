@@ -22,3 +22,11 @@ env/
 
 # pybaseball cache
 appdir_cache/
+
+# Next.js web app build artifacts (web/ source is tracked)
+web/node_modules/
+web/.next/
+web/.vercel/
+web/out/
+web/coverage/
+web/*.tsbuildinfo

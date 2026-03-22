@@ -4,6 +4,17 @@
 A data-driven, season-by-season fantasy baseball system built on 10 years of league history.
 Designed for draft prep, in-season management, and future seasons.
 
+
+## Source Of Truth
+
+This repository is the single source of truth for Tampa's Finest baseball data and application code.
+
+- Data + analysis pipeline: `analysis/`, `scripts/`, `seasons/`, `owners/`, `output/`
+- Public web app code (deployed to `baseball.lukeinglis.me`): `web/`
+- Legacy local Streamlit tool: `app.py`
+
+`baseball.lukeinglis.me` is served by the Vercel `web` project and reads data generated from this same repository.
+
 ---
 
 ## Inglis War Room

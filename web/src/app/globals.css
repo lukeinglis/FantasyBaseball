@@ -1,0 +1,37 @@
+@import "tailwindcss";
+
+@theme inline {
+  --color-background: #080c14;
+  --color-foreground: #e2e8f0;
+  --color-surface: #0d1321;
+  --color-surface-raised: #131b2e;
+  --color-border: #1c2940;
+  --font-mono: var(--font-geist-mono);
+}
+
+body {
+  background: var(--color-background);
+  color: var(--color-foreground);
+}
+
+/* Scrollbar styling for the war room feel */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #1c2940;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #2a3f5f;
+}
+
+/* Override select dropdowns for dark theme */
+select option {
+  background: #131b2e;
+  color: #e2e8f0;
+}
