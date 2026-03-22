@@ -426,16 +426,14 @@ export default function DraftBoardPage() {
                       ))}
                       <td className="px-2 py-1.5">
                         {!drafted && (
-                          <div className="flex gap-1">
-                            <button onClick={() => draftPlayer(p.name, true)}
-                              className="rounded bg-amber-500/20 px-2 py-0.5 text-[11px] font-medium text-amber-300 transition-colors hover:bg-amber-500/30">
-                              Mine
-                            </button>
-                            <button onClick={() => draftPlayer(p.name, false)}
-                              className="rounded bg-white/5 px-2 py-0.5 text-[11px] text-slate-500 transition-colors hover:bg-white/10 hover:text-slate-300">
-                              Other
-                            </button>
-                          </div>
+                          <button onClick={() => draftPlayer(p.name, isMine)}
+                            className={`rounded px-2.5 py-0.5 text-[11px] font-medium transition-colors ${
+                              isMine
+                                ? "bg-amber-500/20 text-amber-300 hover:bg-amber-500/30"
+                                : "bg-white/5 text-slate-400 hover:bg-white/10 hover:text-slate-200"
+                            }`}>
+                            Draft
+                          </button>
                         )}
                       </td>
                     </tr>
