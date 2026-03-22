@@ -15,6 +15,12 @@ function getDrafter(pickIndex: number) {
   return { name: DRAFT_ORDER[idx], round, pick: pickInRound + 1 };
 }
 
+// ── Constants ─────────────────────────────────────────────────────────────────
+
+const BAT_STATS = ["H", "R", "HR", "TB", "RBI", "BB", "SB", "AVG"] as const;
+const PIT_STATS = ["K", "QS", "W", "L", "SV", "HD", "ERA", "WHIP"] as const;
+const SCARCITY_POSITIONS = ["C", "1B", "2B", "3B", "SS", "OF", "SP", "RP"] as const;
+
 // ── Types ─────────────────────────────────────────────────────────────────────
 
 interface DraftSession {
@@ -44,6 +50,13 @@ function fmtStat(p: Player, col: StatCol): string {
   return String(Math.round(v));
 }
 
+function urgencyTag(pct: number): { label: string; color: string; bar: string } {
+  if (pct >= 75) return { label: "CRITICAL", color: "text-red-400", bar: "bg-red-500" };
+  if (pct >= 50) return { label: "THIN", color: "text-orange-400", bar: "bg-orange-500" };
+  if (pct >= 25) return { label: "WATCH", color: "text-amber-400", bar: "bg-amber-500" };
+  return { label: "DEEP", color: "text-slate-500", bar: "bg-sky-600" };
+}
+
 // ── Component ─────────────────────────────────────────────────────────────────
 
 export default function DraftBoardPage() {
@@ -69,7 +82,7 @@ export default function DraftBoardPage() {
     return m;
   }, [players]);
 
-  // Rank within position among still-available players
+  // Position rank among available players
   const posRanks = useMemo(() => {
     const map = new Map<string, number>();
     const byPos: Record<string, Player[]> = {};
@@ -99,17 +112,49 @@ export default function DraftBoardPage() {
     return list;
   }, [players, typeFilter, posFilter, search, showAvail, draftedSet]);
 
-  const top5 = useMemo(
-    () => players.filter((p) => !draftedSet.has(p.name)).slice(0, 5),
-    [players, draftedSet]
-  );
-
   const drafter = useMemo(() => getDrafter(session.drafted.length), [session.drafted.length]);
 
+  // My picks with player data
   const myPickPlayers = useMemo(
     () => session.myPicks.map((n) => playerMap.get(n)).filter(Boolean) as Player[],
     [session.myPicks, playerMap]
   );
+
+  // Team stat totals
+  const batTotals = useMemo(() => {
+    const batters = myPickPlayers.filter((p) => p.type === "BAT");
+    return Object.fromEntries(BAT_STATS.map((stat) => {
+      if (stat === "AVG") {
+        const vals = batters.map((p) => p.AVG).filter((v): v is number => v !== undefined);
+        return [stat, vals.length > 0 ? vals.reduce((a, b) => a + b, 0) / vals.length : 0];
+      }
+      return [stat, batters.reduce((sum, p) => sum + ((p as unknown as Record<string, number>)[stat] ?? 0), 0)];
+    }));
+  }, [myPickPlayers]);
+
+  const pitTotals = useMemo(() => {
+    const pitchers = myPickPlayers.filter((p) => p.type === "PIT");
+    return Object.fromEntries(PIT_STATS.map((stat) => {
+      if (stat === "ERA" || stat === "WHIP") {
+        const vals = pitchers.map((p) => (p as unknown as Record<string, number>)[stat]).filter((v): v is number => v !== undefined);
+        return [stat, vals.length > 0 ? vals.reduce((a, b) => a + b, 0) / vals.length : 0];
+      }
+      return [stat, pitchers.reduce((sum, p) => sum + ((p as unknown as Record<string, number>)[stat] ?? 0), 0)];
+    }));
+  }, [myPickPlayers]);
+
+  // Scarcity data
+  const scarcityData = useMemo(() => {
+    return SCARCITY_POSITIONS.map((pos) => {
+      const all = players.filter((p) => p.pos === pos);
+      const available = all.filter((p) => !draftedSet.has(p.name));
+      const totalElite = all.filter((p) => p.zTotal >= 0.5).length;
+      const availElite = available.filter((p) => p.zTotal >= 0.5).length;
+      const draftedElite = totalElite - availElite;
+      const scarcityPct = totalElite > 0 ? Math.round((draftedElite / totalElite) * 100) : 0;
+      return { pos, availElite, availSolid: available.filter((p) => p.zTotal >= 0.0).length, scarcityPct };
+    });
+  }, [players, draftedSet]);
 
   // Stat columns: all 16 when "All", type-specific when filtered
   const statCols = useMemo((): StatCol[] => {
@@ -168,6 +213,92 @@ export default function DraftBoardPage() {
 
   return (
     <div className="mx-auto max-w-[1600px] px-4 py-5">
+
+      {/* ── Top info strip ───────────────────────────────────────────────── */}
+      <div className="mb-5 grid gap-4 lg:grid-cols-[220px_1fr_340px]">
+
+        {/* My Team picks */}
+        <div className="rounded-lg border border-border bg-surface">
+          <div className="flex items-center justify-between border-b border-border px-3 py-2">
+            <h2 className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">My Team</h2>
+            <span className="text-[11px] tabular-nums text-amber-400/70">{myPickPlayers.length} picks</span>
+          </div>
+          {myPickPlayers.length === 0 ? (
+            <div className="px-3 py-3 text-[12px] text-slate-700">No picks yet</div>
+          ) : (
+            <div className="divide-y divide-border/30 overflow-y-auto" style={{ maxHeight: "220px" }}>
+              {myPickPlayers.map((p, i) => (
+                <div key={p.name} className="flex items-center gap-2 px-3 py-1">
+                  <span className="w-4 font-mono text-[10px] text-slate-700">{i + 1}</span>
+                  <div className="min-w-0 flex-1">
+                    <div className="truncate text-[12px] font-medium text-slate-200">{p.name}</div>
+                    <div className="text-[10px] text-slate-600">{p.pos}</div>
+                  </div>
+                  <span className={`font-mono text-[11px] ${zColor(p.zTotal)}`}>{p.zTotal.toFixed(2)}</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Team stat projections */}
+        <div className="rounded-lg border border-border bg-surface">
+          <div className="border-b border-border px-3 py-2">
+            <h2 className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Team Projections</h2>
+          </div>
+          <div className="px-3 py-2 space-y-2">
+            <div className="grid grid-cols-8 gap-1">
+              {BAT_STATS.map((stat) => (
+                <div key={stat} className="text-center">
+                  <div className="text-[10px] text-slate-600">{stat}</div>
+                  <div className="font-mono text-[13px] font-bold text-slate-200">
+                    {myPickPlayers.length === 0 ? "—" : stat === "AVG"
+                      ? (batTotals[stat] as number).toFixed(3)
+                      : Math.round(batTotals[stat] as number)}
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div className="border-t border-border/40 pt-2 grid grid-cols-8 gap-1">
+              {PIT_STATS.map((stat) => (
+                <div key={stat} className="text-center">
+                  <div className="text-[10px] text-slate-600">{stat}</div>
+                  <div className="font-mono text-[13px] font-bold text-slate-200">
+                    {myPickPlayers.length === 0 ? "—" : (stat === "ERA" || stat === "WHIP")
+                      ? (pitTotals[stat] as number).toFixed(3)
+                      : Math.round(pitTotals[stat] as number)}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Scarcity */}
+        <div className="rounded-lg border border-border bg-surface">
+          <div className="border-b border-border px-3 py-2">
+            <h2 className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Scarcity</h2>
+          </div>
+          <div className="grid grid-cols-4 gap-px p-2">
+            {scarcityData.map((d) => {
+              const tag = urgencyTag(d.scarcityPct);
+              return (
+                <div key={d.pos} className="rounded bg-white/[0.02] px-2 py-1.5 text-center">
+                  <div className="text-[12px] font-bold text-white">{d.pos}</div>
+                  <div className={`text-[10px] font-bold ${tag.color}`}>{tag.label}</div>
+                  <div className="mt-1 text-[11px] font-mono text-sky-400">{d.availElite}</div>
+                  <div className="text-[9px] text-slate-600">elite left</div>
+                  <div className="mt-1.5 h-0.5 overflow-hidden rounded-full bg-slate-800">
+                    <div className={`h-full rounded-full ${tag.bar}`} style={{ width: `${d.scarcityPct}%` }} />
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+
+      {/* ── Main + Sidebar ───────────────────────────────────────────────── */}
       <div className="grid gap-5 lg:grid-cols-[1fr_260px]">
 
         {/* ── Main column ────────────────────────────────────────────────── */}
@@ -199,42 +330,6 @@ export default function DraftBoardPage() {
               </button>
             </div>
           </div>
-
-          {/* Best Available cards */}
-          {top5.length > 0 && (
-            <div className="mb-5 grid grid-cols-5 gap-2">
-              {top5.map((p, i) => {
-                const pr = posRanks.get(p.name);
-                return (
-                  <div key={p.name} className="rounded-lg border border-border bg-surface p-3">
-                    <div className="mb-1 flex items-baseline justify-between">
-                      <span className={`font-mono text-[11px] font-bold ${i === 0 ? "text-amber-400" : "text-slate-600"}`}>
-                        #{p.rank}
-                      </span>
-                      <span className="font-mono text-[10px] text-slate-600">
-                        {pr ? `${p.pos}${pr}` : p.pos}
-                      </span>
-                    </div>
-                    <div className="truncate text-[13px] font-semibold text-white">{p.name}</div>
-                    <div className="mt-0.5 flex items-baseline justify-between text-[11px]">
-                      <span className="text-slate-500">{p.team}</span>
-                      <span className={`font-mono ${zColor(p.zTotal)}`}>{p.zTotal.toFixed(2)}</span>
-                    </div>
-                    <div className="mt-2 flex gap-1">
-                      <button onClick={() => draftPlayer(p.name, true)}
-                        className="flex-1 rounded bg-amber-500/20 py-0.5 text-[11px] font-medium text-amber-300 transition-colors hover:bg-amber-500/30">
-                        Mine
-                      </button>
-                      <button onClick={() => draftPlayer(p.name, false)}
-                        className="flex-1 rounded bg-white/5 py-0.5 text-[11px] text-slate-400 transition-colors hover:bg-white/10">
-                        Other
-                      </button>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
 
           {/* Draft input */}
           <div className="mb-5 flex gap-2">
@@ -396,30 +491,6 @@ export default function DraftBoardPage() {
                 );
               })}
             </div>
-          </div>
-
-          {/* My Team */}
-          <div className="rounded-lg border border-border bg-surface">
-            <div className="flex items-center justify-between border-b border-border px-3 py-2">
-              <h2 className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">My Team</h2>
-              <span className="text-[11px] tabular-nums text-amber-400/70">{myPickPlayers.length} picks</span>
-            </div>
-            {myPickPlayers.length === 0 ? (
-              <div className="px-3 py-4 text-[12px] text-slate-700">No picks yet</div>
-            ) : (
-              <div className="divide-y divide-border/30">
-                {myPickPlayers.map((p, i) => (
-                  <div key={p.name} className="flex items-center gap-2 px-3 py-1.5">
-                    <span className="w-5 font-mono text-[10px] text-slate-700">{i + 1}</span>
-                    <div className="min-w-0 flex-1">
-                      <div className="truncate text-[12px] font-medium text-slate-200">{p.name}</div>
-                      <div className="text-[10px] text-slate-600">{p.team} · {p.pos}</div>
-                    </div>
-                    <span className={`font-mono text-[11px] ${zColor(p.zTotal)}`}>{p.zTotal.toFixed(2)}</span>
-                  </div>
-                ))}
-              </div>
-            )}
           </div>
 
         </div>
