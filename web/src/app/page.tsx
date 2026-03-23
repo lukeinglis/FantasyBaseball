@@ -545,26 +545,19 @@ export default function DraftBoardPage() {
             <table className="w-full text-left text-[13px]">
               <thead className="sticky top-0 z-10 border-b border-border bg-surface text-[11px] uppercase tracking-wider text-slate-500">
                 <tr>
-                  <SortTh col="rank" label="#" className="w-10 px-3" />
+                  <SortTh col="espn" label="ESPN" className="w-12" />
+                  <SortTh col="adp" label="ADP" className="w-14" />
+                  <SortTh col="rank" label="#" className="w-10" />
                   <th className="w-12 px-2 py-2.5 font-medium">POS#</th>
-                  {dedupedPlayers[0]?.espnRank !== undefined && (
-                    <SortTh col="espn" label="ESPN" className="w-14" />
-                  )}
-                  {Object.keys(espnData).length > 0 && (
-                    <SortTh col="adp" label="ADP" className="w-14" />
-                  )}
-                  {Object.keys(espnData).length > 0 && (
-                    <th className="px-2 py-2.5 font-medium">Elig</th>
-                  )}
+                  <th className="px-2 py-2.5 font-medium">Elig</th>
                   <SortTh col="name" label="Player" className="min-w-[160px] px-3" />
                   <SortTh col="team" label="Team" className="w-14" />
-                  <SortTh col="pos" label="Pos" className="w-12" />
+                  <th className="px-2 py-2.5"></th>
                   <SortTh col="zTotal" label="zScore" className="w-16 text-right" />
                   <SortTh col="far" label="FAR" className="w-16 text-right" />
                   {statCols.map((c) => (
                     <SortTh key={c} col={c} label={c} className="w-14 text-right" />
                   ))}
-                  <th className="px-2 py-2.5"></th>
                 </tr>
               </thead>
               <tbody>
@@ -576,37 +569,17 @@ export default function DraftBoardPage() {
                       className={`border-b border-border/50 transition-colors ${
                         drafted ? "opacity-30" : "hover:bg-white/[0.02]"
                       } ${idx % 2 === 0 ? "" : "bg-white/[0.01]"}`}>
-                      <td className="px-3 py-1.5 font-mono text-slate-600">{p.rank}</td>
+                      <td className="px-2 py-1.5 font-mono text-slate-600">{p.espnRank ?? "—"}</td>
+                      <td className="px-2 py-1.5 font-mono text-slate-500">{espnData[p.name]?.adp ?? "—"}</td>
+                      <td className="px-2 py-1.5 font-mono text-slate-600">{p.rank}</td>
                       <td className="px-2 py-1.5 font-mono text-[11px] text-slate-600">
                         {pr ? `${espnData[p.name]?.primaryPos ?? p.pos}${pr}` : "—"}
                       </td>
-                      {dedupedPlayers[0]?.espnRank !== undefined && (
-                        <td className="px-2 py-1.5 font-mono text-slate-600">{p.espnRank ?? "—"}</td>
-                      )}
-                      {Object.keys(espnData).length > 0 && (
-                        <td className="px-2 py-1.5 font-mono text-slate-500">
-                          {espnData[p.name]?.adp ?? "—"}
-                        </td>
-                      )}
-                      {Object.keys(espnData).length > 0 && (
-                        <td className="px-2 py-1.5 text-[11px] text-slate-500">
-                          {espnData[p.name]?.eligiblePos.join(", ") ?? "—"}
-                        </td>
-                      )}
+                      <td className="px-2 py-1.5 text-[11px] text-slate-500">
+                        {espnData[p.name]?.eligiblePos.join(", ") ?? "—"}
+                      </td>
                       <td className="px-3 py-1.5 font-medium text-slate-100">{p.name}</td>
                       <td className="px-2 py-1.5 text-slate-500">{p.team}</td>
-                      <td className="px-2 py-1.5 text-slate-500">{p.pos}</td>
-                      <td className={`px-2 py-1.5 text-right font-mono ${zColor(p.zTotal)}`}>
-                        {p.zTotal.toFixed(2)}
-                      </td>
-                      <td className={`px-2 py-1.5 text-right font-mono ${zColor(farByPlayer.get(p.name) ?? 0)}`}>
-                        {farByPlayer.has(p.name) ? (farByPlayer.get(p.name)! >= 0 ? "+" : "") + farByPlayer.get(p.name)!.toFixed(2) : "—"}
-                      </td>
-                      {statCols.map((c) => (
-                        <td key={c} className="px-2 py-1.5 text-right font-mono text-slate-400">
-                          {fmtStat(p, c)}
-                        </td>
-                      ))}
                       <td className="px-2 py-1.5">
                         {!drafted && (
                           <button onClick={() => draftPlayer(p.name, isMine)}
@@ -619,6 +592,17 @@ export default function DraftBoardPage() {
                           </button>
                         )}
                       </td>
+                      <td className={`px-2 py-1.5 text-right font-mono ${zColor(p.zTotal)}`}>
+                        {p.zTotal.toFixed(2)}
+                      </td>
+                      <td className={`px-2 py-1.5 text-right font-mono ${zColor(farByPlayer.get(p.name) ?? 0)}`}>
+                        {farByPlayer.has(p.name) ? (farByPlayer.get(p.name)! >= 0 ? "+" : "") + farByPlayer.get(p.name)!.toFixed(2) : "—"}
+                      </td>
+                      {statCols.map((c) => (
+                        <td key={c} className="px-2 py-1.5 text-right font-mono text-slate-400">
+                          {fmtStat(p, c)}
+                        </td>
+                      ))}
                     </tr>
                   );
                 })}
