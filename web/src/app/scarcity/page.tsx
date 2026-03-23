@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useMemo } from "react";
 import type { Player } from "@/lib/data";
+import type { EspnPlayerData } from "@/app/api/espn-adp/route";
 
 interface DraftSession {
   drafted: string[];
@@ -11,6 +12,11 @@ interface DraftSession {
 
 const POSITIONS = ["C", "1B", "2B", "3B", "SS", "OF", "SP", "RP"] as const;
 
+const STARTER_COUNTS: Record<string, number> = {
+  C: 10, "1B": 10, "2B": 10, "3B": 10, SS: 10,
+  OF: 30, SP: 50, RP: 20,
+};
+
 function tierLabel(z: number): { label: string; color: string } {
   if (z >= 0.8) return { label: "Elite", color: "text-sky-400" };
   if (z >= 0.4) return { label: "Great", color: "text-sky-400/60" };
@@ -18,47 +24,63 @@ function tierLabel(z: number): { label: string; color: string } {
   return { label: "Depth", color: "text-slate-600" };
 }
 
-function urgencyTag(pct: number): { label: string; color: string } {
-  if (pct >= 75) return { label: "CRITICAL", color: "text-red-400 bg-red-500/10" };
-  if (pct >= 50) return { label: "THIN", color: "text-orange-400 bg-orange-500/10" };
-  if (pct >= 25) return { label: "WATCH", color: "text-amber-400 bg-amber-500/10" };
-  return { label: "DEEP", color: "text-slate-500 bg-white/5" };
+function urgencyTag(pct: number): { label: string; color: string; bar: string } {
+  if (pct >= 75) return { label: "CRITICAL", color: "text-red-400 bg-red-500/10", bar: "bg-red-500" };
+  if (pct >= 50) return { label: "THIN", color: "text-orange-400 bg-orange-500/10", bar: "bg-orange-500" };
+  if (pct >= 25) return { label: "WATCH", color: "text-amber-400 bg-amber-500/10", bar: "bg-amber-500" };
+  return { label: "DEEP", color: "text-slate-500 bg-white/5", bar: "bg-sky-600" };
 }
 
 export default function ScarcityPage() {
   const [players, setPlayers] = useState<Player[]>([]);
-  const [session, setSession] = useState<DraftSession>({
-    drafted: [], myPicks: [], myRoster: {},
-  });
+  const [session, setSession] = useState<DraftSession>({ drafted: [], myPicks: [], myRoster: {} });
+  const [espnData, setEspnData] = useState<Record<string, EspnPlayerData>>({});
   const [drillPos, setDrillPos] = useState<string>("");
 
   useEffect(() => {
     fetch("/api/rankings").then((r) => r.json()).then(setPlayers);
     fetch("/api/draft").then((r) => r.json()).then(setSession);
+    fetch("/api/espn-adp").then((r) => r.json()).then((data) => {
+      if (!data.error) setEspnData(data);
+    });
   }, []);
 
   const draftedSet = useMemo(() => new Set(session.drafted), [session.drafted]);
 
+  // Deduplicate players by name
+  const dedupedPlayers = useMemo(() => {
+    const seen = new Set<string>();
+    return players.filter((p) => {
+      if (seen.has(p.name)) return false;
+      seen.add(p.name);
+      return true;
+    });
+  }, [players]);
+
   const scarcityData = useMemo(() => {
     return POSITIONS.map((pos) => {
-      const all = players.filter((p) => p.pos === pos);
+      const all = dedupedPlayers
+        .filter((p) => (espnData[p.name]?.primaryPos ?? p.pos) === pos)
+        .sort((a, b) => b.zTotal - a.zTotal);
       const available = all.filter((p) => !draftedSet.has(p.name));
-      const totalElite = all.filter((p) => p.zTotal >= 0.5).length;
       const availElite = available.filter((p) => p.zTotal >= 0.5).length;
       const availSolid = available.filter((p) => p.zTotal >= 0.0).length;
-      const draftedElite = totalElite - availElite;
-      const scarcityPct = totalElite > 0 ? Math.round((draftedElite / totalElite) * 100) : 0;
 
-      return { pos, total: all.length, available: available.length, availElite, availSolid, totalElite, scarcityPct };
+      const starterCap = STARTER_COUNTS[pos] ?? 10;
+      const starterPool = all.slice(0, starterCap);
+      const availStarters = starterPool.filter((p) => !draftedSet.has(p.name)).length;
+      const startersPct = Math.round(((starterCap - availStarters) / starterCap) * 100);
+
+      return { pos, available: available.length, availElite, availSolid, availStarters, starterCap, startersPct };
     });
-  }, [players, draftedSet]);
+  }, [dedupedPlayers, draftedSet, espnData]);
 
   const drillPlayers = useMemo(() => {
     if (!drillPos) return [];
-    return players
-      .filter((p) => p.pos === drillPos && !draftedSet.has(p.name))
+    return dedupedPlayers
+      .filter((p) => (espnData[p.name]?.primaryPos ?? p.pos) === drillPos && !draftedSet.has(p.name))
       .sort((a, b) => b.zTotal - a.zTotal);
-  }, [players, draftedSet, drillPos]);
+  }, [dedupedPlayers, draftedSet, espnData, drillPos]);
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-5">
@@ -66,9 +88,9 @@ export default function ScarcityPage() {
 
       <div className="mb-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         {scarcityData.map((d) => {
-          const tag = urgencyTag(d.scarcityPct);
+          const tag = urgencyTag(d.startersPct);
           return (
-            <button key={d.pos} onClick={() => setDrillPos(d.pos)}
+            <button key={d.pos} onClick={() => setDrillPos(d.pos === drillPos ? "" : d.pos)}
               className={`rounded-lg border bg-surface p-4 text-left transition-colors ${
                 drillPos === d.pos ? "border-slate-500" : "border-border hover:border-slate-600"
               }`}>
@@ -88,17 +110,17 @@ export default function ScarcityPage() {
                   <span className="font-mono text-slate-300">{d.availSolid}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-slate-500">Elite gone</span>
-                  <span className="font-mono text-red-400/70">{d.scarcityPct}%</span>
+                  <span className="text-slate-500">Starters left</span>
+                  <span className="font-mono text-emerald-400">{d.availStarters}/{d.starterCap}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-500">Starters gone</span>
+                  <span className="font-mono text-red-400/70">{d.startersPct}%</span>
                 </div>
               </div>
               <div className="mt-3 h-1 overflow-hidden rounded-full bg-slate-800">
-                <div
-                  className={`h-full rounded-full transition-all ${
-                    d.scarcityPct >= 75 ? "bg-red-500" : d.scarcityPct >= 50 ? "bg-orange-500" : d.scarcityPct >= 25 ? "bg-amber-500" : "bg-sky-500"
-                  }`}
-                  style={{ width: `${d.scarcityPct}%` }}
-                />
+                <div className={`h-full rounded-full transition-all ${tag.bar}`}
+                  style={{ width: `${d.startersPct}%` }} />
               </div>
             </button>
           );
