@@ -78,6 +78,8 @@ export default function DraftBoardPage() {
   const [showAvail, setShowAvail] = useState(true);
   // Who is actively picking — null means auto-follow draft order
   const [selectedDrafter, setSelectedDrafter] = useState<string | null>(null);
+  // Live ESPN ADP — name → ADP value
+  const [espnAdp, setEspnAdp] = useState<Record<string, number>>({});
   // Sorting
   const [sortCol, setSortCol] = useState<string>("rank");
   const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
@@ -86,6 +88,9 @@ export default function DraftBoardPage() {
   useEffect(() => {
     fetch("/api/rankings").then((r) => r.json()).then(setPlayers);
     fetch("/api/draft").then((r) => r.json()).then(setSession);
+    fetch("/api/espn-adp").then((r) => r.json()).then((data) => {
+      if (!data.error) setEspnAdp(data);
+    });
   }, []);
 
   const draftedSet = useMemo(() => new Set(session.drafted), [session.drafted]);
@@ -142,6 +147,7 @@ export default function DraftBoardPage() {
         case "team":    return dir * a.team.localeCompare(b.team);
         case "pos":     return dir * a.pos.localeCompare(b.pos);
         case "espn":    return dir * ((a.espnRank ?? 9999) - (b.espnRank ?? 9999));
+        case "adp":     return dir * ((espnAdp[a.name] ?? 9999) - (espnAdp[b.name] ?? 9999));
         case "zscore":  return dir * (b.zTotal - a.zTotal) * -1;
         default: {
           const av = ((a as unknown as Record<string, number | undefined>)[sortCol] ?? (sortDir === "asc" ? Infinity : -Infinity)) as number;
@@ -151,7 +157,7 @@ export default function DraftBoardPage() {
       }
     });
     return list;
-  }, [dedupedPlayers, typeFilter, posFilter, search, showAvail, draftedSet, sortCol, sortDir]);
+  }, [dedupedPlayers, typeFilter, posFilter, search, showAvail, draftedSet, sortCol, sortDir, espnAdp]);
 
   const drafter = useMemo(() => getDrafter(session.drafted.length), [session.drafted.length]);
 
@@ -445,6 +451,9 @@ export default function DraftBoardPage() {
                   {dedupedPlayers[0]?.espnRank !== undefined && (
                     <SortTh col="espn" label="ESPN" className="w-14" />
                   )}
+                  {Object.keys(espnAdp).length > 0 && (
+                    <SortTh col="adp" label="ADP" className="w-14" />
+                  )}
                   <SortTh col="name" label="Player" className="min-w-[160px] px-3" />
                   <SortTh col="team" label="Team" className="w-14" />
                   <SortTh col="pos" label="Pos" className="w-12" />
@@ -470,6 +479,11 @@ export default function DraftBoardPage() {
                       </td>
                       {dedupedPlayers[0]?.espnRank !== undefined && (
                         <td className="px-2 py-1.5 font-mono text-slate-600">{p.espnRank ?? "—"}</td>
+                      )}
+                      {Object.keys(espnAdp).length > 0 && (
+                        <td className="px-2 py-1.5 font-mono text-slate-500">
+                          {espnAdp[p.name] ?? "—"}
+                        </td>
                       )}
                       <td className="px-3 py-1.5 font-medium text-slate-100">{p.name}</td>
                       <td className="px-2 py-1.5 text-slate-500">{p.team}</td>
