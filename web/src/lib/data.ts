@@ -1,7 +1,7 @@
 const REPO_BASE = "https://raw.githubusercontent.com/lukeinglis/FantasyBaseball/main";
 
-async function fetchCsv(filePath: string): Promise<Record<string, string>[]> {
-  const res = await fetch(`${REPO_BASE}/${filePath}`, { next: { revalidate: 3600 } });
+async function fetchCsv(filePath: string, revalidate = 3600): Promise<Record<string, string>[]> {
+  const res = await fetch(`${REPO_BASE}/${filePath}`, { next: { revalidate } });
   if (!res.ok) return [];
   const text = await res.text();
   const lines = text.trim().split("\n");
@@ -47,7 +47,7 @@ export interface Player {
 }
 
 export async function getRankings(): Promise<Player[]> {
-  const rows = await fetchCsv("output/draft_rankings.csv");
+  const rows = await fetchCsv("output/draft_rankings.csv", 60); // short cache — rankings update frequently pre-draft
   return rows.map((r, i) => ({
     rank: r["Overall_Rank"] ? parseInt(r["Overall_Rank"]) : (r[""] ? parseInt(r[""]) + 1 : i + 1),
     name: r["Name"] ?? "",
