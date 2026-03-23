@@ -31,6 +31,13 @@ const BAT_STATS = ["H", "R", "HR", "TB", "RBI", "BB", "SB", "AVG"] as const;
 const PIT_STATS = ["K", "QS", "W", "L", "SV", "HD", "ERA", "WHIP"] as const;
 const SCARCITY_POSITIONS = ["C", "1B", "2B", "3B", "SS", "OF", "SP", "RP"] as const;
 
+// Number of starters at each position across 10 teams
+// Roster: C, 1B, 2B, 3B, SS, OF×3, UTIL | SP×5, RP×2, P×2
+const STARTER_COUNTS: Record<string, number> = {
+  C: 10, "1B": 10, "2B": 10, "3B": 10, SS: 10,
+  OF: 30, SP: 50, RP: 20,
+};
+
 // ── Types ─────────────────────────────────────────────────────────────────────
 
 interface DraftSession {
@@ -203,13 +210,19 @@ export default function DraftBoardPage() {
   // Scarcity data — use ESPN primaryPos when available (CSV pos is BAT/PIT, not specific)
   const scarcityData = useMemo(() => {
     return SCARCITY_POSITIONS.map((pos) => {
-      const all = dedupedPlayers.filter((p) => (espnData[p.name]?.primaryPos ?? p.pos) === pos);
+      const all = dedupedPlayers
+        .filter((p) => (espnData[p.name]?.primaryPos ?? p.pos) === pos)
+        .sort((a, b) => b.zTotal - a.zTotal);
       const available = all.filter((p) => !draftedSet.has(p.name));
-      const totalElite = all.filter((p) => p.zTotal >= 0.5).length;
       const availElite = available.filter((p) => p.zTotal >= 0.5).length;
-      const draftedElite = totalElite - availElite;
-      const scarcityPct = totalElite > 0 ? Math.round((draftedElite / totalElite) * 100) : 0;
-      return { pos, availElite, availSolid: available.filter((p) => p.zTotal >= 0.0).length, scarcityPct };
+
+      // Starter pool = top N by z-score where N = league-wide starter count
+      const starterCap = STARTER_COUNTS[pos] ?? 10;
+      const starterPool = all.slice(0, starterCap);
+      const availStarters = starterPool.filter((p) => !draftedSet.has(p.name)).length;
+      const startersPct = Math.round(((starterCap - availStarters) / starterCap) * 100);
+
+      return { pos, availElite, availStarters, starterCap, startersPct };
     });
   }, [dedupedPlayers, draftedSet, espnData]);
 
@@ -354,15 +367,17 @@ export default function DraftBoardPage() {
           </div>
           <div className="grid grid-cols-4 gap-px p-2">
             {scarcityData.map((d) => {
-              const tag = urgencyTag(d.scarcityPct);
+              const tag = urgencyTag(d.startersPct);
               return (
                 <div key={d.pos} className="rounded bg-white/[0.02] px-2 py-1.5 text-center">
                   <div className="text-[12px] font-bold text-white">{d.pos}</div>
                   <div className={`text-[10px] font-bold ${tag.color}`}>{tag.label}</div>
                   <div className="mt-1 text-[11px] font-mono text-sky-400">{d.availElite}</div>
                   <div className="text-[9px] text-slate-600">elite left</div>
+                  <div className="mt-1 text-[11px] font-mono text-emerald-400">{d.availStarters}/{d.starterCap}</div>
+                  <div className="text-[9px] text-slate-600">starters left</div>
                   <div className="mt-1.5 h-0.5 overflow-hidden rounded-full bg-slate-800">
-                    <div className={`h-full rounded-full ${tag.bar}`} style={{ width: `${d.scarcityPct}%` }} />
+                    <div className={`h-full rounded-full ${tag.bar}`} style={{ width: `${d.startersPct}%` }} />
                   </div>
                 </div>
               );
