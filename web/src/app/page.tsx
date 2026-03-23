@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo, useCallback, useRef } from "react";
-import type { Player } from "@/lib/data";
+import type { Player, StandingsRow } from "@/lib/data";
 
 // ── Draft order ───────────────────────────────────────────────────────────────
 
@@ -97,6 +97,8 @@ export default function DraftBoardPage() {
   const [selectedDrafter, setSelectedDrafter] = useState<string | null>(null);
   // Live ESPN data — name → { adp, primaryPos, eligiblePos }
   const [espnData, setEspnData] = useState<Record<string, { adp: number | null; primaryPos: string | null; eligiblePos: string[] }>>({});
+  // Historical standings for winner comparison
+  const [standings, setStandings] = useState<StandingsRow[]>([]);
   // Sorting
   const [sortCol, setSortCol] = useState<string>("rank");
   const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
@@ -108,6 +110,7 @@ export default function DraftBoardPage() {
     fetch("/api/espn-adp").then((r) => r.json()).then((data) => {
       if (!data.error) setEspnData(data);
     });
+    fetch("/api/standings").then((r) => r.json()).then(setStandings);
   }, []);
 
   const draftedSet = useMemo(() => new Set(session.drafted), [session.drafted]);
@@ -238,6 +241,21 @@ export default function DraftBoardPage() {
       return [stat, pitchers.reduce((sum, p) => sum + ((p as unknown as Record<string, number>)[stat] ?? 0), 0)];
     }));
   }, [myPickPlayers]);
+
+  // Average stats for historical champions (rank === 1)
+  const winnerAverages = useMemo(() => {
+    const winners = standings.filter((s) => s.rank === 1);
+    if (winners.length === 0) return null;
+    const avg = (key: string) => {
+      const vals = winners
+        .map((w) => (w as unknown as Record<string, number | undefined>)[key])
+        .filter((v): v is number => v !== undefined && !isNaN(v));
+      return vals.length > 0 ? vals.reduce((a, b) => a + b, 0) / vals.length : null;
+    };
+    return Object.fromEntries(
+      ([...BAT_STATS, ...PIT_STATS] as string[]).map((stat) => [stat, avg(stat)])
+    ) as Record<string, number | null>;
+  }, [standings]);
 
   // Lineup slot assignment — greedy fill by z-score desc so best players get starter spots
   const lineupSlots = useMemo(() => {
@@ -711,34 +729,44 @@ export default function DraftBoardPage() {
 
           {/* Team Projections */}
           <div className="rounded-lg border border-border bg-surface">
-            <div className="border-b border-border px-3 py-2">
+            <div className="border-b border-border px-3 py-2 flex items-center justify-between">
               <h2 className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Team Projections</h2>
+              {winnerAverages && (
+                <span className="text-[10px] text-slate-700">vs avg champion</span>
+              )}
             </div>
             <div className="px-3 py-2 space-y-2">
-              <div className="grid grid-cols-4 gap-1">
-                {BAT_STATS.map((stat) => (
-                  <div key={stat} className="text-center">
-                    <div className="text-[10px] text-slate-600">{stat}</div>
-                    <div className="font-mono text-[12px] font-bold text-slate-200">
-                      {myPickPlayers.length === 0 ? "—" : stat === "AVG"
-                        ? (batTotals[stat] as number).toFixed(3)
-                        : Math.round(batTotals[stat] as number)}
-                    </div>
-                  </div>
-                ))}
-              </div>
-              <div className="border-t border-border/40 pt-2 grid grid-cols-4 gap-1">
-                {PIT_STATS.map((stat) => (
-                  <div key={stat} className="text-center">
-                    <div className="text-[10px] text-slate-600">{stat}</div>
-                    <div className="font-mono text-[12px] font-bold text-slate-200">
-                      {myPickPlayers.length === 0 ? "—" : (stat === "ERA" || stat === "WHIP")
-                        ? (pitTotals[stat] as number).toFixed(3)
-                        : Math.round(pitTotals[stat] as number)}
-                    </div>
-                  </div>
-                ))}
-              </div>
+              {([
+                { stats: BAT_STATS, totals: batTotals, negatives: new Set<string>() },
+                { stats: PIT_STATS, totals: pitTotals, negatives: new Set(["ERA","WHIP","L"]) },
+              ] as const).map(({ stats, totals, negatives }, gi) => (
+                <div key={gi} className={`grid grid-cols-4 gap-1 ${gi > 0 ? "border-t border-border/40 pt-2" : ""}`}>
+                  {stats.map((stat) => {
+                    const isDecimal = stat === "AVG" || stat === "ERA" || stat === "WHIP";
+                    const cur = myPickPlayers.length === 0 ? null : (totals[stat] as number);
+                    const winAvg = winnerAverages?.[stat] ?? null;
+                    const isNeg = negatives.has(stat);
+                    const ahead = cur !== null && winAvg !== null
+                      ? (isNeg ? cur <= winAvg : cur >= winAvg)
+                      : null;
+                    return (
+                      <div key={stat} className="text-center">
+                        <div className="text-[10px] text-slate-600">{stat}</div>
+                        <div className={`font-mono text-[12px] font-bold ${
+                          ahead === true ? "text-emerald-400" : ahead === false ? "text-red-400/80" : "text-slate-200"
+                        }`}>
+                          {cur === null ? "—" : isDecimal ? cur.toFixed(3) : Math.round(cur)}
+                        </div>
+                        {winAvg !== null && (
+                          <div className="font-mono text-[9px] text-slate-700">
+                            {isDecimal ? winAvg.toFixed(2) : Math.round(winAvg)}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              ))}
             </div>
           </div>
 
