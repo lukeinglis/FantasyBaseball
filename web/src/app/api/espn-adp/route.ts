@@ -1,7 +1,22 @@
 // Fetches live ESPN ADP + eligible positions for 2026 MLB fantasy
 // Uses ESPN's public player pool endpoint — no auth required
 
-// ESPN FLB eligible slot ID → position label (bench/IL slots omitted)
+// defaultPositionId → primary position label
+const PRIMARY_POS: Record<number, string> = {
+  1: "SP",
+  2: "C",
+  3: "1B",
+  4: "2B",
+  5: "3B",
+  6: "SS",
+  7: "OF",
+  8: "OF",
+  9: "OF",
+  10: "DH",
+  11: "RP",
+};
+
+// eligibleSlots ID → display label (bench/IL/UTIL/NA omitted)
 const SLOT_NAMES: Record<number, string> = {
   0: "C",
   1: "1B",
@@ -12,23 +27,25 @@ const SLOT_NAMES: Record<number, string> = {
   6: "MI",   // 2B/SS
   7: "CI",   // 1B/3B
   8: "DH",
-  9: "SP",
-  10: "RP",
-  11: "P",
+  10: "OF",  // additional OF designation (deduplicated below)
+  14: "SP",
+  15: "RP",
 };
 
 interface EspnPlayer {
-  playerPoolEntry?: {
-    averageDraftPosition?: number;
-    player?: {
-      fullName?: string;
-      eligibleSlots?: number[];
+  player?: {
+    fullName?: string;
+    defaultPositionId?: number;
+    eligibleSlots?: number[];
+    ownership?: {
+      averageDraftPosition?: number;
     };
   };
 }
 
 export interface EspnPlayerData {
   adp: number | null;
+  primaryPos: string | null;
   eligiblePos: string[];
 }
 
@@ -40,6 +57,13 @@ export async function GET() {
         headers: {
           Accept: "application/json",
           "User-Agent": "Mozilla/5.0",
+          "X-Fantasy-Filter": JSON.stringify({
+            players: {
+              filterStatus: { value: ["FREEAGENT", "WAIVERS", "ONTEAM"] },
+              limit: 500,
+              sortPercOwned: { sortPriority: 1, sortAsc: false },
+            },
+          }),
         },
         next: { revalidate: 300 },
       }
@@ -55,26 +79,26 @@ export async function GET() {
     const result: Record<string, EspnPlayerData> = {};
 
     for (const p of players) {
-      const name = p.playerPoolEntry?.player?.fullName;
-      if (!name) continue;
+      const pl = p.player;
+      if (!pl?.fullName) continue;
 
-      const adpRaw = p.playerPoolEntry?.averageDraftPosition;
-      const slots = p.playerPoolEntry?.player?.eligibleSlots ?? [];
+      const adpRaw = pl.ownership?.averageDraftPosition;
+      const primaryPos = PRIMARY_POS[pl.defaultPositionId ?? -1] ?? null;
 
-      const eligiblePos = slots
-        .filter((id) => id in SLOT_NAMES)
-        .map((id) => SLOT_NAMES[id])
-        // Remove redundant combo slots if both individual positions already present
-        .filter((pos, _, arr) => {
-          if (pos === "MI") return !arr.includes("2B") && !arr.includes("SS");
-          if (pos === "CI") return !arr.includes("1B") && !arr.includes("3B");
-          if (pos === "P") return !arr.includes("SP") && !arr.includes("RP");
-          if (pos === "DH") return arr.length === 1; // only show DH if it's their only slot
-          return true;
-        });
+      // Map eligible slots to labels, deduplicate
+      const seen = new Set<string>();
+      const eligiblePos: string[] = [];
+      for (const slot of pl.eligibleSlots ?? []) {
+        const label = SLOT_NAMES[slot];
+        if (label && !seen.has(label)) {
+          seen.add(label);
+          eligiblePos.push(label);
+        }
+      }
 
-      result[name] = {
+      result[pl.fullName] = {
         adp: adpRaw != null && adpRaw > 0 ? Math.round(adpRaw * 10) / 10 : null,
+        primaryPos,
         eligiblePos,
       };
     }

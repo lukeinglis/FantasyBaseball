@@ -78,8 +78,8 @@ export default function DraftBoardPage() {
   const [showAvail, setShowAvail] = useState(true);
   // Who is actively picking — null means auto-follow draft order
   const [selectedDrafter, setSelectedDrafter] = useState<string | null>(null);
-  // Live ESPN data — name → { adp, eligiblePos }
-  const [espnData, setEspnData] = useState<Record<string, { adp: number | null; eligiblePos: string[] }>>({});
+  // Live ESPN data — name → { adp, primaryPos, eligiblePos }
+  const [espnData, setEspnData] = useState<Record<string, { adp: number | null; primaryPos: string | null; eligiblePos: string[] }>>({});
   // Sorting
   const [sortCol, setSortCol] = useState<string>("rank");
   const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
@@ -117,14 +117,15 @@ export default function DraftBoardPage() {
     const byPos: Record<string, Player[]> = {};
     for (const p of dedupedPlayers) {
       if (draftedSet.has(p.name)) continue;
-      if (!byPos[p.pos]) byPos[p.pos] = [];
-      byPos[p.pos].push(p);
+      const effectivePos = espnData[p.name]?.primaryPos ?? p.pos;
+      if (!byPos[effectivePos]) byPos[effectivePos] = [];
+      byPos[effectivePos].push(p);
     }
     for (const group of Object.values(byPos)) {
       group.forEach((p, i) => map.set(p.name, i + 1));
     }
     return map;
-  }, [dedupedPlayers, draftedSet]);
+  }, [dedupedPlayers, draftedSet, espnData]);
 
   const positions = useMemo(
     () => [...new Set(dedupedPlayers.map((p) => p.pos).filter(Boolean))].sort(),
@@ -199,10 +200,10 @@ export default function DraftBoardPage() {
     }));
   }, [myPickPlayers]);
 
-  // Scarcity data
+  // Scarcity data — use ESPN primaryPos when available (CSV pos is BAT/PIT, not specific)
   const scarcityData = useMemo(() => {
     return SCARCITY_POSITIONS.map((pos) => {
-      const all = dedupedPlayers.filter((p) => p.pos === pos);
+      const all = dedupedPlayers.filter((p) => (espnData[p.name]?.primaryPos ?? p.pos) === pos);
       const available = all.filter((p) => !draftedSet.has(p.name));
       const totalElite = all.filter((p) => p.zTotal >= 0.5).length;
       const availElite = available.filter((p) => p.zTotal >= 0.5).length;
@@ -210,7 +211,7 @@ export default function DraftBoardPage() {
       const scarcityPct = totalElite > 0 ? Math.round((draftedElite / totalElite) * 100) : 0;
       return { pos, availElite, availSolid: available.filter((p) => p.zTotal >= 0.0).length, scarcityPct };
     });
-  }, [dedupedPlayers, draftedSet]);
+  }, [dedupedPlayers, draftedSet, espnData]);
 
   // Stat columns
   const statCols = useMemo((): StatCol[] => {
@@ -478,7 +479,7 @@ export default function DraftBoardPage() {
                       } ${idx % 2 === 0 ? "" : "bg-white/[0.01]"}`}>
                       <td className="px-3 py-1.5 font-mono text-slate-600">{p.rank}</td>
                       <td className="px-2 py-1.5 font-mono text-[11px] text-slate-600">
-                        {pr ? `${p.pos}${pr}` : "—"}
+                        {pr ? `${espnData[p.name]?.primaryPos ?? p.pos}${pr}` : "—"}
                       </td>
                       {dedupedPlayers[0]?.espnRank !== undefined && (
                         <td className="px-2 py-1.5 font-mono text-slate-600">{p.espnRank ?? "—"}</td>
