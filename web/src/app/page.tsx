@@ -118,6 +118,27 @@ export default function DraftBoardPage() {
     });
   }, [players]);
 
+  // FAR — Fantasy Above Replacement
+  // Replacement level = (STARTER_COUNTS[pos] + 1)th best player at each position (0-based index N)
+  const farByPlayer = useMemo(() => {
+    const map = new Map<string, number>();
+    const byPos: Record<string, Player[]> = {};
+    for (const p of dedupedPlayers) {
+      const pos = espnData[p.name]?.primaryPos ?? p.pos;
+      if (!byPos[pos]) byPos[pos] = [];
+      byPos[pos].push(p);
+    }
+    for (const [pos, group] of Object.entries(byPos)) {
+      const sorted = [...group].sort((a, b) => b.zTotal - a.zTotal);
+      const replacementIdx = STARTER_COUNTS[pos] ?? 10;
+      const replacementZ = sorted[replacementIdx]?.zTotal ?? sorted[sorted.length - 1]?.zTotal ?? 0;
+      for (const p of group) {
+        map.set(p.name, Math.round((p.zTotal - replacementZ) * 100) / 100);
+      }
+    }
+    return map;
+  }, [dedupedPlayers, espnData]);
+
   // Position rank among available players
   const posRanks = useMemo(() => {
     const map = new Map<string, number>();
@@ -157,6 +178,7 @@ export default function DraftBoardPage() {
         case "espn":    return dir * ((a.espnRank ?? 9999) - (b.espnRank ?? 9999));
         case "adp":     return dir * ((espnData[a.name]?.adp ?? 9999) - (espnData[b.name]?.adp ?? 9999));
         case "zscore":  return dir * (b.zTotal - a.zTotal) * -1;
+        case "far":     return dir * ((farByPlayer.get(b.name) ?? -999) - (farByPlayer.get(a.name) ?? -999)) * -1;
         default: {
           const av = ((a as unknown as Record<string, number | undefined>)[sortCol] ?? (sortDir === "asc" ? Infinity : -Infinity)) as number;
           const bv = ((b as unknown as Record<string, number | undefined>)[sortCol] ?? (sortDir === "asc" ? Infinity : -Infinity)) as number;
@@ -165,7 +187,7 @@ export default function DraftBoardPage() {
       }
     });
     return list;
-  }, [dedupedPlayers, typeFilter, posFilter, search, showAvail, draftedSet, sortCol, sortDir, espnData]);
+  }, [dedupedPlayers, typeFilter, posFilter, search, showAvail, draftedSet, sortCol, sortDir, espnData, farByPlayer]);
 
   const drafter = useMemo(() => getDrafter(session.drafted.length), [session.drafted.length]);
 
@@ -477,6 +499,7 @@ export default function DraftBoardPage() {
                   <SortTh col="team" label="Team" className="w-14" />
                   <SortTh col="pos" label="Pos" className="w-12" />
                   <SortTh col="zTotal" label="zScore" className="w-16 text-right" />
+                  <SortTh col="far" label="FAR" className="w-16 text-right" />
                   {statCols.map((c) => (
                     <SortTh key={c} col={c} label={c} className="w-14 text-right" />
                   ))}
@@ -514,6 +537,9 @@ export default function DraftBoardPage() {
                       <td className="px-2 py-1.5 text-slate-500">{p.pos}</td>
                       <td className={`px-2 py-1.5 text-right font-mono ${zColor(p.zTotal)}`}>
                         {p.zTotal.toFixed(2)}
+                      </td>
+                      <td className={`px-2 py-1.5 text-right font-mono ${zColor(farByPlayer.get(p.name) ?? 0)}`}>
+                        {farByPlayer.has(p.name) ? (farByPlayer.get(p.name)! >= 0 ? "+" : "") + farByPlayer.get(p.name)!.toFixed(2) : "—"}
                       </td>
                       {statCols.map((c) => (
                         <td key={c} className="px-2 py-1.5 text-right font-mono text-slate-400">
