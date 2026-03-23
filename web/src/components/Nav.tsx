@@ -11,6 +11,7 @@ const links = [
   { href: "/scouting", label: "Scouting" },
   { href: "/history", label: "History" },
   { href: "/owners", label: "Owners" },
+  { href: "/strategy", label: "Strategy" },
 ];
 
 export function Nav() {
