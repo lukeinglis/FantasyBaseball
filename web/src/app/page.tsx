@@ -78,6 +78,9 @@ export default function DraftBoardPage() {
   const [showAvail, setShowAvail] = useState(true);
   // Who is actively picking — null means auto-follow draft order
   const [selectedDrafter, setSelectedDrafter] = useState<string | null>(null);
+  // Sorting
+  const [sortCol, setSortCol] = useState<string>("rank");
+  const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
   const currentPickRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -130,8 +133,25 @@ export default function DraftBoardPage() {
     if (posFilter.length > 0) list = list.filter((p) => posFilter.includes(p.pos));
     if (search) list = list.filter((p) => p.name.toLowerCase().includes(search.toLowerCase()));
     if (showAvail) list = list.filter((p) => !draftedSet.has(p.name));
+
+    const dir = sortDir === "asc" ? 1 : -1;
+    list = [...list].sort((a, b) => {
+      switch (sortCol) {
+        case "rank":    return dir * (a.rank - b.rank);
+        case "name":    return dir * a.name.localeCompare(b.name);
+        case "team":    return dir * a.team.localeCompare(b.team);
+        case "pos":     return dir * a.pos.localeCompare(b.pos);
+        case "espn":    return dir * ((a.espnRank ?? 9999) - (b.espnRank ?? 9999));
+        case "zscore":  return dir * (b.zTotal - a.zTotal) * -1;
+        default: {
+          const av = ((a as unknown as Record<string, number | undefined>)[sortCol] ?? (sortDir === "asc" ? Infinity : -Infinity)) as number;
+          const bv = ((b as unknown as Record<string, number | undefined>)[sortCol] ?? (sortDir === "asc" ? Infinity : -Infinity)) as number;
+          return dir * (av - bv);
+        }
+      }
+    });
     return list;
-  }, [dedupedPlayers, typeFilter, posFilter, search, showAvail, draftedSet]);
+  }, [dedupedPlayers, typeFilter, posFilter, search, showAvail, draftedSet, sortCol, sortDir]);
 
   const drafter = useMemo(() => getDrafter(session.drafted.length), [session.drafted.length]);
 
@@ -231,6 +251,29 @@ export default function DraftBoardPage() {
     setPosFilter((prev) =>
       prev.includes(pos) ? prev.filter((p) => p !== pos) : [...prev, pos]
     );
+
+  const handleSort = (col: string) => {
+    if (sortCol === col) {
+      setSortDir((d) => (d === "asc" ? "desc" : "asc"));
+    } else {
+      setSortCol(col);
+      // Numeric stats default descending (higher = better), text defaults ascending
+      const textCols = ["name", "team", "pos", "rank"];
+      setSortDir(textCols.includes(col) ? "asc" : "desc");
+    }
+  };
+
+  const SortTh = ({ col, label, className }: { col: string; label: string; className?: string }) => (
+    <th className={`cursor-pointer select-none px-2 py-2.5 font-medium hover:text-slate-300 ${className ?? ""}`}
+      onClick={() => handleSort(col)}>
+      <span className="flex items-center gap-0.5">
+        {label}
+        {sortCol === col && (
+          <span className="text-amber-400">{sortDir === "asc" ? "↑" : "↓"}</span>
+        )}
+      </span>
+    </th>
+  );
 
   // ── Render ─────────────────────────────────────────────────────────────────
 
@@ -397,17 +440,17 @@ export default function DraftBoardPage() {
             <table className="w-full text-left text-[13px]">
               <thead className="border-b border-border bg-surface text-[11px] uppercase tracking-wider text-slate-500">
                 <tr>
-                  <th className="w-10 px-3 py-2.5 font-medium">#</th>
+                  <SortTh col="rank" label="#" className="w-10 px-3" />
                   <th className="w-12 px-2 py-2.5 font-medium">POS#</th>
                   {dedupedPlayers[0]?.espnRank !== undefined && (
-                    <th className="w-14 px-2 py-2.5 font-medium">ESPN</th>
+                    <SortTh col="espn" label="ESPN" className="w-14" />
                   )}
-                  <th className="min-w-[160px] px-3 py-2.5 font-medium">Player</th>
-                  <th className="w-14 px-2 py-2.5 font-medium">Team</th>
-                  <th className="w-12 px-2 py-2.5 font-medium">Pos</th>
-                  <th className="w-16 px-2 py-2.5 text-right font-medium">zScore</th>
+                  <SortTh col="name" label="Player" className="min-w-[160px] px-3" />
+                  <SortTh col="team" label="Team" className="w-14" />
+                  <SortTh col="pos" label="Pos" className="w-12" />
+                  <SortTh col="zTotal" label="zScore" className="w-16 text-right" />
                   {statCols.map((c) => (
-                    <th key={c} className="w-14 px-2 py-2.5 text-right font-medium">{c}</th>
+                    <SortTh key={c} col={c} label={c} className="w-14 text-right" />
                   ))}
                   <th className="px-2 py-2.5"></th>
                 </tr>
