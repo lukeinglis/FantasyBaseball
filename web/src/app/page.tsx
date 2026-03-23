@@ -384,7 +384,7 @@ export default function DraftBoardPage() {
             <span className="text-[11px] tabular-nums text-amber-400/70">{myPickPlayers.length} / 24 picks</span>
           </div>
           <div className="p-3">
-            <div className="grid grid-cols-2 gap-x-5">
+            <div className="grid grid-cols-3 gap-x-4">
               {/* Batting slots */}
               <div>
                 <div className="mb-1.5 text-[10px] font-semibold uppercase tracking-wider text-slate-700">Batting</div>
@@ -423,21 +423,21 @@ export default function DraftBoardPage() {
                   ))}
                 </div>
               </div>
-            </div>
-            {/* Bench */}
-            <div className="mt-2 border-t border-border/40 pt-2">
-              <div className="mb-1 text-[10px] font-semibold uppercase tracking-wider text-slate-700">Bench</div>
-              <div className="grid grid-cols-3 gap-x-4 gap-y-0.5">
-                {lineupSlots.bnSlots.map((s, i) => (
-                  <div key={i} className="flex items-center gap-1.5">
-                    <span className="shrink-0 text-[10px] font-bold text-slate-700">BN</span>
-                    {s.player ? (
-                      <span className="min-w-0 truncate text-[11px] text-slate-400">{s.player.name}</span>
-                    ) : (
-                      <span className="text-[11px] text-slate-700">—</span>
-                    )}
-                  </div>
-                ))}
+              {/* Bench */}
+              <div>
+                <div className="mb-1.5 text-[10px] font-semibold uppercase tracking-wider text-slate-700">Bench</div>
+                <div className="space-y-0.5">
+                  {lineupSlots.bnSlots.map((s, i) => (
+                    <div key={i} className="flex items-center gap-2 py-0.5">
+                      <span className="shrink-0 text-[10px] font-bold text-slate-600">BN</span>
+                      {s.player ? (
+                        <span className="min-w-0 truncate text-[12px] text-slate-400">{s.player.name}</span>
+                      ) : (
+                        <span className="text-[11px] text-slate-700">—</span>
+                      )}
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
           </div>
