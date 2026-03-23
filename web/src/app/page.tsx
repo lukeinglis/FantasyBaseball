@@ -668,6 +668,38 @@ export default function DraftBoardPage() {
 
         </div>
       </div>
+
+      {/* ── Footer / Glossary ────────────────────────────────────────────── */}
+      <div className="mt-8 border-t border-border/40 pt-5 pb-8 text-[11px] text-slate-600">
+        <div className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-slate-700">Glossary</div>
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          <div>
+            <span className="font-semibold text-slate-400">zScore</span>
+            {" — "}Weighted z-score across all 16 scoring categories. Measures how far above or below average a player projects, with each category weighted by how strongly it predicts H2H wins in this league (e.g. TB 11.4%, HR 10.8%, SV 0.2%). Higher is better. Negative means below the average draftable player.
+          </div>
+          <div>
+            <span className="font-semibold text-slate-400">FAR</span>
+            {" — "}Fantasy Above Replacement. Same as zScore but relative to the replacement-level player at the position — the first player you'd be forced to start if you skipped the position entirely (C/1B/2B/3B/SS: 11th best, OF: 31st, SP: 51st, RP: 21st). Positive means genuine starter value above what's freely available. Negative means replaceable. FAR adjusts for positional scarcity: a +0.4 catcher is worth more than a +0.4 outfielder because the catcher alternatives are worse.
+          </div>
+          <div>
+            <span className="font-semibold text-slate-400">ADP</span>
+            {" — "}Average Draft Position from live ESPN fantasy drafts for the 2026 season. Lower = being drafted earlier. Compare to your rank to spot value: a player ranked 40th with ADP 65 is being undervalued by the market.
+          </div>
+          <div>
+            <span className="font-semibold text-slate-400">POS#</span>
+            {" — "}Positional rank among available players (e.g. OF3 = 3rd outfielder still on the board). Updates in real time as players are drafted.
+          </div>
+          <div>
+            <span className="font-semibold text-slate-400">Scarcity</span>
+            {" — "}For each position: elite left = players with zScore ≥ 0.5 still available. Starters left = how many of the top N players (league-wide starter count) remain undrafted. Urgency bar tracks what % of the starter pool has been drafted.
+          </div>
+          <div>
+            <span className="font-semibold text-slate-400">Category weights</span>
+            {" — "}Derived via Spearman correlation between per-category win% and overall H2H win% across 60 team-seasons (2019–2025, excl. 2020). TB and HR are the most predictive; SV is weakest — do not reach for closers.
+          </div>
+        </div>
+      </div>
+
     </div>
   );
 }
