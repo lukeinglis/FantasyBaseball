@@ -470,12 +470,20 @@ export default function DraftBoardPage() {
             <div className="border-b border-border px-3 py-2">
               <div className="flex items-center justify-between">
                 <h2 className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Draft Order</h2>
-                {selectedDrafter && (
-                  <button onClick={() => setSelectedDrafter(null)}
-                    className="text-[10px] text-slate-600 hover:text-slate-400">
-                    clear
-                  </button>
-                )}
+                <div className="flex items-center gap-2">
+                  {selectedDrafter && (
+                    <button onClick={() => setSelectedDrafter(null)}
+                      className="text-[10px] text-slate-600 hover:text-slate-400">
+                      clear
+                    </button>
+                  )}
+                  {session.drafted.length > 0 && (
+                    <button onClick={undoLast}
+                      className="rounded bg-white/5 px-2 py-0.5 text-[11px] text-slate-400 transition-colors hover:bg-white/10 hover:text-slate-200">
+                      ← Undo pick
+                    </button>
+                  )}
+                </div>
               </div>
             </div>
 
