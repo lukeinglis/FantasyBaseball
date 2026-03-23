@@ -78,8 +78,8 @@ export default function DraftBoardPage() {
   const [showAvail, setShowAvail] = useState(true);
   // Who is actively picking — null means auto-follow draft order
   const [selectedDrafter, setSelectedDrafter] = useState<string | null>(null);
-  // Live ESPN ADP — name → ADP value
-  const [espnAdp, setEspnAdp] = useState<Record<string, number>>({});
+  // Live ESPN data — name → { adp, eligiblePos }
+  const [espnData, setEspnData] = useState<Record<string, { adp: number | null; eligiblePos: string[] }>>({});
   // Sorting
   const [sortCol, setSortCol] = useState<string>("rank");
   const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
@@ -89,7 +89,7 @@ export default function DraftBoardPage() {
     fetch("/api/rankings").then((r) => r.json()).then(setPlayers);
     fetch("/api/draft").then((r) => r.json()).then(setSession);
     fetch("/api/espn-adp").then((r) => r.json()).then((data) => {
-      if (!data.error) setEspnAdp(data);
+      if (!data.error) setEspnData(data);
     });
   }, []);
 
@@ -147,7 +147,7 @@ export default function DraftBoardPage() {
         case "team":    return dir * a.team.localeCompare(b.team);
         case "pos":     return dir * a.pos.localeCompare(b.pos);
         case "espn":    return dir * ((a.espnRank ?? 9999) - (b.espnRank ?? 9999));
-        case "adp":     return dir * ((espnAdp[a.name] ?? 9999) - (espnAdp[b.name] ?? 9999));
+        case "adp":     return dir * ((espnData[a.name]?.adp ?? 9999) - (espnData[b.name]?.adp ?? 9999));
         case "zscore":  return dir * (b.zTotal - a.zTotal) * -1;
         default: {
           const av = ((a as unknown as Record<string, number | undefined>)[sortCol] ?? (sortDir === "asc" ? Infinity : -Infinity)) as number;
@@ -157,7 +157,7 @@ export default function DraftBoardPage() {
       }
     });
     return list;
-  }, [dedupedPlayers, typeFilter, posFilter, search, showAvail, draftedSet, sortCol, sortDir, espnAdp]);
+  }, [dedupedPlayers, typeFilter, posFilter, search, showAvail, draftedSet, sortCol, sortDir, espnData]);
 
   const drafter = useMemo(() => getDrafter(session.drafted.length), [session.drafted.length]);
 
@@ -451,8 +451,11 @@ export default function DraftBoardPage() {
                   {dedupedPlayers[0]?.espnRank !== undefined && (
                     <SortTh col="espn" label="ESPN" className="w-14" />
                   )}
-                  {Object.keys(espnAdp).length > 0 && (
+                  {Object.keys(espnData).length > 0 && (
                     <SortTh col="adp" label="ADP" className="w-14" />
+                  )}
+                  {Object.keys(espnData).length > 0 && (
+                    <th className="px-2 py-2.5 font-medium">Elig</th>
                   )}
                   <SortTh col="name" label="Player" className="min-w-[160px] px-3" />
                   <SortTh col="team" label="Team" className="w-14" />
@@ -465,7 +468,7 @@ export default function DraftBoardPage() {
                 </tr>
               </thead>
               <tbody>
-                {filtered.slice(0, 200).map((p, idx) => {
+                {filtered.slice(0, 340).map((p, idx) => {
                   const drafted = draftedSet.has(p.name);
                   const pr = posRanks.get(p.name);
                   return (
@@ -480,9 +483,14 @@ export default function DraftBoardPage() {
                       {dedupedPlayers[0]?.espnRank !== undefined && (
                         <td className="px-2 py-1.5 font-mono text-slate-600">{p.espnRank ?? "—"}</td>
                       )}
-                      {Object.keys(espnAdp).length > 0 && (
+                      {Object.keys(espnData).length > 0 && (
                         <td className="px-2 py-1.5 font-mono text-slate-500">
-                          {espnAdp[p.name] ?? "—"}
+                          {espnData[p.name]?.adp ?? "—"}
+                        </td>
+                      )}
+                      {Object.keys(espnData).length > 0 && (
+                        <td className="px-2 py-1.5 text-[11px] text-slate-500">
+                          {espnData[p.name]?.eligiblePos.join(", ") ?? "—"}
                         </td>
                       )}
                       <td className="px-3 py-1.5 font-medium text-slate-100">{p.name}</td>
