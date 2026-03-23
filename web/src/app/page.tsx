@@ -31,6 +31,16 @@ const BAT_STATS = ["H", "R", "HR", "TB", "RBI", "BB", "SB", "AVG"] as const;
 const PIT_STATS = ["K", "QS", "W", "L", "SV", "HD", "ERA", "WHIP"] as const;
 const SCARCITY_POSITIONS = ["C", "1B", "2B", "3B", "SS", "OF", "SP", "RP"] as const;
 
+// Roster slots for Tampa's Finest (C,1B,2B,3B,SS,OF×3,UTIL | SP×5,RP×2,P×2 | BN×6)
+const BATTING_SLOTS  = ["C","1B","2B","3B","SS","OF","OF","OF","UTIL"] as const;
+const PITCHING_SLOTS = ["SP","SP","SP","SP","SP","RP","RP","P","P"] as const;
+const BENCH_COUNT = 6;
+const SLOT_ELIGIBLE: Record<string, string[]> = {
+  C: ["C"], "1B": ["1B"], "2B": ["2B"], "3B": ["3B"], SS: ["SS"],
+  OF: ["OF"], UTIL: ["C","1B","2B","3B","SS","OF","DH"],
+  SP: ["SP"], RP: ["RP"], P: ["SP","RP"],
+};
+
 // Number of starters at each position across 10 teams
 // Roster: C, 1B, 2B, 3B, SS, OF×3, UTIL | SP×5, RP×2, P×2
 const STARTER_COUNTS: Record<string, number> = {
@@ -229,6 +239,30 @@ export default function DraftBoardPage() {
     }));
   }, [myPickPlayers]);
 
+  // Lineup slot assignment — greedy fill by z-score desc so best players get starter spots
+  const lineupSlots = useMemo(() => {
+    const pool = [...myPickPlayers].sort((a, b) => b.zTotal - a.zTotal);
+    const assigned = new Set<string>();
+
+    const fill = (slots: readonly string[]) =>
+      slots.map((slot) => {
+        const eligible = SLOT_ELIGIBLE[slot];
+        const player = pool.find((p) => {
+          if (assigned.has(p.name)) return false;
+          if (!eligible) return true; // BN = anything
+          const pPos = espnData[p.name]?.primaryPos ?? p.pos;
+          return eligible.includes(pPos);
+        }) ?? null;
+        if (player) assigned.add(player.name);
+        return { slot, player };
+      });
+
+    const batSlots  = fill(BATTING_SLOTS);
+    const pitSlots  = fill(PITCHING_SLOTS);
+    const bnSlots   = fill(Array(BENCH_COUNT).fill("BN"));
+    return { batSlots, pitSlots, bnSlots };
+  }, [myPickPlayers, espnData]);
+
   // Scarcity data — use ESPN primaryPos when available (CSV pos is BAT/PIT, not specific)
   const scarcityData = useMemo(() => {
     return SCARCITY_POSITIONS.map((pos) => {
@@ -323,61 +357,70 @@ export default function DraftBoardPage() {
     <div className="mx-auto max-w-[1600px] px-4 py-5">
 
       {/* ── Top info strip ───────────────────────────────────────────────── */}
-      <div className="mb-5 grid gap-4 lg:grid-cols-[220px_1fr_340px]">
+      <div className="mb-5 grid gap-4 lg:grid-cols-[1fr_340px]">
 
-        {/* My Team picks */}
+        {/* Lineup Card */}
         <div className="rounded-lg border border-border bg-surface">
           <div className="flex items-center justify-between border-b border-border px-3 py-2">
-            <h2 className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">My Team</h2>
-            <span className="text-[11px] tabular-nums text-amber-400/70">{myPickPlayers.length} picks</span>
+            <h2 className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">My Lineup</h2>
+            <span className="text-[11px] tabular-nums text-amber-400/70">{myPickPlayers.length} / 24 picks</span>
           </div>
-          {myPickPlayers.length === 0 ? (
-            <div className="px-3 py-3 text-[12px] text-slate-700">No picks yet</div>
-          ) : (
-            <div className="divide-y divide-border/30 overflow-y-auto" style={{ maxHeight: "220px" }}>
-              {myPickPlayers.map((p, i) => (
-                <div key={p.name} className="flex items-center gap-2 px-3 py-1">
-                  <span className="w-4 font-mono text-[10px] text-slate-700">{i + 1}</span>
-                  <div className="min-w-0 flex-1">
-                    <div className="truncate text-[12px] font-medium text-slate-200">{p.name}</div>
-                    <div className="text-[10px] text-slate-600">{p.pos}</div>
-                  </div>
-                  <span className={`font-mono text-[11px] ${zColor(p.zTotal)}`}>{p.zTotal.toFixed(2)}</span>
+          <div className="p-3">
+            <div className="grid grid-cols-2 gap-x-5">
+              {/* Batting slots */}
+              <div>
+                <div className="mb-1.5 text-[10px] font-semibold uppercase tracking-wider text-slate-700">Batting</div>
+                <div className="space-y-0.5">
+                  {lineupSlots.batSlots.map((s, i) => (
+                    <div key={i} className="flex items-center gap-2 py-0.5">
+                      <span className="w-8 shrink-0 text-[10px] font-bold text-slate-600">{s.slot}</span>
+                      {s.player ? (
+                        <>
+                          <span className="min-w-0 flex-1 truncate text-[12px] text-slate-200">{s.player.name}</span>
+                          <span className={`shrink-0 font-mono text-[11px] ${zColor(s.player.zTotal)}`}>{s.player.zTotal.toFixed(2)}</span>
+                        </>
+                      ) : (
+                        <span className="flex-1 text-[11px] text-slate-700">—</span>
+                      )}
+                    </div>
+                  ))}
                 </div>
-              ))}
+              </div>
+              {/* Pitching slots */}
+              <div>
+                <div className="mb-1.5 text-[10px] font-semibold uppercase tracking-wider text-slate-700">Pitching</div>
+                <div className="space-y-0.5">
+                  {lineupSlots.pitSlots.map((s, i) => (
+                    <div key={i} className="flex items-center gap-2 py-0.5">
+                      <span className="w-6 shrink-0 text-[10px] font-bold text-slate-600">{s.slot}</span>
+                      {s.player ? (
+                        <>
+                          <span className="min-w-0 flex-1 truncate text-[12px] text-slate-200">{s.player.name}</span>
+                          <span className={`shrink-0 font-mono text-[11px] ${zColor(s.player.zTotal)}`}>{s.player.zTotal.toFixed(2)}</span>
+                        </>
+                      ) : (
+                        <span className="flex-1 text-[11px] text-slate-700">—</span>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
-          )}
-        </div>
-
-        {/* Team stat projections */}
-        <div className="rounded-lg border border-border bg-surface">
-          <div className="border-b border-border px-3 py-2">
-            <h2 className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Team Projections</h2>
-          </div>
-          <div className="px-3 py-2 space-y-2">
-            <div className="grid grid-cols-8 gap-1">
-              {BAT_STATS.map((stat) => (
-                <div key={stat} className="text-center">
-                  <div className="text-[10px] text-slate-600">{stat}</div>
-                  <div className="font-mono text-[13px] font-bold text-slate-200">
-                    {myPickPlayers.length === 0 ? "—" : stat === "AVG"
-                      ? (batTotals[stat] as number).toFixed(3)
-                      : Math.round(batTotals[stat] as number)}
+            {/* Bench */}
+            <div className="mt-2 border-t border-border/40 pt-2">
+              <div className="mb-1 text-[10px] font-semibold uppercase tracking-wider text-slate-700">Bench</div>
+              <div className="grid grid-cols-3 gap-x-4 gap-y-0.5">
+                {lineupSlots.bnSlots.map((s, i) => (
+                  <div key={i} className="flex items-center gap-1.5">
+                    <span className="shrink-0 text-[10px] font-bold text-slate-700">BN</span>
+                    {s.player ? (
+                      <span className="min-w-0 truncate text-[11px] text-slate-400">{s.player.name}</span>
+                    ) : (
+                      <span className="text-[11px] text-slate-700">—</span>
+                    )}
                   </div>
-                </div>
-              ))}
-            </div>
-            <div className="border-t border-border/40 pt-2 grid grid-cols-8 gap-1">
-              {PIT_STATS.map((stat) => (
-                <div key={stat} className="text-center">
-                  <div className="text-[10px] text-slate-600">{stat}</div>
-                  <div className="font-mono text-[13px] font-bold text-slate-200">
-                    {myPickPlayers.length === 0 ? "—" : (stat === "ERA" || stat === "WHIP")
-                      ? (pitTotals[stat] as number).toFixed(3)
-                      : Math.round(pitTotals[stat] as number)}
-                  </div>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
           </div>
         </div>
@@ -663,6 +706,39 @@ export default function DraftBoardPage() {
                   );
                 }
               })}
+            </div>
+          </div>
+
+          {/* Team Projections */}
+          <div className="rounded-lg border border-border bg-surface">
+            <div className="border-b border-border px-3 py-2">
+              <h2 className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Team Projections</h2>
+            </div>
+            <div className="px-3 py-2 space-y-2">
+              <div className="grid grid-cols-4 gap-1">
+                {BAT_STATS.map((stat) => (
+                  <div key={stat} className="text-center">
+                    <div className="text-[10px] text-slate-600">{stat}</div>
+                    <div className="font-mono text-[12px] font-bold text-slate-200">
+                      {myPickPlayers.length === 0 ? "—" : stat === "AVG"
+                        ? (batTotals[stat] as number).toFixed(3)
+                        : Math.round(batTotals[stat] as number)}
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <div className="border-t border-border/40 pt-2 grid grid-cols-4 gap-1">
+                {PIT_STATS.map((stat) => (
+                  <div key={stat} className="text-center">
+                    <div className="text-[10px] text-slate-600">{stat}</div>
+                    <div className="font-mono text-[12px] font-bold text-slate-200">
+                      {myPickPlayers.length === 0 ? "—" : (stat === "ERA" || stat === "WHIP")
+                        ? (pitTotals[stat] as number).toFixed(3)
+                        : Math.round(pitTotals[stat] as number)}
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
 
