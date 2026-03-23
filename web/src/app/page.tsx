@@ -480,7 +480,7 @@ export default function DraftBoardPage() {
           </div>
 
           {/* Rankings table */}
-          <div className="overflow-auto rounded-lg border border-border" style={{ height: "1850px" }}>
+          <div className="overflow-auto rounded-lg border border-border" style={{ height: "975px" }}>
             <table className="w-full text-left text-[13px]">
               <thead className="sticky top-0 z-10 border-b border-border bg-surface text-[11px] uppercase tracking-wider text-slate-500">
                 <tr>
