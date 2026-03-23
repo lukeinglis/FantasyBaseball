@@ -49,13 +49,17 @@ function urgencyColor(round: number) {
 
 // ── Component ─────────────────────────────────────────────────────────────────
 
+const POSITIONS = ["C", "1B", "2B", "3B", "SS", "OF", "SP", "RP"] as const;
+
 export default function StrategyPage() {
   const [players, setPlayers] = useState<Player[]>([]);
   const [profiles, setProfiles] = useState<DraftProfile[]>([]);
+  const [espnData, setEspnData] = useState<Record<string, { adp: number | null; primaryPos: string | null }>>({});
 
   useEffect(() => {
     fetch("/api/rankings").then((r) => r.json()).then(setPlayers);
     fetch("/api/profiles").then((r) => r.json()).then(setProfiles);
+    fetch("/api/espn-adp").then((r) => r.json()).then((d) => { if (!d.error) setEspnData(d); });
   }, []);
 
   // Deduplicate
@@ -88,6 +92,24 @@ export default function StrategyPage() {
 
   const undervalued = valueBoard.filter((v) => v.valueDiff >= 15).slice(0, 12);
   const overvalued  = valueBoard.filter((v) => v.valueDiff <= -20).slice(0, 8);
+
+  // Value picks by position — best undervalued player at each spot using live ADP
+  const espnLoaded = Object.keys(espnData).length > 0;
+  const valueByPosition = useMemo(() => {
+    if (!espnLoaded) return [];
+    return POSITIONS.map((pos) => {
+      const atPos = dedupedPlayers
+        .filter((p) => (espnData[p.name]?.primaryPos ?? p.pos) === pos)
+        .map((p) => {
+          const adp = espnData[p.name]?.adp;
+          const edge = adp != null ? adp - p.rank : (p.espnRank ?? p.rank) - p.rank;
+          return { player: p, adp, edge };
+        })
+        .filter((v) => v.edge > 0)
+        .sort((a, b) => b.edge - a.edge);
+      return { pos, picks: atPos.slice(0, 3) };
+    });
+  }, [dedupedPlayers, espnData, espnLoaded]);
 
   // Opponent positional timing — league averages
   const leagueAvg = useMemo(() => {
@@ -251,6 +273,48 @@ export default function StrategyPage() {
                   ))}
                 </tbody>
               </table>
+            )}
+          </section>
+
+          {/* ── Value picks by position ─────────────────────────────────── */}
+          <section className="rounded-lg border border-border bg-surface p-4">
+            <h2 className="mb-1 text-[12px] font-semibold uppercase tracking-wider text-slate-400">
+              Value Picks by Position
+            </h2>
+            <p className="mb-3 text-[12px] text-slate-500">
+              Best undervalued player at each position — our rank vs live ESPN ADP. Edge = picks you gain by waiting.
+            </p>
+            {!espnLoaded ? (
+              <p className="text-[12px] text-slate-700">Loading ESPN ADP data…</p>
+            ) : (
+              <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
+                {valueByPosition.map(({ pos, picks }) => (
+                  <div key={pos} className="rounded border border-border/60 bg-white/[0.02] p-2.5">
+                    <div className="mb-2 text-[11px] font-bold text-white">{pos}</div>
+                    {picks.length === 0 ? (
+                      <div className="text-[11px] text-slate-700">No clear value</div>
+                    ) : (
+                      <div className="space-y-2">
+                        {picks.map(({ player, adp, edge }) => (
+                          <div key={player.name} className="space-y-0.5">
+                            <div className="truncate text-[11px] font-medium text-slate-200">{player.name}</div>
+                            <div className="flex items-center gap-2 text-[10px]">
+                              <span className="text-slate-600">Our #{player.rank}</span>
+                              <span className="text-slate-700">·</span>
+                              <span className="text-slate-600">
+                                ADP {adp != null ? adp.toFixed(1) : `#${player.espnRank}`}
+                              </span>
+                              <span className="ml-auto font-mono font-bold text-emerald-400">
+                                +{Math.round(edge)}
+                              </span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
             )}
           </section>
 
