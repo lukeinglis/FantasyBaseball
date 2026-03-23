@@ -53,8 +53,8 @@ PITCHERS_PER_TEAM = 9     # SP×5,RP×2,P×2
 BENCH_PER_TEAM = 6
 
 # Pool size for z-score baseline (how many players are "draftable")
-BATTER_POOL = NUM_TEAMS * (BATTERS_PER_TEAM + 3)   # ~120 batters
-PITCHER_POOL = NUM_TEAMS * (PITCHERS_PER_TEAM + 3)  # ~120 pitchers
+BATTER_POOL = NUM_TEAMS * (BATTERS_PER_TEAM + 11)   # ~200 batters (starters + bench + waiver depth)
+PITCHER_POOL = NUM_TEAMS * (PITCHERS_PER_TEAM + 6)  # ~150 pitchers (starters + bench + waiver depth)
 
 # League categories
 BATTING_CATS = ["H", "R", "HR", "TB", "RBI", "BB", "SB", "AVG"]
