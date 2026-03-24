@@ -109,6 +109,86 @@ function computePosAvgRounds(
   return result;
 }
 
+// ── Draft style generator ──────────────────────────────────────────────────
+
+const POWER_CATS = new Set<CatKey>(["HR", "RBI", "TB"]);
+const PITCHING_CATS = new Set<CatKey>(["K", "QS", "ERA", "WHIP"]);
+const SAVES_CATS = new Set<CatKey>(["SV", "HD"]);
+const SPEED_CATS = new Set<CatKey>(["SB"]);
+
+function generateDraftStyle(
+  posAvgRounds: Record<FantasyPos, { avg: number; n: number }>,
+  strengths: CatKey[],
+  weaknesses: CatKey[],
+  catRanks: Record<CatKey, { avgRank: number; n: number }>,
+  avgFinish: string,
+  titles: number
+): string {
+  const sp = posAvgRounds["SP"].avg;
+  const rp = posAvgRounds["RP"].avg;
+  const of_ = posAvgRounds["OF"].avg;
+  const ss = posAvgRounds["SS"].avg;
+  const c = posAvgRounds["C"].avg;
+
+  // ── Sentence 1: draft timing / positional identity ──────────────────────
+  let s1: string;
+  if (sp > 0 && sp <= 2.5) {
+    const rpNote = rp > 0 && rp >= 13 ? ", then punts on closers until the final rounds" : "";
+    s1 = `A pitcher-first drafter who typically locks up an ace before round 3${rpNote}.`;
+  } else if (of_ > 0 && of_ <= 1.5 && (sp === 0 || sp > 4)) {
+    const ssNote = ss > 0 && ss <= 4 ? `, pairing it with a shortstop by round ${Math.round(ss)}` : "";
+    s1 = `Opens almost every draft with an outfielder in round 1${ssNote}, leaning on positional depth over early pitching.`;
+  } else if (ss > 0 && ss <= 3) {
+    const spNote = sp > 0 && sp <= 5 ? ` and typically works in an ace around round ${sp.toFixed(1)}` : "";
+    s1 = `Prioritises scarce middle infield — a shortstop lands in round ${ss.toFixed(1)} on average${spNote}.`;
+  } else if (c > 0 && c <= 5) {
+    s1 = `Makes a point of securing elite catcher early (avg round ${c.toFixed(1)}), valuing positional scarcity when most managers wait.`;
+  } else if (sp > 0 && sp >= 4 && sp <= 6) {
+    const rpNote = rp > 0 && rp >= 14 ? " and almost always punts saves" : "";
+    s1 = `A balanced, hitters-first style fills the early rounds before committing to pitching in the mid-rounds${rpNote}.`;
+  } else {
+    const rpNote = rp > 0 && rp >= 13 ? ", treating closers as an afterthought" : "";
+    s1 = `A flexible best-available approach with no strong positional lean in the opening rounds${rpNote}.`;
+  }
+
+  // ── Sentence 2: category outcomes ───────────────────────────────────────
+  const top3 = strengths.slice(0, 3);
+  const pitchStrong = top3.filter((c) => PITCHING_CATS.has(c));
+  const powerStrong = top3.filter((c) => POWER_CATS.has(c));
+  const savesStrong = top3.filter((c) => SAVES_CATS.has(c));
+  const speedStrong = top3.filter((c) => SPEED_CATS.has(c));
+  const pitchWeak = weaknesses.filter((c) => PITCHING_CATS.has(c));
+  const powerWeak = weaknesses.filter((c) => POWER_CATS.has(c));
+
+  let s2: string;
+  if (pitchStrong.length >= 2) {
+    const leak = powerWeak.length ? `${powerWeak.slice(0, 2).join("/")} tend to lag` : `${weaknesses[0]} is a chronic leak`;
+    s2 = `The results show up on the mound — consistently elite ${pitchStrong.join("/")} — though ${leak}.`;
+  } else if (powerStrong.length >= 2) {
+    const leak = pitchWeak.length
+      ? `pitching (${pitchWeak.slice(0, 2).join(", ")}) regularly gives those gains back`
+      : `${weaknesses[0] ?? "consistency"} is the recurring weak spot`;
+    s2 = `Heavy counting-stat production (${powerStrong.join("/")}) is the calling card, but ${leak}.`;
+  } else if (savesStrong.length >= 1 && catRanks["SV"].avgRank > 0) {
+    const sbNote = speedStrong.length ? " with stolen base depth adding another weapon" : "";
+    s2 = `Closer depth is a genuine competitive edge (avg SV rank #${catRanks["SV"].avgRank.toFixed(1)})${sbNote}, making them tough to beat in late-inning categories.`;
+  } else if (speedStrong.length >= 1 && catRanks["SB"].avgRank > 0) {
+    const companion = pitchStrong.length ? "strong pitching numbers" : powerStrong.length ? "solid power" : "respectable across-the-board stats";
+    s2 = `Speed is a genuine weapon (avg SB rank #${catRanks["SB"].avgRank.toFixed(1)}), complemented by ${companion}.`;
+  } else {
+    const finishNum = parseFloat(avgFinish);
+    if (titles > 0) {
+      s2 = `${titles > 1 ? `${titles} championships suggest` : "A title suggests"} the approach works when it clicks, even if no single category stands out as dominant.`;
+    } else if (!isNaN(finishNum) && finishNum <= 4) {
+      s2 = `Consistent top-${Math.ceil(finishNum + 0.5)} finishes reflect a disciplined process that converts without an obvious category specialty.`;
+    } else {
+      s2 = `A generalist approach spread across categories without a clear statistical identity, making this team harder to read at the draft table.`;
+    }
+  }
+
+  return `${s1} ${s2}`;
+}
+
 export default function ScoutingPage() {
   const [profiles, setProfiles] = useState<DraftProfile[]>([]);
   const [allStandings, setAllStandings] = useState<StandingsRow[]>([]);
@@ -190,6 +270,12 @@ export default function ScoutingPage() {
   const strengths = sortedCats.slice(0, 3);
   const weaknesses = [...sortedCats].reverse().slice(0, 3);
 
+  const draftStyleBlurb = useMemo(
+    () => generateDraftStyle(posAvgRounds, strengths, weaknesses, catRanks, avgFinish, titles),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [posAvgRounds, catRanks, avgFinish, titles]
+  );
+
   if (!selected) {
     return (
       <div className="mx-auto max-w-7xl px-4 py-5">
@@ -228,6 +314,11 @@ export default function ScoutingPage() {
               <h2 className="text-lg font-bold text-white">{selected.team}</h2>
               {selected.ownerName && (
                 <p className="mt-0.5 text-[12px] text-slate-500">Owner: {selected.ownerName}</p>
+              )}
+              {draftStyleBlurb && (
+                <p className="mt-2 max-w-xl text-[12px] leading-relaxed text-slate-400 italic">
+                  {draftStyleBlurb}
+                </p>
               )}
             </div>
             <span className="rounded bg-white/5 px-2 py-0.5 text-[11px] text-slate-500">
