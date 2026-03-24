@@ -1,5 +1,5 @@
 {
   "buildCommand": "next build",
-  "installCommand": "npm ci",
+  "installCommand": "npm install --include=optional",
   "framework": "nextjs"
 }
