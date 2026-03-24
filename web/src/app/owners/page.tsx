@@ -77,6 +77,7 @@ export default function OwnersPage() {
               <th className="px-2 py-2.5 text-right font-medium">Yrs</th>
               <th className="px-2 py-2.5 text-right font-medium">Avg</th>
               <th className="px-2 py-2.5 text-right font-medium">Best</th>
+              <th className="px-3 py-2.5 text-right font-medium">Record</th>
               <th className="px-2 py-2.5 text-right font-medium">Win%</th>
               <th className="px-2 py-2.5 text-right font-medium">Titles</th>
             </tr>
@@ -100,6 +101,9 @@ export default function OwnersPage() {
                   <span className={`font-mono ${s.bestFinish === 1 ? "font-bold text-amber-400" : "text-slate-400"}`}>
                     {s.bestFinish}
                   </span>
+                </td>
+                <td className="px-3 py-1.5 text-right font-mono text-slate-400 whitespace-nowrap">
+                  {s.totalWins}-{s.totalLosses}{s.totalTies > 0 ? `-${s.totalTies}` : ""}
                 </td>
                 <td className="px-2 py-1.5 text-right font-mono text-slate-400">
                   {(s.winPct * 100).toFixed(1)}%
