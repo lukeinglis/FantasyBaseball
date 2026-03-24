@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 const links = [
-  { href: "/", label: "Draft Board" },
+  { href: "/warroom", label: "Draft Board" },
   { href: "/team", label: "My Team" },
   { href: "/scarcity", label: "Scarcity" },
   { href: "/category-intel", label: "Category Intel" },
@@ -12,6 +12,7 @@ const links = [
   { href: "/history", label: "History" },
   { href: "/owners", label: "Owners" },
   { href: "/strategy", label: "Strategy" },
+  { href: "/mock-draft", label: "Mock Draft" },
 ];
 
 export function Nav() {
@@ -20,7 +21,7 @@ export function Nav() {
   return (
     <header className="sticky top-0 z-40 border-b border-border bg-surface/95 backdrop-blur-sm">
       <div className="mx-auto flex max-w-7xl items-center gap-8 px-4 py-3">
-        <Link href="/" className="flex items-baseline gap-2">
+        <Link href="/warroom" className="flex items-baseline gap-2">
           <span className="text-lg font-bold tracking-tight text-amber-400">
             WAR ROOM
           </span>

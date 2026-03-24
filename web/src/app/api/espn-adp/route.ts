@@ -40,6 +40,10 @@ interface EspnPlayer {
     ownership?: {
       averageDraftPosition?: number;
     };
+    draftRanksByRankType?: {
+      ROTO?: { rank?: number };
+      STANDARD?: { rank?: number };
+    };
   };
 }
 
@@ -47,6 +51,7 @@ export interface EspnPlayerData {
   adp: number | null;
   primaryPos: string | null;
   eligiblePos: string[];
+  espnRank: number | null;
 }
 
 export async function GET() {
@@ -100,6 +105,7 @@ export async function GET() {
         adp: adpRaw != null && adpRaw > 0 ? Math.round(adpRaw * 10) / 10 : null,
         primaryPos,
         eligiblePos,
+        espnRank: pl.draftRanksByRankType?.ROTO?.rank ?? null,
       };
     }
 
