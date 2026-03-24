@@ -25,6 +25,112 @@ const DRAFTER_TO_FRANCHISE: Record<string, string> = {
   Dan: "Lisa dANN", Tim: "The G.O.A.T", JB: "MOArch Redbirds", Joel: "Cream City Cowtippers",
 };
 
+// ── Categories ────────────────────────────────────────────────────────────────
+
+const BAT_CATS = ["H","R","HR","TB","RBI","BB","SB","AVG"] as const;
+const PIT_CATS = ["K","QS","SV","HD","ERA","WHIP"] as const;
+const ALL_CATS = [...BAT_CATS, ...PIT_CATS] as const;
+type Cat = (typeof ALL_CATS)[number];
+const LOWER_BETTER = new Set<Cat>(["ERA","WHIP"]);
+
+interface TeamProjection {
+  drafter: string;
+  stats: Record<Cat, number>;
+  ranks: Record<Cat, number>;
+  totalRank: number;
+}
+
+function projectStats(mockPicks: MockPick[], players: Player[]): TeamProjection[] {
+  const playerMap = new Map<string, Player>();
+  for (const p of players) playerMap.set(p.name, p);
+
+  const raw = DRAFT_ORDER.map((drafter) => {
+    const picks = mockPicks.filter((pk) => pk.drafter === drafter);
+    const stats: Record<string, number> = {};
+
+    // Counting stat accumulators
+    let H=0, R=0, HR=0, TB=0, RBI=0, BB=0, SB=0, K=0, QS=0, SV=0, HD=0;
+    // Rate stat weighted accumulators
+    let hitH=0, hitAB=0;          // for AVG
+    let erIP=0, erER=0;           // for ERA (ER = ERA * IP / 9)
+    let whipIP=0, whipBB_H=0;     // for WHIP (BB+H = WHIP * IP)
+
+    for (const pk of picks) {
+      const p = playerMap.get(pk.player.name);
+      if (!p) continue;
+
+      if (!["SP","RP"].includes(pk.pos)) {
+        // Hitter
+        H  += p.H   ?? 0;
+        R  += p.R   ?? 0;
+        HR += p.HR  ?? 0;
+        TB += p.TB  ?? 0;
+        RBI+= p.RBI ?? 0;
+        BB += p.BB  ?? 0;
+        SB += p.SB  ?? 0;
+        const h = p.H ?? 0;
+        const avg = p.AVG ?? 0;
+        const ab = avg > 0 ? h / avg : 0;
+        hitH += h; hitAB += ab;
+      } else {
+        // Pitcher
+        K  += p.K  ?? 0;
+        QS += p.QS ?? 0;
+        SV += p.SV ?? 0;
+        HD += p.HD ?? 0;
+        // Estimate innings: starters use QS*6, relievers fixed 65 IP
+        const ip = pk.pos === "SP" ? (p.QS ?? 0) * 6 + 20 : 65;
+        if (ip > 0) {
+          erIP  += ip;
+          erER  += (p.ERA  ?? 4.0) * ip / 9;
+          whipIP   += ip;
+          whipBB_H += (p.WHIP ?? 1.25) * ip;
+        }
+      }
+    }
+
+    stats.H  = Math.round(H);
+    stats.R  = Math.round(R);
+    stats.HR = Math.round(HR);
+    stats.TB = Math.round(TB);
+    stats.RBI= Math.round(RBI);
+    stats.BB = Math.round(BB);
+    stats.SB = Math.round(SB);
+    stats.AVG= hitAB > 0 ? hitH / hitAB : 0;
+    stats.K  = Math.round(K);
+    stats.QS = Math.round(QS);
+    stats.SV = Math.round(SV);
+    stats.HD = Math.round(HD);
+    stats.ERA = erIP > 0 ? (erER / erIP) * 9 : 4.0;
+    stats.WHIP= whipIP > 0 ? whipBB_H / whipIP : 1.25;
+
+    return { drafter, stats };
+  });
+
+  // Rank each team per category (1 = best)
+  const projections: TeamProjection[] = raw.map(({ drafter, stats }) => ({
+    drafter,
+    stats: stats as Record<Cat, number>,
+    ranks: {} as Record<Cat, number>,
+    totalRank: 0,
+  }));
+
+  for (const cat of ALL_CATS) {
+    const sorted = [...projections].sort((a, b) =>
+      LOWER_BETTER.has(cat)
+        ? a.stats[cat] - b.stats[cat]
+        : b.stats[cat] - a.stats[cat]
+    );
+    sorted.forEach((t, i) => { t.ranks[cat] = i + 1; });
+  }
+
+  for (const t of projections) {
+    t.totalRank = ALL_CATS.reduce((s, c) => s + t.ranks[c], 0);
+  }
+
+  return projections.sort((a, b) => a.totalRank - b.totalRank);
+}
+
 // ── Types ─────────────────────────────────────────────────────────────────────
 
 interface MockPick {
@@ -224,9 +330,8 @@ export default function MockDraftPage() {
   const [profiles, setProfiles] = useState<DraftProfile[]>([]);
   const [allPicks, setAllPicks] = useState<DraftPick[]>([]);
   const [posMap, setPosMap]     = useState<Record<string, string>>({});
-  const [seed, setSeed]         = useState(0);
-  const [focusTeam, setFocusTeam] = useState<string>(MY_NAME);
-  const [loading, setLoading]   = useState(true);
+  const [seed, setSeed]     = useState(0);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     Promise.all([
@@ -248,6 +353,11 @@ export default function MockDraftPage() {
   const mockPicks = useMemo(
     () => (players.length && profiles.length ? simulate(players, espnData, profiles, allPicks, posMap, seed) : []),
     [players, espnData, profiles, allPicks, posMap, seed]
+  );
+
+  const projections = useMemo(
+    () => (mockPicks.length && players.length ? projectStats(mockPicks, players) : []),
+    [mockPicks, players]
   );
 
   const byDrafter = useMemo(() => {
@@ -311,23 +421,8 @@ export default function MockDraftPage() {
 
       {/* ── Draft Board Table ── */}
       <div className="mb-4 rounded-lg border border-border bg-surface">
-        <div className="flex items-center justify-between border-b border-border px-3 py-2">
+        <div className="border-b border-border px-3 py-2">
           <h2 className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Full Draft Board</h2>
-          <div className="flex flex-wrap gap-1">
-            {DRAFT_ORDER.map((d) => (
-              <button
-                key={d}
-                onClick={() => setFocusTeam(d === focusTeam ? "" : d)}
-                className={`rounded px-1.5 py-0.5 text-[10px] font-medium transition-colors ${
-                  focusTeam === d
-                    ? d === MY_NAME ? "bg-amber-500/20 text-amber-300" : "bg-white/10 text-white"
-                    : "text-slate-600 hover:text-slate-400"
-                }`}
-              >
-                {d}{d === MY_NAME ? " ★" : ""}
-              </button>
-            ))}
-          </div>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-[11px]" style={{ minWidth: "1080px" }}>
@@ -348,17 +443,14 @@ export default function MockDraftPage() {
                   {row.map((pk, ti) => {
                     const d = DRAFT_ORDER[ti];
                     const isMe = d === MY_NAME;
-                    const isFocus = focusTeam === d;
-                    const dim = focusTeam && !isFocus;
                     return (
-                      <td key={ti} className={`px-1 py-1 ${isMe ? "bg-amber-500/5" : ""} ${dim ? "opacity-20" : ""}`}>
+                      <td key={ti} className={`px-1 py-1 ${isMe ? "bg-amber-500/5" : ""}`}>
                         {pk ? (
                           <div>
                             <div
                               className={`truncate leading-tight font-medium ${isMe ? "text-amber-200" : "text-slate-300"}`}
                               style={{ maxWidth: "96px" }}
                             >
-                              {/* Show last name only to save space */}
                               {pk.player.name.split(" ").slice(-1)[0]}
                             </div>
                             <span className={`rounded px-1 text-[8px] font-bold leading-tight ${badge(pk.pos)}`}>
@@ -377,6 +469,71 @@ export default function MockDraftPage() {
           </table>
         </div>
       </div>
+
+      {/* ── Projected Results ── */}
+      {projections.length > 0 && (
+        <div className="mb-4 rounded-lg border border-border bg-surface">
+          <div className="border-b border-border px-3 py-2 flex items-center justify-between">
+            <h2 className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Projected Results</h2>
+            <span className="text-[11px] text-slate-600">rank 1–10 per category based on drafted roster</span>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full text-[11px]" style={{ minWidth: "900px" }}>
+              <thead className="border-b border-border text-[10px] uppercase tracking-wider text-slate-600">
+                <tr>
+                  <th className="px-3 py-2 text-left font-medium w-8">Proj</th>
+                  <th className="px-3 py-2 text-left font-medium">Team</th>
+                  <th className="px-2 py-2 text-center font-medium">Score</th>
+                  {ALL_CATS.map((c) => (
+                    <th key={c} className="px-1.5 py-2 text-center font-medium">{c}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {projections.map((t, i) => {
+                  const isMe = t.drafter === MY_NAME;
+                  return (
+                    <tr key={t.drafter} className={`border-b border-border/20 ${isMe ? "bg-amber-500/5" : i % 2 === 1 ? "bg-white/[0.01]" : ""}`}>
+                      <td className={`px-3 py-1.5 font-mono font-bold text-center ${i === 0 ? "text-amber-400" : i <= 2 ? "text-sky-400" : i >= 7 ? "text-red-400/70" : "text-slate-400"}`}>
+                        {i + 1}
+                      </td>
+                      <td className={`px-3 py-1.5 font-medium ${isMe ? "text-amber-300" : "text-slate-300"}`}>
+                        {t.drafter}{isMe ? " ★" : ""}
+                      </td>
+                      <td className="px-2 py-1.5 text-center font-mono text-slate-500 text-[10px]">{t.totalRank}</td>
+                      {ALL_CATS.map((c) => {
+                        const rank = t.ranks[c];
+                        const color = rank === 1 ? "text-amber-400 font-bold"
+                          : rank <= 3 ? "text-sky-400"
+                          : rank >= 8 ? "text-red-400/60"
+                          : "text-slate-400";
+                        return (
+                          <td key={c} className={`px-1.5 py-1.5 text-center font-mono ${color}`}>
+                            {rank}
+                          </td>
+                        );
+                      })}
+                    </tr>
+                  );
+                })}
+              </tbody>
+              <tfoot className="border-t border-border text-[10px] text-slate-600">
+                <tr>
+                  <td colSpan={3} />
+                  {ALL_CATS.map((c) => (
+                    <td key={c} className="px-1.5 py-1.5 text-center">
+                      {projections.find((t) => t.ranks[c] === 1)?.drafter.slice(0, 4)}
+                    </td>
+                  ))}
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+          <p className="px-3 py-2 text-[10px] text-slate-700">
+            Score = sum of category ranks (lower is better). Rate stats (AVG, ERA, WHIP) weighted by projected plate appearances / innings.
+          </p>
+        </div>
+      )}
 
       {/* ── Projected Rosters ── */}
       <h2 className="mb-3 text-[11px] font-semibold uppercase tracking-wider text-slate-500">Projected Rosters</h2>
