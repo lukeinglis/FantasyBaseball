@@ -232,7 +232,7 @@ export interface DraftPick {
   keeper: boolean;
 }
 
-const DRAFT_RESULT_YEARS = [2019, 2021, 2022, 2023, 2024, 2025];
+const DRAFT_RESULT_YEARS = [2019, 2021, 2022, 2023, 2024, 2025, 2026];
 
 export async function getDraftResults(): Promise<DraftPick[]> {
   const results = await Promise.all(

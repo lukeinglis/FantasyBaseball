@@ -1,49 +1,18 @@
 "use client";
 
-import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { SectionNav } from "@/components/SectionNav";
 
-const links = [
-  { href: "/league/scouting", label: "Scouting" },
+const SUB_LINKS = [
   { href: "/league/history", label: "History" },
   { href: "/league/owners", label: "Owners" },
-  { href: "/league/mock-draft", label: "Mock Draft" },
+  { href: "/league/scouting", label: "Scouting" },
+  { href: "/league/draft-history", label: "Draft History" },
 ];
 
 export default function LeagueLayout({ children }: { children: React.ReactNode }) {
-  const pathname = usePathname();
-
   return (
-    <div className="flex min-h-screen flex-col bg-background text-foreground antialiased">
-      <header className="sticky top-0 z-40 border-b border-border bg-surface/95 backdrop-blur-sm">
-        <div className="mx-auto flex max-w-7xl items-center gap-8 px-4 py-3">
-          <span className="flex items-baseline gap-2">
-            <span className="text-lg font-bold tracking-tight text-amber-400">WAR ROOM</span>
-            <span className="hidden text-[11px] font-medium tracking-widest text-slate-500 sm:block">
-              TAMPA&apos;S FINEST
-            </span>
-          </span>
-          <nav className="flex-1 overflow-x-auto">
-            <ul className="flex gap-0.5 text-[13px]">
-              {links.map((l) => (
-                <li key={l.href}>
-                  <Link
-                    href={l.href}
-                    className={`block whitespace-nowrap rounded px-2.5 py-1.5 font-medium transition-colors ${
-                      pathname === l.href
-                        ? "bg-white/10 text-white"
-                        : "text-slate-400 hover:text-slate-200"
-                    }`}
-                  >
-                    {l.label}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </nav>
-          <span className="hidden text-[11px] tabular-nums text-slate-600 lg:block">2026 Draft</span>
-        </div>
-      </header>
+    <div className="flex min-h-screen flex-col">
+      <SectionNav subLinks={SUB_LINKS} />
       <main className="flex-1">{children}</main>
     </div>
   );

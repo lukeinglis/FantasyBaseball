@@ -5,6 +5,6 @@ import { Nav } from "./Nav";
 
 export function ConditionalNav() {
   const pathname = usePathname();
-  if (pathname.startsWith("/league")) return null;
+  if (pathname.startsWith("/league") || pathname.startsWith("/draft") || pathname.startsWith("/gm")) return null;
   return <Nav />;
 }

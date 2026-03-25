@@ -7,8 +7,8 @@ const sans = Inter({ variable: "--font-sans", subsets: ["latin"] });
 const mono = JetBrains_Mono({ variable: "--font-mono", subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Inglis War Room",
-  description: "Tampa's Finest Fantasy Baseball — 2026 Draft",
+  title: "Tampa's Finest — War Room",
+  description: "Tampa's Finest Fantasy Baseball — Season Management",
 };
 
 export default function RootLayout({
