@@ -330,7 +330,9 @@ export default function MockDraftPage() {
   const [profiles, setProfiles] = useState<DraftProfile[]>([]);
   const [allPicks, setAllPicks] = useState<DraftPick[]>([]);
   const [posMap, setPosMap]     = useState<Record<string, string>>({});
-  const [seed, setSeed]     = useState(0);
+  const [seed, setSeed]     = useState(() => {
+    try { return parseInt(localStorage.getItem("mockDraftSeed") ?? "0") || 0; } catch { return 0; }
+  });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -396,7 +398,11 @@ export default function MockDraftPage() {
           </p>
         </div>
         <button
-          onClick={() => setSeed((s) => s + 1)}
+          onClick={() => setSeed((s) => {
+            const next = s + 1;
+            try { localStorage.setItem("mockDraftSeed", String(next)); } catch {}
+            return next;
+          })}
           className="rounded border border-border bg-surface px-3 py-1.5 text-[12px] font-medium text-slate-300 transition-colors hover:border-slate-500 hover:text-white"
         >
           ↻ Re-Simulate
