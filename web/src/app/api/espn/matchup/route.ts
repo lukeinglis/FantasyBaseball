@@ -20,6 +20,8 @@ export interface MatchupPlayer {
 
 export interface MatchupData {
   scoringPeriodId: number;
+  matchupStartDate: string | null;  // ISO date e.g. "2026-03-27"
+  matchupEndDate: string | null;    // ISO date e.g. "2026-04-06"
   myTeamId: number;
   myTeamName: string;
   oppTeamId: number;
@@ -57,9 +59,24 @@ function parsePlayers(entries: any[]): MatchupPlayer[] {
   });
 }
 
+function toIsoDate(ms: number | null | undefined): string | null {
+  if (!ms) return null;
+  return new Date(ms).toISOString().slice(0, 10);
+}
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function parseMatchup(data: any, myTeamId: number): MatchupData | null {
   const scoringPeriodId: number = data.scoringPeriodId ?? 1;
+
+  // Pull matchup period dates from settings scoringPeriods
+  let matchupStartDate: string | null = null;
+  let matchupEndDate: string | null = null;
+  const scoringPeriods: any[] = data.settings?.scoringPeriods ?? [];
+  const currentPeriod = scoringPeriods.find((p: any) => p.id === scoringPeriodId);
+  if (currentPeriod) {
+    matchupStartDate = toIsoDate(currentPeriod.startDate);
+    matchupEndDate = toIsoDate(currentPeriod.endDate);
+  }
 
   // Build team name lookup
   const teamNames: Record<number, string> = {};
@@ -121,6 +138,8 @@ function parseMatchup(data: any, myTeamId: number): MatchupData | null {
 
   return {
     scoringPeriodId,
+    matchupStartDate,
+    matchupEndDate,
     myTeamId,
     myTeamName: teamNames[myTeamId] ?? `Team ${myTeamId}`,
     oppTeamId,
@@ -145,7 +164,7 @@ export async function GET() {
     return Response.json({ error: "MY_ESPN_TEAM_ID_MISSING" }, { status: 401 });
   }
   try {
-    const data = await espnFetch(["mMatchup", "mMatchupScore", "mRoster", "mTeam"]);
+    const data = await espnFetch(["mMatchup", "mMatchupScore", "mRoster", "mTeam", "mSettings"]);
     const matchup = parseMatchup(data, MY_TEAM_ID);
     if (!matchup) {
       return Response.json({ error: "NO_MATCHUP_FOUND" }, { status: 404 });

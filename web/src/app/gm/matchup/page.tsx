@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 
 interface MatchupCat {
   cat: string;
@@ -22,6 +22,8 @@ interface MatchupPlayer {
 
 interface MatchupData {
   scoringPeriodId: number;
+  matchupStartDate: string | null;
+  matchupEndDate: string | null;
   myTeamName: string;
   oppTeamName: string;
   myWins: number;
@@ -35,12 +37,21 @@ interface MatchupData {
   oppRoster: MatchupPlayer[];
 }
 
+interface TeamSchedule {
+  todayOpponent: string | null;
+  todayTime: string | null;
+  weekGames: number;
+}
+
+// Slot IDs
+const BATTER_SLOT_IDS = new Set([0, 1, 2, 3, 4, 5, 6, 7, 8]);   // C,1B,2B,3B,SS,OF×3,UTIL
+const PITCHER_SLOT_IDS = new Set([14, 15, 17]);                    // SP, RP, P
+const BENCH_SLOT_ID = 16;
+const IL_SLOT_ID = 12;
+
 const BAT_CATS = ["H", "R", "HR", "TB", "RBI", "BB", "SB", "AVG"];
 const PIT_CATS = ["K", "QS", "W", "L", "SV", "HD", "ERA", "WHIP"];
-// Lower is better for these categories
 const LOWER_IS_BETTER = new Set(["ERA", "WHIP", "L"]);
-
-const STARTING_SLOTS = new Set([0, 1, 2, 3, 4, 5, 6, 7, 8, 14, 15, 17]);
 
 function catResultColor(result: string) {
   if (result === "WIN") return "text-emerald-400";
@@ -62,20 +73,106 @@ function fmtCat(cat: string, val: number | null): string {
   return String(Math.round(val));
 }
 
-function PlayerRow({ p, highlightSlots }: { p: MatchupPlayer; highlightSlots: boolean }) {
-  const isStarter = STARTING_SLOTS.has(p.slotId);
+function fmtDateRange(start: string | null, end: string | null): string {
+  if (!start || !end) return "";
+  const fmt = (d: string) => new Date(d + "T12:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric" });
+  return `${fmt(start)} – ${fmt(end)}`;
+}
+
+function PlayerRow({
+  player,
+  schedule,
+  isMine,
+}: {
+  player: MatchupPlayer;
+  schedule: TeamSchedule | null;
+  isMine: boolean;
+}) {
+  const hasGame = !!schedule?.todayOpponent;
   return (
-    <div className={`flex items-center gap-2 border-b border-border/30 px-3 py-1.5 ${
-      highlightSlots && !isStarter ? "opacity-40" : ""
+    <div className={`flex items-center gap-2 border-b border-border/30 px-2 py-1.5 ${
+      isMine ? "" : "opacity-90"
     }`}>
-      <span className="w-7 shrink-0 text-[10px] font-bold text-slate-600">{p.slotLabel}</span>
-      <span className="min-w-0 flex-1 truncate text-[12px] text-slate-200">{p.name}</span>
-      <span className="shrink-0 text-[10px] text-slate-600">{p.proTeam}</span>
-      {p.injuryStatus !== "ACTIVE" && (
-        <span className={`shrink-0 text-[10px] font-semibold ${p.injuryColor}`}>
-          {p.injuryLabel}
+      {/* Slot */}
+      <span className="w-7 shrink-0 text-[10px] font-bold text-slate-600">{player.slotLabel}</span>
+
+      {/* Name */}
+      <span className="min-w-0 w-[130px] truncate text-[12px] text-slate-200">{player.name}</span>
+
+      {/* Pro team */}
+      <span className="w-7 shrink-0 text-[10px] text-slate-600">{player.proTeam}</span>
+
+      {/* Today's game */}
+      <div className="flex-1 min-w-0">
+        {hasGame ? (
+          <span className="text-[10px] text-slate-400 whitespace-nowrap">
+            {schedule!.todayOpponent}
+            {schedule!.todayTime && (
+              <span className="ml-1 text-slate-600">{schedule!.todayTime}</span>
+            )}
+          </span>
+        ) : (
+          <span className="text-[10px] text-slate-700">Off</span>
+        )}
+      </div>
+
+      {/* Games this week */}
+      {schedule && (
+        <span className={`shrink-0 text-[10px] tabular-nums font-semibold ${
+          schedule.weekGames >= 5 ? "text-emerald-400" :
+          schedule.weekGames >= 3 ? "text-amber-400" : "text-slate-600"
+        }`}>{schedule.weekGames}G</span>
+      )}
+
+      {/* Injury */}
+      {player.injuryStatus !== "ACTIVE" && (
+        <span className={`shrink-0 text-[10px] font-bold ${player.injuryColor}`}>
+          {player.injuryLabel}
         </span>
       )}
+    </div>
+  );
+}
+
+function RosterPanel({
+  teamName,
+  roster,
+  schedule,
+  isMine,
+}: {
+  teamName: string;
+  roster: MatchupPlayer[];
+  schedule: Record<string, TeamSchedule>;
+  isMine: boolean;
+}) {
+  const batters = roster.filter((p) => BATTER_SLOT_IDS.has(p.slotId)).sort((a, b) => a.slotId - b.slotId);
+  const pitchers = roster.filter((p) => PITCHER_SLOT_IDS.has(p.slotId)).sort((a, b) => a.slotId - b.slotId);
+  const bench = roster.filter((p) => p.slotId === BENCH_SLOT_ID);
+  const il = roster.filter((p) => p.slotId === IL_SLOT_ID);
+
+  const borderColor = isMine ? "border-amber-500/20" : "border-border";
+  const headerColor = isMine ? "text-amber-400 border-amber-500/20" : "text-slate-300 border-border";
+
+  const Section = ({ label, players }: { label: string; players: MatchupPlayer[] }) => (
+    <>
+      <div className="px-2 py-1 text-[9px] font-bold uppercase tracking-widest text-slate-700 bg-white/[0.02]">
+        {label}
+      </div>
+      {players.map((p, i) => (
+        <PlayerRow key={i} player={p} schedule={schedule[p.proTeam] ?? null} isMine={isMine} />
+      ))}
+    </>
+  );
+
+  return (
+    <div className={`rounded-lg border ${borderColor} bg-surface flex-1 min-w-0`}>
+      <div className={`border-b ${headerColor} px-3 py-2`}>
+        <span className="text-[12px] font-semibold">{teamName}</span>
+      </div>
+      <Section label="Batters" players={batters} />
+      <Section label="Pitchers" players={pitchers} />
+      {bench.length > 0 && <Section label="Bench" players={bench} />}
+      {il.length > 0 && <Section label="IL" players={il} />}
     </div>
   );
 }
@@ -86,7 +183,7 @@ function EspnSetupCard() {
       <div className="text-[11px] font-semibold uppercase tracking-widest text-amber-400/60">Setup Required</div>
       <div className="mt-3 text-xl font-bold text-white">Connect ESPN Credentials</div>
       <div className="mt-3 text-[13px] text-slate-400">
-        The Matchup view pulls live data from your private ESPN league. Add two environment variables to Vercel to enable it.
+        The Matchup view pulls live data from your private ESPN league. Add these environment variables to Vercel.
       </div>
       <div className="mt-5 rounded-lg border border-border bg-background px-4 py-4 text-left text-[12px]">
         <div className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-slate-600">
@@ -94,12 +191,9 @@ function EspnSetupCard() {
         </div>
         <div className="space-y-2 font-mono">
           <div><span className="text-amber-400">ESPN_S2</span> <span className="text-slate-600">=</span> <span className="text-slate-400">AE...</span></div>
-          <div><span className="text-amber-400">ESPN_SWID</span> <span className="text-slate-600">=</span> <span className="text-slate-400">{"{"}{"{"}XXXX-...{"}"}{"]"}</span></div>
-          <div><span className="text-amber-400">MY_ESPN_TEAM_ID</span> <span className="text-slate-600">=</span> <span className="text-slate-400">1</span> <span className="text-slate-700"># your team&apos;s numeric ID</span></div>
+          <div><span className="text-amber-400">ESPN_SWID</span> <span className="text-slate-600">=</span> <span className="text-slate-400">{"{XXXX-...}"}</span></div>
+          <div><span className="text-amber-400">MY_ESPN_TEAM_ID</span> <span className="text-slate-600">=</span> <span className="text-slate-400">9</span></div>
         </div>
-      </div>
-      <div className="mt-4 text-[11px] text-slate-600">
-        Find your cookies: ESPN.com → DevTools → Application → Cookies → espn.com
       </div>
     </div>
   );
@@ -107,29 +201,40 @@ function EspnSetupCard() {
 
 export default function MatchupPage() {
   const [data, setData] = useState<MatchupData | null>(null);
+  const [schedule, setSchedule] = useState<Record<string, TeamSchedule>>({});
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
-  const [showStartersOnly, setShowStartersOnly] = useState(false);
 
   useEffect(() => {
     fetch("/api/espn/matchup")
       .then((r) => r.json())
-      .then((d) => {
-        if (d.error) setError(d.error);
-        else setData(d);
-        setLoading(false);
+      .then((d: MatchupData & { error?: string }) => {
+        if (d.error) { setError(d.error); setLoading(false); return; }
+        setData(d);
+
+        // Fetch MLB schedule for the matchup period
+        const today = new Date().toISOString().slice(0, 10);
+        const startDate = d.matchupStartDate ?? today;
+        const endDate = d.matchupEndDate ?? (() => {
+          const e = new Date(today); e.setDate(e.getDate() + 13); return e.toISOString().slice(0, 10);
+        })();
+        return fetch(`/api/mlb/schedule?startDate=${startDate}&endDate=${endDate}`)
+          .then((r) => r.json())
+          .then((s) => { if (!s.error) setSchedule(s); });
       })
-      .catch(() => { setError("FETCH_FAILED"); setLoading(false); });
+      .catch(() => setError("FETCH_FAILED"))
+      .finally(() => setLoading(false));
   }, []);
 
-  if (loading) {
-    return <div className="flex h-64 items-center justify-center text-slate-500">Loading matchup...</div>;
-  }
+  const batCats = useMemo(() => data?.categories.filter((c) => BAT_CATS.includes(c.cat)) ?? [], [data]);
+  const pitCats = useMemo(() => data?.categories.filter((c) => PIT_CATS.includes(c.cat)) ?? [], [data]);
+  const myWinCount = useMemo(() => data?.categories.filter((c) => c.result === "WIN").length ?? 0, [data]);
+  const oppWinCount = useMemo(() => data?.categories.filter((c) => c.result === "LOSS").length ?? 0, [data]);
 
+  if (loading) return <div className="flex h-64 items-center justify-center text-slate-500">Loading matchup...</div>;
   if (error === "ESPN_CREDS_MISSING" || error === "MY_ESPN_TEAM_ID_MISSING") {
     return <div className="flex min-h-[70vh] items-center justify-center px-4"><EspnSetupCard /></div>;
   }
-
   if (error || !data) {
     return (
       <div className="flex h-64 flex-col items-center justify-center gap-2">
@@ -139,22 +244,21 @@ export default function MatchupPage() {
     );
   }
 
-  const batCats = data.categories.filter((c) => BAT_CATS.includes(c.cat));
-  const pitCats = data.categories.filter((c) => PIT_CATS.includes(c.cat));
-  const myWinCount = data.categories.filter((c) => c.result === "WIN").length;
-  const oppWinCount = data.categories.filter((c) => c.result === "LOSS").length;
-
-  const myRosterSorted = [...data.myRoster].sort((a, b) => a.slotId - b.slotId);
-  const oppRosterSorted = [...data.oppRoster].sort((a, b) => a.slotId - b.slotId);
-
   return (
     <div className="mx-auto max-w-6xl px-4 py-6">
 
       {/* Header */}
-      <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
+      <div className="mb-5 flex flex-wrap items-start justify-between gap-4">
         <div>
-          <div className="text-[11px] font-semibold uppercase tracking-widest text-slate-600">
-            Week {data.scoringPeriodId}
+          <div className="flex items-baseline gap-2">
+            <span className="text-[11px] font-semibold uppercase tracking-widest text-slate-600">
+              Week {data.scoringPeriodId}
+            </span>
+            {data.matchupStartDate && (
+              <span className="text-[11px] text-slate-700">
+                {fmtDateRange(data.matchupStartDate, data.matchupEndDate)}
+              </span>
+            )}
           </div>
           <div className="mt-1 flex items-center gap-3">
             <span className="text-xl font-bold text-amber-400">{data.myTeamName}</span>
@@ -162,8 +266,7 @@ export default function MatchupPage() {
             <span className="text-xl font-bold text-slate-200">{data.oppTeamName}</span>
           </div>
         </div>
-        {/* Category score summary */}
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-6">
           <div className="text-center">
             <div className="text-2xl font-bold tabular-nums text-emerald-400">{myWinCount}</div>
             <div className="text-[10px] text-slate-600">CATS WON</div>
@@ -174,83 +277,66 @@ export default function MatchupPage() {
             <div className="text-[10px] text-slate-600">CATS LOST</div>
           </div>
         </div>
-        <div className="text-right text-[12px] text-slate-500">
-          <div>{data.myTeamName}: {data.myWins}–{data.myLosses}{data.myTies > 0 ? `–${data.myTies}` : ""} cats</div>
-          <div>{data.oppTeamName}: {data.oppWins}–{data.oppLosses}{data.oppTies > 0 ? `–${data.oppTies}` : ""} cats</div>
-        </div>
       </div>
 
-      {/* Category scores */}
-      <div className="mb-8 space-y-3">
+      {/* Category scoreboard */}
+      <div className="mb-6 space-y-3">
         {[
           { label: "Batting", cats: batCats },
           { label: "Pitching", cats: pitCats },
         ].map(({ label, cats }) => (
           <div key={label}>
-            <div className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-slate-700">{label}</div>
-            <div className="grid grid-cols-4 gap-2 sm:grid-cols-8">
-              {cats.map((c) => {
-                const lowerBetter = LOWER_IS_BETTER.has(c.cat);
-                const myIsAhead = c.myValue !== null && c.oppValue !== null
-                  ? (lowerBetter ? c.myValue < c.oppValue : c.myValue > c.oppValue)
-                  : null;
-                return (
-                  <div key={c.cat}
-                    className={`rounded-lg border px-2 py-2 text-center ${catBg(c.result)}`}>
-                    <div className="text-[10px] font-bold text-slate-500">{c.cat}</div>
-                    <div className={`mt-0.5 font-mono text-[15px] font-bold ${catResultColor(c.result)}`}>
-                      {fmtCat(c.cat, c.myValue)}
-                    </div>
-                    <div className="text-[11px] font-mono text-slate-600">
-                      {fmtCat(c.cat, c.oppValue)}
-                    </div>
-                    <div className={`mt-0.5 text-[9px] font-bold uppercase ${catResultColor(c.result)}`}>
-                      {c.result === "PENDING" ? "" : c.result}
-                    </div>
+            <div className="mb-1.5 text-[10px] font-semibold uppercase tracking-wider text-slate-700">{label}</div>
+            <div className="grid grid-cols-4 gap-1.5 sm:grid-cols-8">
+              {cats.map((c) => (
+                <div key={c.cat} className={`rounded-lg border px-2 py-2 text-center ${catBg(c.result)}`}>
+                  <div className="text-[10px] font-bold text-slate-500">{c.cat}</div>
+                  <div className={`mt-0.5 font-mono text-[14px] font-bold ${catResultColor(c.result)}`}>
+                    {fmtCat(c.cat, c.myValue)}
                   </div>
-                );
-              })}
+                  <div className="text-[11px] font-mono text-slate-600">
+                    {fmtCat(c.cat, c.oppValue)}
+                  </div>
+                  {c.result !== "PENDING" && (
+                    <div className={`mt-0.5 text-[9px] font-bold uppercase ${catResultColor(c.result)}`}>
+                      {c.result}
+                    </div>
+                  )}
+                </div>
+              ))}
             </div>
           </div>
         ))}
       </div>
 
-      {/* Roster comparison */}
-      <div className="mb-4 flex items-center justify-between">
+      {/* Column legend */}
+      <div className="mb-2 flex items-center justify-between">
         <div className="text-[11px] font-semibold uppercase tracking-wider text-slate-600">Rosters</div>
-        <label className="flex cursor-pointer items-center gap-1.5 text-[12px] text-slate-500">
-          <input
-            type="checkbox"
-            checked={showStartersOnly}
-            onChange={(e) => setShowStartersOnly(e.target.checked)}
-            className="accent-amber-500"
-          />
-          Starters only
-        </label>
+        <div className="text-[10px] text-slate-700">
+          <span className="mr-3">Slot · Name · Team · Today&apos;s game</span>
+          <span className="text-emerald-400">5G+</span>
+          <span className="mx-1 text-slate-700">/</span>
+          <span className="text-amber-400">3–4G</span>
+          <span className="mx-1 text-slate-700">/</span>
+          <span className="text-slate-600">≤2G</span>
+          <span className="ml-1 text-slate-700">this matchup</span>
+        </div>
       </div>
-      <div className="grid gap-4 lg:grid-cols-2">
-        {/* My roster */}
-        <div className="rounded-lg border border-amber-500/20 bg-surface">
-          <div className="border-b border-amber-500/20 px-3 py-2">
-            <span className="text-[12px] font-semibold text-amber-400">{data.myTeamName}</span>
-          </div>
-          <div>
-            {myRosterSorted
-              .filter((p) => !showStartersOnly || STARTING_SLOTS.has(p.slotId))
-              .map((p, i) => <PlayerRow key={i} p={p} highlightSlots={false} />)}
-          </div>
-        </div>
-        {/* Opponent roster */}
-        <div className="rounded-lg border border-border bg-surface">
-          <div className="border-b border-border px-3 py-2">
-            <span className="text-[12px] font-semibold text-slate-300">{data.oppTeamName}</span>
-          </div>
-          <div>
-            {oppRosterSorted
-              .filter((p) => !showStartersOnly || STARTING_SLOTS.has(p.slotId))
-              .map((p, i) => <PlayerRow key={i} p={p} highlightSlots={false} />)}
-          </div>
-        </div>
+
+      {/* Side-by-side rosters */}
+      <div className="flex gap-4">
+        <RosterPanel
+          teamName={data.myTeamName}
+          roster={data.myRoster}
+          schedule={schedule}
+          isMine={true}
+        />
+        <RosterPanel
+          teamName={data.oppTeamName}
+          roster={data.oppRoster}
+          schedule={schedule}
+          isMine={false}
+        />
       </div>
     </div>
   );
