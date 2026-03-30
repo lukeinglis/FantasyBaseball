@@ -41,7 +41,7 @@ export default function CategoryIntelPage() {
   if (!data) {
     return (
       <div className="mx-auto max-w-7xl px-4 py-5">
-        <h1 className="mb-5 text-xl font-bold text-white">Category Intel</h1>
+        <h1 className="mb-5 text-xl font-bold text-gray-900">Category Intel</h1>
         <p className="text-[13px] text-slate-500">Loading...</p>
       </div>
     );
@@ -49,12 +49,12 @@ export default function CategoryIntelPage() {
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-5">
-      <h1 className="mb-5 text-xl font-bold text-white">Category Intel</h1>
+      <h1 className="mb-5 text-xl font-bold text-gray-900">Category Intel</h1>
 
       {/* Chart */}
       <div className="mb-6 rounded-lg border border-border bg-surface p-4">
         <div className="mb-4 flex items-baseline gap-2">
-          <h2 className="text-[13px] font-semibold text-white">Category Weights</h2>
+          <h2 className="text-[13px] font-semibold text-gray-900">Category Weights</h2>
           <span className="text-[11px] text-slate-600">{data.method}</span>
         </div>
         <div className="h-96">
@@ -91,9 +91,9 @@ export default function CategoryIntelPage() {
           <div className="space-y-1.5">
             {sorted.map((d) => (
               <div key={d.category} className="flex items-center justify-between text-[13px]">
-                <span className={d.isNegative ? "text-red-400/80" : "text-slate-200"}>{d.category}</span>
+                <span className={d.isNegative ? "text-red-600/80" : "text-slate-400"}>{d.category}</span>
                 <div className="flex items-center gap-2">
-                  <div className="h-1 w-24 overflow-hidden rounded-full bg-slate-800">
+                  <div className="h-1 w-24 overflow-hidden rounded-full bg-slate-200">
                     <div
                       className={`h-full rounded-full ${d.isNegative ? "bg-red-500/60" : "bg-sky-500/60"}`}
                       style={{ width: `${Math.min(100, (Math.abs(d.weight) / Math.abs(sorted[0].weight)) * 100)}%` }}
@@ -115,19 +115,19 @@ export default function CategoryIntelPage() {
             {top3.map((d, i) => (
               <div key={d.category} className="flex items-center gap-2 py-1 text-[13px]">
                 <span className="font-mono text-[11px] text-slate-600">{i + 1}.</span>
-                <span className="font-medium text-white">{d.category}</span>
+                <span className="font-medium text-gray-900">{d.category}</span>
                 <span className="font-mono text-[11px] text-slate-600">{d.weight.toFixed(4)}</span>
               </div>
             ))}
           </div>
 
           {svWeight !== undefined && (
-            <div className="rounded-lg border border-orange-600/20 bg-orange-600/5 p-4">
-              <h3 className="mb-1 text-[11px] font-bold uppercase tracking-wider text-orange-500/80">
+            <div className="rounded-lg border border-orange-300 bg-orange-50 p-4">
+              <h3 className="mb-1 text-[11px] font-bold uppercase tracking-wider text-orange-600/80">
                 Saves Are Overrated
               </h3>
-              <p className="text-[13px] text-slate-400">
-                SV weight: <span className="font-mono text-orange-400">{svWeight.toFixed(4)}</span>
+              <p className="text-[13px] text-slate-500">
+                SV weight: <span className="font-mono text-orange-600">{svWeight.toFixed(4)}</span>
                 {Math.abs(svWeight) < Math.abs(sorted[Math.floor(sorted.length / 2)]?.weight ?? 0) && (
                   <span> — below median. Don&apos;t overpay for closers.</span>
                 )}
@@ -141,9 +141,9 @@ export default function CategoryIntelPage() {
             </h2>
             {bottom3.map((d) => (
               <div key={d.category} className="flex items-center gap-2 py-1 text-[13px]">
-                <span className="text-slate-700">—</span>
+                <span className="text-slate-400">—</span>
                 <span className="text-slate-500">{d.category}</span>
-                <span className="font-mono text-[11px] text-slate-700">{d.weight.toFixed(4)}</span>
+                <span className="font-mono text-[11px] text-slate-400">{d.weight.toFixed(4)}</span>
               </div>
             ))}
           </div>

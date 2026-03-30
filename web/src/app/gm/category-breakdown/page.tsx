@@ -35,23 +35,23 @@ const PIT_CATS = ["K", "QS", "W", "L", "SV", "HD", "ERA", "WHIP"];
 const LOWER_IS_BETTER = new Set(["ERA", "WHIP", "L"]);
 
 function resultColor(result: string) {
-  if (result === "WIN") return "text-emerald-400";
-  if (result === "LOSS") return "text-red-400";
-  if (result === "TIE") return "text-orange-500";
+  if (result === "WIN") return "text-emerald-600";
+  if (result === "LOSS") return "text-red-600";
+  if (result === "TIE") return "text-orange-600";
   return "text-slate-500";
 }
 
 function resultBg(result: string) {
-  if (result === "WIN") return "bg-emerald-500/10 border-emerald-500/20";
-  if (result === "LOSS") return "bg-red-500/10 border-red-500/20";
-  if (result === "TIE") return "bg-orange-600/10 border-orange-600/20";
+  if (result === "WIN") return "bg-emerald-100 border-emerald-300";
+  if (result === "LOSS") return "bg-red-100 border-red-300";
+  if (result === "TIE") return "bg-orange-100 border-orange-300";
   return "bg-surface border-border";
 }
 
 function rankColor(rank: number): string {
-  if (rank <= 3) return "text-emerald-400";
-  if (rank <= 7) return "text-slate-400";
-  return "text-red-400";
+  if (rank <= 3) return "text-emerald-600";
+  if (rank <= 7) return "text-slate-500";
+  return "text-red-600";
 }
 
 function fmtValue(cat: string, val: number | null | undefined): string {
@@ -70,9 +70,9 @@ function fmtDateRange(start: string | null, end: string | null): string {
 function EspnSetupCard() {
   return (
     <div className="mx-auto max-w-lg rounded-xl border border-border bg-surface px-8 py-10 text-center">
-      <div className="text-[11px] font-semibold uppercase tracking-widest text-orange-500/60">Setup Required</div>
-      <div className="mt-3 text-xl font-bold text-white">Connect ESPN Credentials</div>
-      <div className="mt-3 text-[13px] text-slate-400">
+      <div className="text-[11px] font-semibold uppercase tracking-widest text-orange-600/60">Setup Required</div>
+      <div className="mt-3 text-xl font-bold text-gray-900">Connect ESPN Credentials</div>
+      <div className="mt-3 text-[13px] text-slate-500">
         Category Breakdown pulls live data from your private ESPN league.
       </div>
     </div>
@@ -158,7 +158,7 @@ export default function CategoryBreakdownPage() {
   if (error || !matchup) {
     return (
       <div className="flex h-64 flex-col items-center justify-center gap-2">
-        <div className="text-red-400">Failed to load breakdown</div>
+        <div className="text-red-600">Failed to load breakdown</div>
         <div className="text-[12px] text-slate-600">{error}</div>
       </div>
     );
@@ -171,13 +171,13 @@ export default function CategoryBreakdownPage() {
     <div className="mx-auto max-w-6xl px-4 py-6">
       {/* Header */}
       <div className="mb-5">
-        <h1 className="text-lg font-bold text-white">Category Breakdown</h1>
+        <h1 className="text-lg font-bold text-gray-900">Category Breakdown</h1>
         <div className="flex items-center gap-2 text-[12px] text-slate-500">
           <span>Week {matchup.scoringPeriodId}</span>
           {matchup.matchupStartDate && (
-            <span className="text-slate-700">{fmtDateRange(matchup.matchupStartDate, matchup.matchupEndDate)}</span>
+            <span className="text-slate-400">{fmtDateRange(matchup.matchupStartDate, matchup.matchupEndDate)}</span>
           )}
-          <span className="text-slate-700">vs</span>
+          <span className="text-slate-400">vs</span>
           <span>{matchup.oppTeamName}</span>
         </div>
       </div>
@@ -188,13 +188,13 @@ export default function CategoryBreakdownPage() {
         { label: "Pitching", details: pitDetails },
       ].map(({ label, details }) => (
         <div key={label} className="mb-6">
-          <div className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-slate-700">{label}</div>
+          <div className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-slate-400">{label}</div>
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
             {details.map((d) => (
               <div key={d.cat} className={`rounded-lg border p-3 ${resultBg(d.matchupResult)}`}>
                 {/* Category header */}
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-[13px] font-bold text-slate-300">{d.cat}</span>
+                  <span className="text-[13px] font-bold text-slate-600">{d.cat}</span>
                   <div className="flex items-center gap-2">
                     {d.leagueRank > 0 && (
                       <span className={`text-[10px] font-bold ${rankColor(d.leagueRank)}`}>
@@ -221,17 +221,17 @@ export default function CategoryBreakdownPage() {
                     <div className="text-[16px] font-mono tabular-nums text-slate-500">
                       {fmtValue(d.cat, d.matchupOppValue)}
                     </div>
-                    <div className="text-[10px] text-slate-700">Opponent</div>
+                    <div className="text-[10px] text-slate-400">Opponent</div>
                   </div>
                 </div>
 
                 {/* League context */}
                 {myLeagueTeam && (
-                  <div className="border-t border-border/30 pt-2 space-y-1">
+                  <div className="border-t border-border pt-2 space-y-1">
                     {d.teamAheadName && (
                       <div className="flex justify-between text-[10px]">
                         <span className="text-slate-600">Gap to #{d.leagueRank - 1}</span>
-                        <span className="text-orange-500 tabular-nums font-mono">
+                        <span className="text-orange-600 tabular-nums font-mono">
                           {LOWER_IS_BETTER.has(d.cat) ? "+" : "-"}{Math.abs(d.gapAhead).toFixed(
                             d.cat === "AVG" ? 3 : d.cat === "ERA" || d.cat === "WHIP" ? 2 : 0
                           )}
@@ -241,7 +241,7 @@ export default function CategoryBreakdownPage() {
                     {d.teamBehindName && (
                       <div className="flex justify-between text-[10px]">
                         <span className="text-slate-600">Lead on #{d.leagueRank + 1}</span>
-                        <span className="text-emerald-400/70 tabular-nums font-mono">
+                        <span className="text-emerald-600/70 tabular-nums font-mono">
                           +{Math.abs(d.gapBehind).toFixed(
                             d.cat === "AVG" ? 3 : d.cat === "ERA" || d.cat === "WHIP" ? 2 : 0
                           )}

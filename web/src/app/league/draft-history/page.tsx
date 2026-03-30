@@ -69,7 +69,7 @@ export default function DraftHistoryPage() {
     <div className="mx-auto max-w-5xl px-4 py-6">
       <div className="mb-6 flex flex-wrap items-baseline justify-between gap-4">
         <div>
-          <h1 className="text-xl font-bold text-white">Draft History</h1>
+          <h1 className="text-xl font-bold text-gray-900">Draft History</h1>
           <div className="mt-1 text-[12px] text-slate-500">
             {yearPicks.length} picks · {teams.length} teams
             {yearPicks.some((p) => p.keeper) && ` · ${yearPicks.filter((p) => p.keeper).length} keepers`}
@@ -84,8 +84,8 @@ export default function DraftHistoryPage() {
               onClick={() => { setSelectedYear(y); setTeamFilter("all"); setRoundFilter("all"); setSearch(""); }}
               className={`rounded px-2.5 py-1 text-[12px] font-semibold tabular-nums transition-colors ${
                 selectedYear === y
-                  ? "bg-white/10 text-white"
-                  : "text-slate-500 hover:text-slate-300"
+                  ? "bg-black/10 text-gray-900"
+                  : "text-slate-500 hover:text-slate-700"
               }`}
             >
               {y}
@@ -93,7 +93,7 @@ export default function DraftHistoryPage() {
           ))}
           {AVAILABLE_YEARS.filter((y) => !yearsWithData.includes(y)).map((y) => (
             <button key={y} disabled
-              className="cursor-not-allowed rounded px-2.5 py-1 text-[12px] tabular-nums text-slate-700">
+              className="cursor-not-allowed rounded px-2.5 py-1 text-[12px] tabular-nums text-slate-400">
               {y}
             </button>
           ))}
@@ -105,7 +105,7 @@ export default function DraftHistoryPage() {
           <div className="text-slate-500">No draft data for {selectedYear}</div>
           {selectedYear === 2026 && (
             <div className="mt-2 text-[12px] text-slate-600">
-              Run <code className="text-slate-400">python3 scripts/fetch_espn_history.py</code> and commit the results.
+              Run <code className="text-slate-500">python3 scripts/fetch_espn_history.py</code> and commit the results.
             </div>
           )}
         </div>
@@ -118,14 +118,14 @@ export default function DraftHistoryPage() {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Search player..."
-              className="rounded border border-border bg-surface px-2.5 py-1 text-[12px] text-white placeholder:text-slate-600 focus:outline-none"
+              className="rounded border border-border bg-surface px-2.5 py-1 text-[12px] text-gray-900 placeholder:text-slate-600 focus:outline-none"
             />
             <div className="flex items-center gap-2 text-[12px]">
               <span className="text-slate-500">Team:</span>
               <select
                 value={teamFilter}
                 onChange={(e) => setTeamFilter(e.target.value)}
-                className="rounded border border-border bg-surface px-2 py-1 text-[12px] text-white focus:outline-none"
+                className="rounded border border-border bg-surface px-2 py-1 text-[12px] text-gray-900 focus:outline-none"
               >
                 <option value="all">All</option>
                 {teams.map((t) => <option key={t} value={t}>{t}</option>)}
@@ -136,7 +136,7 @@ export default function DraftHistoryPage() {
               <select
                 value={roundFilter}
                 onChange={(e) => setRoundFilter(e.target.value === "all" ? "all" : Number(e.target.value))}
-                className="rounded border border-border bg-surface px-2 py-1 text-[12px] text-white focus:outline-none"
+                className="rounded border border-border bg-surface px-2 py-1 text-[12px] text-gray-900 focus:outline-none"
               >
                 <option value="all">All</option>
                 {rounds.map((r) => <option key={r} value={r}>Round {r}</option>)}
@@ -145,7 +145,7 @@ export default function DraftHistoryPage() {
             {(teamFilter !== "all" || roundFilter !== "all" || search) && (
               <button
                 onClick={() => { setTeamFilter("all"); setRoundFilter("all"); setSearch(""); }}
-                className="text-[11px] text-slate-600 hover:text-slate-400"
+                className="text-[11px] text-slate-600 hover:text-slate-500"
               >
                 Clear
               </button>
@@ -171,18 +171,18 @@ export default function DraftHistoryPage() {
                     <tr
                       key={i}
                       className={`border-b border-border/50 transition-colors ${
-                        isMe ? "bg-orange-600/5" : i % 2 === 0 ? "" : "bg-white/[0.01]"
-                      } hover:bg-white/[0.03]`}
+                        isMe ? "bg-orange-50" : i % 2 === 0 ? "" : "bg-black/[0.02]"
+                      } hover:bg-black/[0.05]`}
                     >
                       <td className="px-3 py-1.5 font-mono text-slate-500">{p.round}</td>
                       <td className="px-2 py-1.5 font-mono text-slate-600">{p.pick}</td>
-                      <td className={`px-3 py-1.5 ${isMe ? "font-semibold text-orange-500" : "text-slate-300"}`}>
+                      <td className={`px-3 py-1.5 ${isMe ? "font-semibold text-orange-600" : "text-slate-600"}`}>
                         {p.team}
                       </td>
-                      <td className="px-3 py-1.5 font-medium text-slate-100">{p.playerName}</td>
+                      <td className="px-3 py-1.5 font-medium text-slate-800">{p.playerName}</td>
                       <td className="px-3 py-1.5">
                         {p.keeper && (
-                          <span className="rounded bg-sky-500/15 px-1.5 py-0.5 text-[10px] font-bold text-sky-400">
+                          <span className="rounded bg-sky-500/15 px-1.5 py-0.5 text-[10px] font-bold text-sky-600">
                             KEEPER
                           </span>
                         )}

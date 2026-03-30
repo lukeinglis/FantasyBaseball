@@ -140,22 +140,22 @@ export default function TeamPage() {
     const name = session.myRoster[slot];
     const player = name ? playerMap.get(name) : undefined;
     return (
-      <div className="flex items-center gap-3 border-b border-border/30 px-3 py-1.5 last:border-0">
+      <div className="flex items-center gap-3 border-b border-border px-3 py-1.5 last:border-0">
         <span className="w-9 font-mono text-[11px] font-bold text-slate-600">{slotLabel(slot)}</span>
         {player ? (
           <>
-            <span className="flex-1 text-[13px] font-medium text-white">{player.name}</span>
+            <span className="flex-1 text-[13px] font-medium text-gray-900">{player.name}</span>
             <span className="text-[11px] text-slate-500">{player.team}</span>
-            <span className="font-mono text-[11px] text-sky-400/80">{player.zTotal.toFixed(2)}</span>
+            <span className="font-mono text-[11px] text-sky-600/80">{player.zTotal.toFixed(2)}</span>
             <button onClick={() => unassignSlot(slot)}
-              className="text-[11px] text-slate-600 transition-colors hover:text-red-400">
+              className="text-[11px] text-slate-600 transition-colors hover:text-red-600">
               &times;
             </button>
           </>
         ) : (
           <button onClick={() => setAssigningSlot(assigningSlot === slot ? null : slot)}
             className={`flex-1 text-left text-[12px] ${
-              assigningSlot === slot ? "text-orange-500" : "text-slate-700 hover:text-slate-500"
+              assigningSlot === slot ? "text-orange-600" : "text-slate-400 hover:text-slate-500"
             }`}>
             {assigningSlot === slot ? "Select below..." : "—"}
           </button>
@@ -166,7 +166,7 @@ export default function TeamPage() {
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-5">
-      <h1 className="mb-5 text-xl font-bold text-white">My Team</h1>
+      <h1 className="mb-5 text-xl font-bold text-gray-900">My Team</h1>
 
       <div className="mb-6 grid gap-4 lg:grid-cols-2">
         {/* Batting */}
@@ -204,18 +204,18 @@ export default function TeamPage() {
 
       {/* Assign picker */}
       {assigningSlot && (
-        <div className="mb-6 rounded-lg border border-orange-600/20 bg-surface p-4">
+        <div className="mb-6 rounded-lg border border-orange-300 bg-surface p-4">
           <div className="mb-3 flex items-center justify-between">
-            <span className="text-[13px] text-slate-300">
-              Assign to <span className="font-mono font-bold text-orange-500">{assigningSlot}</span>
+            <span className="text-[13px] text-slate-600">
+              Assign to <span className="font-mono font-bold text-orange-600">{assigningSlot}</span>
             </span>
             <button onClick={() => setAssigningSlot(null)}
-              className="text-[11px] text-slate-600 hover:text-slate-400">Cancel</button>
+              className="text-[11px] text-slate-600 hover:text-slate-500">Cancel</button>
           </div>
           <div className="flex flex-wrap gap-1.5">
             {unassigned.filter((p) => isEligible(assigningSlot, p)).map((p) => (
               <button key={p.name} onClick={() => assignPlayer(assigningSlot, p.name)}
-                className="rounded border border-border bg-surface-raised px-2.5 py-1 text-[12px] text-white transition-colors hover:border-slate-500">
+                className="rounded border border-border bg-surface-raised px-2.5 py-1 text-[12px] text-gray-900 transition-colors hover:border-slate-500">
                 {p.name}
                 <span className="ml-1 text-slate-500">{p.pos}</span>
               </button>
@@ -237,7 +237,7 @@ export default function TeamPage() {
             {BAT_STATS.map((stat) => (
               <div key={stat} className="text-center">
                 <div className="text-[11px] text-slate-600">{stat}</div>
-                <div className="font-mono text-lg font-bold text-white">
+                <div className="font-mono text-lg font-bold text-gray-900">
                   {stat === "AVG" ? batTotals[stat]?.toFixed(3) ?? ".000" : Math.round(batTotals[stat] ?? 0)}
                 </div>
               </div>
@@ -252,7 +252,7 @@ export default function TeamPage() {
             {PIT_STATS.map((stat) => (
               <div key={stat} className="text-center">
                 <div className="text-[11px] text-slate-600">{stat}</div>
-                <div className="font-mono text-lg font-bold text-white">
+                <div className="font-mono text-lg font-bold text-gray-900">
                   {stat === "ERA" || stat === "WHIP" ? pitTotals[stat]?.toFixed(3) ?? "0.000" : Math.round(pitTotals[stat] ?? 0)}
                 </div>
               </div>
@@ -264,19 +264,19 @@ export default function TeamPage() {
       {unassigned.length > 0 && (
         <div className="mt-6 rounded-lg border border-border bg-surface">
           <div className="border-b border-border px-3 py-2">
-            <h2 className="text-[11px] font-semibold uppercase tracking-wider text-orange-500/80">
+            <h2 className="text-[11px] font-semibold uppercase tracking-wider text-orange-600/80">
               Unassigned ({unassigned.length})
             </h2>
           </div>
           <table className="w-full text-left text-[13px]">
             <tbody>
               {unassigned.map((p) => (
-                <tr key={p.name} className="border-b border-border/30 last:border-0">
+                <tr key={p.name} className="border-b border-border last:border-0">
                   <td className="px-3 py-1.5 font-mono text-slate-600">{p.rank}</td>
-                  <td className="px-3 py-1.5 font-medium text-white">{p.name}</td>
+                  <td className="px-3 py-1.5 font-medium text-gray-900">{p.name}</td>
                   <td className="px-3 py-1.5 text-slate-500">{p.team}</td>
                   <td className="px-3 py-1.5 text-slate-500">{p.pos}</td>
-                  <td className="px-3 py-1.5 text-right font-mono text-sky-400/80">{p.zTotal.toFixed(2)}</td>
+                  <td className="px-3 py-1.5 text-right font-mono text-sky-600/80">{p.zTotal.toFixed(2)}</td>
                 </tr>
               ))}
             </tbody>

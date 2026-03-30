@@ -66,16 +66,16 @@ const PIT_CATS = ["K", "QS", "W", "L", "SV", "HD", "ERA", "WHIP"];
 const LOWER_IS_BETTER = new Set(["ERA", "WHIP", "L"]);
 
 function catResultColor(result: string) {
-  if (result === "WIN") return "text-emerald-400";
-  if (result === "LOSS") return "text-red-400";
-  if (result === "TIE") return "text-orange-500";
+  if (result === "WIN") return "text-emerald-600";
+  if (result === "LOSS") return "text-red-600";
+  if (result === "TIE") return "text-orange-600";
   return "text-slate-500";
 }
 
 function catBg(result: string) {
-  if (result === "WIN") return "bg-emerald-500/10 border-emerald-500/20";
-  if (result === "LOSS") return "bg-red-500/10 border-red-500/20";
-  if (result === "TIE") return "bg-orange-600/10 border-orange-600/20";
+  if (result === "WIN") return "bg-emerald-100 border-emerald-300";
+  if (result === "LOSS") return "bg-red-100 border-red-300";
+  if (result === "TIE") return "bg-orange-100 border-orange-300";
   return "bg-surface border-border";
 }
 
@@ -105,14 +105,14 @@ function PlayerRow({
   const hasGame = !!schedule?.todayOpponent;
   const isPitcher = PITCHER_SLOT_IDS.has(player.slotId);
   return (
-    <div className={`flex items-center gap-2 border-b border-border/30 px-2 py-1.5 ${
+    <div className={`flex items-center gap-2 border-b border-border px-2 py-1.5 ${
       isMine ? "" : "opacity-90"
     }`}>
       {/* Slot */}
       <span className="w-7 shrink-0 text-[10px] font-bold text-slate-600">{player.slotLabel}</span>
 
       {/* Name */}
-      <span className="min-w-0 w-[130px] truncate text-[12px] text-slate-200">{player.name}</span>
+      <span className="min-w-0 w-[130px] truncate text-[12px] text-slate-400">{player.name}</span>
 
       {/* Pro team */}
       <span className="w-7 shrink-0 text-[10px] text-slate-600">{player.proTeam}</span>
@@ -120,29 +120,29 @@ function PlayerRow({
       {/* Today's game */}
       <div className="flex-1 min-w-0">
         {hasGame ? (
-          <span className="text-[10px] text-slate-400 whitespace-nowrap">
+          <span className="text-[10px] text-slate-500 whitespace-nowrap">
             {schedule!.todayOpponent}
             {schedule!.todayTime && (
               <span className="ml-1 text-slate-600">{schedule!.todayTime}</span>
             )}
           </span>
         ) : (
-          <span className="text-[10px] text-slate-700">Off</span>
+          <span className="text-[10px] text-slate-400">Off</span>
         )}
       </div>
 
       {/* Starts this matchup (SP only) */}
       {isPitcher && player.pos === "SP" && starts > 0 && (
         <span className={`shrink-0 text-[10px] tabular-nums font-bold ${
-          starts >= 2 ? "text-emerald-400" : "text-orange-500"
+          starts >= 2 ? "text-emerald-600" : "text-orange-600"
         }`}>{starts}S</span>
       )}
 
       {/* Games this week */}
       {schedule && (
         <span className={`shrink-0 text-[10px] tabular-nums font-semibold ${
-          schedule.weekGames >= 5 ? "text-emerald-400" :
-          schedule.weekGames >= 3 ? "text-orange-500" : "text-slate-600"
+          schedule.weekGames >= 5 ? "text-emerald-600" :
+          schedule.weekGames >= 3 ? "text-orange-600" : "text-slate-600"
         }`}>{schedule.weekGames}G</span>
       )}
 
@@ -174,8 +174,8 @@ function RosterPanel({
   const bench = roster.filter((p) => p.slotId === BENCH_SLOT_ID);
   const il = roster.filter((p) => p.slotId === IL_SLOT_ID);
 
-  const borderColor = isMine ? "border-orange-600/20" : "border-border";
-  const headerColor = isMine ? "text-orange-500 border-orange-600/20" : "text-slate-300 border-border";
+  const borderColor = isMine ? "border-orange-300" : "border-border";
+  const headerColor = isMine ? "text-orange-600 border-orange-300" : "text-slate-600 border-border";
 
   function getStarts(playerName: string): number {
     if (!probables) return 0;
@@ -189,10 +189,10 @@ function RosterPanel({
 
   const Section = ({ label, players, showStarts }: { label: string; players: MatchupPlayer[]; showStarts?: boolean }) => (
     <>
-      <div className="px-2 py-1 text-[9px] font-bold uppercase tracking-widest text-slate-700 bg-white/[0.02] flex justify-between">
+      <div className="px-2 py-1 text-[9px] font-bold uppercase tracking-widest text-slate-400 bg-black/[0.03] flex justify-between">
         <span>{label}</span>
         {showStarts && totalStarts > 0 && (
-          <span className="text-orange-500/60">{totalStarts} starts</span>
+          <span className="text-orange-600/60">{totalStarts} starts</span>
         )}
       </div>
       {players.map((p, i) => (
@@ -217,9 +217,9 @@ function RosterPanel({
 function EspnSetupCard() {
   return (
     <div className="mx-auto max-w-lg rounded-xl border border-border bg-surface px-8 py-10 text-center">
-      <div className="text-[11px] font-semibold uppercase tracking-widest text-orange-500/60">Setup Required</div>
-      <div className="mt-3 text-xl font-bold text-white">Connect ESPN Credentials</div>
-      <div className="mt-3 text-[13px] text-slate-400">
+      <div className="text-[11px] font-semibold uppercase tracking-widest text-orange-600/60">Setup Required</div>
+      <div className="mt-3 text-xl font-bold text-gray-900">Connect ESPN Credentials</div>
+      <div className="mt-3 text-[13px] text-slate-500">
         The Matchup view pulls live data from your private ESPN league. Add these environment variables to Vercel.
       </div>
       <div className="mt-5 rounded-lg border border-border bg-background px-4 py-4 text-left text-[12px]">
@@ -227,9 +227,9 @@ function EspnSetupCard() {
           Vercel → Settings → Environment Variables
         </div>
         <div className="space-y-2 font-mono">
-          <div><span className="text-orange-500">ESPN_S2</span> <span className="text-slate-600">=</span> <span className="text-slate-400">AE...</span></div>
-          <div><span className="text-orange-500">ESPN_SWID</span> <span className="text-slate-600">=</span> <span className="text-slate-400">{"{XXXX-...}"}</span></div>
-          <div><span className="text-orange-500">MY_ESPN_TEAM_ID</span> <span className="text-slate-600">=</span> <span className="text-slate-400">9</span></div>
+          <div><span className="text-orange-600">ESPN_S2</span> <span className="text-slate-600">=</span> <span className="text-slate-500">AE...</span></div>
+          <div><span className="text-orange-600">ESPN_SWID</span> <span className="text-slate-600">=</span> <span className="text-slate-500">{"{XXXX-...}"}</span></div>
+          <div><span className="text-orange-600">MY_ESPN_TEAM_ID</span> <span className="text-slate-600">=</span> <span className="text-slate-500">9</span></div>
         </div>
       </div>
     </div>
@@ -282,7 +282,7 @@ export default function MatchupPage() {
   if (error || !data) {
     return (
       <div className="flex h-64 flex-col items-center justify-center gap-2">
-        <div className="text-red-400">Failed to load matchup</div>
+        <div className="text-red-600">Failed to load matchup</div>
         <div className="text-[12px] text-slate-600">{error}</div>
       </div>
     );
@@ -299,25 +299,25 @@ export default function MatchupPage() {
               Week {data.scoringPeriodId}
             </span>
             {data.matchupStartDate && (
-              <span className="text-[11px] text-slate-700">
+              <span className="text-[11px] text-slate-400">
                 {fmtDateRange(data.matchupStartDate, data.matchupEndDate)}
               </span>
             )}
           </div>
           <div className="mt-1 flex items-center gap-3">
-            <span className="text-xl font-bold text-orange-500">{data.myTeamName}</span>
+            <span className="text-xl font-bold text-orange-600">{data.myTeamName}</span>
             <span className="text-slate-600">vs</span>
-            <span className="text-xl font-bold text-slate-200">{data.oppTeamName}</span>
+            <span className="text-xl font-bold text-slate-400">{data.oppTeamName}</span>
           </div>
         </div>
         <div className="flex items-center gap-6">
           <div className="text-center">
-            <div className="text-2xl font-bold tabular-nums text-emerald-400">{myWinCount}</div>
+            <div className="text-2xl font-bold tabular-nums text-emerald-600">{myWinCount}</div>
             <div className="text-[10px] text-slate-600">CATS WON</div>
           </div>
-          <div className="text-slate-700">—</div>
+          <div className="text-slate-400">—</div>
           <div className="text-center">
-            <div className="text-2xl font-bold tabular-nums text-red-400">{oppWinCount}</div>
+            <div className="text-2xl font-bold tabular-nums text-red-600">{oppWinCount}</div>
             <div className="text-[10px] text-slate-600">CATS LOST</div>
           </div>
         </div>
@@ -330,7 +330,7 @@ export default function MatchupPage() {
           { label: "Pitching", cats: pitCats },
         ].map(({ label, cats }) => (
           <div key={label}>
-            <div className="mb-1.5 text-[10px] font-semibold uppercase tracking-wider text-slate-700">{label}</div>
+            <div className="mb-1.5 text-[10px] font-semibold uppercase tracking-wider text-slate-400">{label}</div>
             <div className="grid grid-cols-4 gap-1.5 sm:grid-cols-8">
               {cats.map((c) => (
                 <div key={c.cat} className={`rounded-lg border px-2 py-2 text-center ${catBg(c.result)}`}>
@@ -356,14 +356,14 @@ export default function MatchupPage() {
       {/* Column legend */}
       <div className="mb-2 flex items-center justify-between">
         <div className="text-[11px] font-semibold uppercase tracking-wider text-slate-600">Rosters</div>
-        <div className="text-[10px] text-slate-700">
+        <div className="text-[10px] text-slate-400">
           <span className="mr-3">Slot · Name · Team · Today&apos;s game</span>
-          <span className="text-emerald-400">5G+</span>
-          <span className="mx-1 text-slate-700">/</span>
-          <span className="text-orange-500">3–4G</span>
-          <span className="mx-1 text-slate-700">/</span>
+          <span className="text-emerald-600">5G+</span>
+          <span className="mx-1 text-slate-400">/</span>
+          <span className="text-orange-600">3–4G</span>
+          <span className="mx-1 text-slate-400">/</span>
           <span className="text-slate-600">≤2G</span>
-          <span className="ml-1 text-slate-700">this matchup</span>
+          <span className="ml-1 text-slate-400">this matchup</span>
         </div>
       </div>
 

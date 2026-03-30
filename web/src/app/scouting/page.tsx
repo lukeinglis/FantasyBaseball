@@ -18,17 +18,17 @@ function catLabel(c: CatKey) {
 function rankColor(rank: number, n: number) {
   if (n === 0) return { bar: "bg-slate-700", text: "text-slate-600", label: "—" };
   const pct = (rank - 1) / (n - 1 || 1);
-  if (pct <= 0.25) return { bar: "bg-sky-500", text: "text-sky-400", label: "ELITE" };
-  if (pct <= 0.50) return { bar: "bg-emerald-500", text: "text-emerald-400", label: "SOLID" };
-  if (pct <= 0.75) return { bar: "bg-orange-600", text: "text-orange-500", label: "AVG" };
-  return { bar: "bg-red-500", text: "text-red-400", label: "WEAK" };
+  if (pct <= 0.25) return { bar: "bg-sky-500", text: "text-sky-600", label: "ELITE" };
+  if (pct <= 0.50) return { bar: "bg-emerald-500", text: "text-emerald-600", label: "SOLID" };
+  if (pct <= 0.75) return { bar: "bg-orange-600", text: "text-orange-600", label: "AVG" };
+  return { bar: "bg-red-500", text: "text-red-600", label: "WEAK" };
 }
 
 function finishColor(f: number) {
-  if (f === 1) return "text-orange-500 font-bold";
-  if (f <= 3) return "text-sky-400";
-  if (f >= 8) return "text-red-400/70";
-  return "text-white";
+  if (f === 1) return "text-orange-600 font-bold";
+  if (f <= 3) return "text-sky-600";
+  if (f >= 8) return "text-red-600/70";
+  return "text-gray-900";
 }
 
 function computeCategoryRanks(
@@ -279,7 +279,7 @@ export default function ScoutingPage() {
   if (!selected) {
     return (
       <div className="mx-auto max-w-7xl px-4 py-5">
-        <h1 className="mb-5 text-xl font-bold text-white">Opponent Scouting</h1>
+        <h1 className="mb-5 text-xl font-bold text-gray-900">Opponent Scouting</h1>
         <p className="text-[13px] text-slate-600">Loading...</p>
       </div>
     );
@@ -289,7 +289,7 @@ export default function ScoutingPage() {
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-5">
-      <h1 className="mb-4 text-xl font-bold text-white">Opponent Scouting</h1>
+      <h1 className="mb-4 text-xl font-bold text-gray-900">Opponent Scouting</h1>
 
       {/* Team selector */}
       <div className="mb-5 flex flex-wrap gap-1.5">
@@ -298,7 +298,7 @@ export default function ScoutingPage() {
             key={p.team}
             onClick={() => setSelectedTeam(p.team)}
             className={`rounded px-2.5 py-1 text-[12px] font-medium transition-colors ${
-              selectedTeam === p.team ? "bg-white/10 text-white" : "text-slate-500 hover:text-slate-300"
+              selectedTeam === p.team ? "bg-black/10 text-gray-900" : "text-slate-500 hover:text-slate-700"
             }`}
           >
             {p.team}
@@ -311,17 +311,17 @@ export default function ScoutingPage() {
         <div className="rounded-lg border border-border bg-surface p-4">
           <div className="mb-4 flex flex-wrap items-start justify-between gap-2">
             <div>
-              <h2 className="text-lg font-bold text-white">{selected.team}</h2>
+              <h2 className="text-lg font-bold text-gray-900">{selected.team}</h2>
               {selected.ownerName && (
                 <p className="mt-0.5 text-[12px] text-slate-500">Owner: {selected.ownerName}</p>
               )}
               {draftStyleBlurb && (
-                <p className="mt-2 max-w-xl text-[12px] leading-relaxed text-slate-400 italic">
+                <p className="mt-2 max-w-xl text-[12px] leading-relaxed text-slate-500 italic">
                   {draftStyleBlurb}
                 </p>
               )}
             </div>
-            <span className="rounded bg-white/5 px-2 py-0.5 text-[11px] text-slate-500">
+            <span className="rounded bg-black/5 px-2 py-0.5 text-[11px] text-slate-500">
               {selected.seasons} season{selected.seasons !== 1 ? "s" : ""}
             </span>
           </div>
@@ -334,7 +334,7 @@ export default function ScoutingPage() {
             ].map((s) => (
               <div key={s.label} className="rounded border border-border bg-background p-3 text-center">
                 <div className="text-[11px] text-slate-600">{s.label}</div>
-                <div className={`mt-1 font-mono text-2xl font-bold ${s.label === "Best Finish" && bestFinish === 1 ? "text-orange-500" : "text-white"}`}>
+                <div className={`mt-1 font-mono text-2xl font-bold ${s.label === "Best Finish" && bestFinish === 1 ? "text-orange-600" : "text-gray-900"}`}>
                   {s.value}
                 </div>
                 <div className="text-[11px] text-slate-600">{s.sub}</div>
@@ -357,10 +357,10 @@ export default function ScoutingPage() {
                   const { avg, n } = posAvgRounds[pos];
                   const hasData = n > 0;
                   // Color: earlier = more urgent (amber/red), later = deeper (slate)
-                  const roundColor = !hasData ? "text-slate-700"
-                    : avg <= 3 ? "text-orange-500"
-                    : avg <= 6 ? "text-sky-400"
-                    : avg <= 10 ? "text-slate-300"
+                  const roundColor = !hasData ? "text-slate-400"
+                    : avg <= 3 ? "text-orange-600"
+                    : avg <= 6 ? "text-sky-600"
+                    : avg <= 10 ? "text-slate-600"
                     : "text-slate-500";
                   return (
                     <div key={pos} className="rounded border border-border bg-background p-2 text-center">
@@ -368,7 +368,7 @@ export default function ScoutingPage() {
                       <div className={`mt-1 font-mono text-lg font-bold ${roundColor}`}>
                         {hasData ? `R${avg.toFixed(1)}` : "—"}
                       </div>
-                      {hasData && <div className="text-[9px] text-slate-700">{n}yr avg</div>}
+                      {hasData && <div className="text-[9px] text-slate-400">{n}yr avg</div>}
                     </div>
                   );
                 })}
@@ -377,19 +377,19 @@ export default function ScoutingPage() {
               {/* Tendencies callout */}
               <div className="mt-3 space-y-1 text-[12px]">
                 {posAvgRounds["SP"].avg > 0 && posAvgRounds["SP"].avg <= 3 && (
-                  <p className="text-orange-500/80">⚡ Drafts SP in top 3 rounds (R{posAvgRounds["SP"].avg.toFixed(1)})</p>
+                  <p className="text-orange-600/80">⚡ Drafts SP in top 3 rounds (R{posAvgRounds["SP"].avg.toFixed(1)})</p>
                 )}
                 {posAvgRounds["RP"].avg > 0 && posAvgRounds["RP"].avg >= 12 && (
                   <p className="text-slate-500">⏳ Waits on RP until round {posAvgRounds["RP"].avg.toFixed(1)}</p>
                 )}
                 {posAvgRounds["C"].avg > 0 && posAvgRounds["C"].avg <= 5 && (
-                  <p className="text-sky-400/80">🎯 Prioritizes catcher early (R{posAvgRounds["C"].avg.toFixed(1)})</p>
+                  <p className="text-sky-600/80">🎯 Prioritizes catcher early (R{posAvgRounds["C"].avg.toFixed(1)})</p>
                 )}
                 {posAvgRounds["SS"].avg > 0 && posAvgRounds["SS"].avg <= 4 && (
-                  <p className="text-emerald-400/80">🎯 Grabs SS early (R{posAvgRounds["SS"].avg.toFixed(1)})</p>
+                  <p className="text-emerald-600/80">🎯 Grabs SS early (R{posAvgRounds["SS"].avg.toFixed(1)})</p>
                 )}
                 {posAvgRounds["OF"].avg > 0 && posAvgRounds["OF"].avg <= 2 && (
-                  <p className="text-purple-400/80">⚡ Opens with OF in round {posAvgRounds["OF"].avg.toFixed(1)}</p>
+                  <p className="text-purple-600/80">⚡ Opens with OF in round {posAvgRounds["OF"].avg.toFixed(1)}</p>
                 )}
               </div>
             </div>
@@ -418,21 +418,21 @@ export default function ScoutingPage() {
                   </thead>
                   <tbody>
                     {[1, 2, 3, 4, 5].map((round) => (
-                      <tr key={round} className="border-b border-border/30">
+                      <tr key={round} className="border-b border-border">
                         <td className="px-3 py-1.5 font-mono text-slate-600">{round}</td>
                         {draftYears.map((year) => {
                           const pick = franchisePicks.find(
                             (p) => p.year === year && p.round === round
                           );
                           return (
-                            <td key={year} className="px-3 py-1.5 text-slate-300">
+                            <td key={year} className="px-3 py-1.5 text-slate-600">
                               {pick ? (
-                                <span className={pick.keeper ? "text-orange-500/70" : ""}>
+                                <span className={pick.keeper ? "text-orange-600/70" : ""}>
                                   {pick.playerName}
                                   {pick.keeper && " ®"}
                                 </span>
                               ) : (
-                                <span className="text-slate-700">—</span>
+                                <span className="text-slate-400">—</span>
                               )}
                             </td>
                           );
@@ -465,17 +465,17 @@ export default function ScoutingPage() {
                   <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-wider text-sky-500">Strengths</p>
                   <div className="flex flex-wrap gap-1.5">
                     {strengths.map((c) => (
-                      <span key={c} className="rounded bg-sky-500/10 px-2 py-0.5 text-[11px] font-bold text-sky-400">
+                      <span key={c} className="rounded bg-sky-500/10 px-2 py-0.5 text-[11px] font-bold text-sky-600">
                         {catLabel(c)} #{catRanks[c].avgRank.toFixed(1)}
                       </span>
                     ))}
                   </div>
                 </div>
                 <div>
-                  <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-wider text-red-500">Weaknesses</p>
+                  <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-wider text-red-700">Weaknesses</p>
                   <div className="flex flex-wrap gap-1.5">
                     {weaknesses.map((c) => (
-                      <span key={c} className="rounded bg-red-500/10 px-2 py-0.5 text-[11px] font-bold text-red-400/80">
+                      <span key={c} className="rounded bg-red-100 px-2 py-0.5 text-[11px] font-bold text-red-600/80">
                         {catLabel(c)} #{catRanks[c].avgRank.toFixed(1)}
                       </span>
                     ))}
@@ -492,7 +492,7 @@ export default function ScoutingPage() {
                 if (n === 0) return (
                   <div key={c} className="rounded border border-border bg-background p-2 opacity-30">
                     <div className="text-[10px] font-bold text-slate-500">{catLabel(c)}</div>
-                    <div className="mt-1 font-mono text-base text-slate-700">—</div>
+                    <div className="mt-1 font-mono text-base text-slate-400">—</div>
                   </div>
                 );
                 return (
@@ -504,13 +504,13 @@ export default function ScoutingPage() {
                     <div className={`mt-1 font-mono text-lg font-bold ${text}`}>
                       #{avgRank.toFixed(1)}
                     </div>
-                    <div className="mt-1.5 h-1 overflow-hidden rounded-full bg-slate-800">
+                    <div className="mt-1.5 h-1 overflow-hidden rounded-full bg-slate-200">
                       <div
                         className={`h-full rounded-full ${bar}`}
                         style={{ width: `${((10 - avgRank) / 9) * 100}%` }}
                       />
                     </div>
-                    <div className="mt-1 text-[9px] text-slate-700">{n}yr avg</div>
+                    <div className="mt-1 text-[9px] text-slate-400">{n}yr avg</div>
                   </div>
                 );
               })}
@@ -544,10 +544,10 @@ export default function ScoutingPage() {
                   const finish = selected.finishes[year];
                   const standingRow = franchiseStandings.find((r) => r.year === year);
                   return (
-                    <tr key={year} className="border-b border-border/30 hover:bg-white/[0.01]">
+                    <tr key={year} className="border-b border-border hover:bg-black/[0.04]">
                       <td className="px-3 py-1.5 font-mono text-slate-500">{year}</td>
-                      <td className="px-3 py-1.5 text-slate-400">
-                        {standingRow?.team ?? <span className="text-slate-700">—</span>}
+                      <td className="px-3 py-1.5 text-slate-500">
+                        {standingRow?.team ?? <span className="text-slate-400">—</span>}
                       </td>
                       <td className="px-3 py-1.5 text-center">
                         {finish ? (
@@ -556,17 +556,17 @@ export default function ScoutingPage() {
                           </span>
                         ) : "—"}
                       </td>
-                      <td className="px-3 py-1.5 text-right font-mono text-slate-400">
+                      <td className="px-3 py-1.5 text-right font-mono text-slate-500">
                         {standingRow ? (standingRow.PCT * 100).toFixed(1) + "%" : "—"}
                       </td>
-                      <td className="px-3 py-1.5 text-right font-mono text-slate-400">{standingRow?.HR ?? "—"}</td>
-                      <td className="px-3 py-1.5 text-right font-mono text-slate-400">{standingRow?.SB ?? "—"}</td>
-                      <td className="px-3 py-1.5 text-right font-mono text-slate-400">{standingRow?.K ?? "—"}</td>
-                      <td className="px-3 py-1.5 text-right font-mono text-slate-400">{standingRow?.SV ?? "—"}</td>
-                      <td className="px-3 py-1.5 text-right font-mono text-slate-400">
+                      <td className="px-3 py-1.5 text-right font-mono text-slate-500">{standingRow?.HR ?? "—"}</td>
+                      <td className="px-3 py-1.5 text-right font-mono text-slate-500">{standingRow?.SB ?? "—"}</td>
+                      <td className="px-3 py-1.5 text-right font-mono text-slate-500">{standingRow?.K ?? "—"}</td>
+                      <td className="px-3 py-1.5 text-right font-mono text-slate-500">{standingRow?.SV ?? "—"}</td>
+                      <td className="px-3 py-1.5 text-right font-mono text-slate-500">
                         {standingRow?.ERA != null ? standingRow.ERA.toFixed(3) : "—"}
                       </td>
-                      <td className="px-3 py-1.5 text-right font-mono text-slate-400">
+                      <td className="px-3 py-1.5 text-right font-mono text-slate-500">
                         {standingRow?.WHIP != null ? standingRow.WHIP.toFixed(3) : "—"}
                       </td>
                     </tr>

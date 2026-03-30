@@ -22,7 +22,7 @@ export function Nav() {
     <header className="sticky top-0 z-40 border-b border-border bg-surface/95 backdrop-blur-sm">
       <div className="mx-auto flex max-w-7xl items-center gap-8 px-4 py-3">
         <Link href="/warroom" className="flex items-baseline gap-2">
-          <span className="text-lg font-bold tracking-tight text-orange-500">
+          <span className="text-lg font-bold tracking-tight text-orange-600">
             WAR ROOM
           </span>
           <span className="hidden text-[11px] font-medium tracking-widest text-slate-500 sm:block">
@@ -38,8 +38,8 @@ export function Nav() {
                   href={l.href}
                   className={`block whitespace-nowrap rounded px-2.5 py-1.5 font-medium transition-colors ${
                     pathname === l.href
-                      ? "bg-white/10 text-white"
-                      : "text-slate-400 hover:text-slate-200"
+                      ? "bg-black/10 text-gray-900"
+                      : "text-slate-500 hover:text-slate-700"
                   }`}
                 >
                   {l.label}

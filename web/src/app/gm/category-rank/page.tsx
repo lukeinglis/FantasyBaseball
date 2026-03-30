@@ -24,20 +24,20 @@ const PIT_CATS = ["K", "QS", "W", "L", "SV", "HD", "ERA", "WHIP"];
 const LOWER_IS_BETTER = new Set(["ERA", "WHIP", "L"]);
 
 function rankColor(rank: number): string {
-  if (rank <= 2) return "text-emerald-400 font-bold";
-  if (rank <= 4) return "text-emerald-400/70";
-  if (rank <= 6) return "text-slate-300";
-  if (rank <= 8) return "text-orange-500";
-  return "text-red-400 font-bold";
+  if (rank <= 2) return "text-emerald-600 font-bold";
+  if (rank <= 4) return "text-emerald-600/70";
+  if (rank <= 6) return "text-slate-600";
+  if (rank <= 8) return "text-orange-600";
+  return "text-red-600 font-bold";
 }
 
 function rankBg(rank: number): string {
-  if (rank === 1) return "bg-emerald-500/15 border-emerald-500/30";
-  if (rank <= 3) return "bg-emerald-500/8 border-emerald-500/15";
+  if (rank === 1) return "bg-emerald-100 border-emerald-300";
+  if (rank <= 3) return "bg-emerald-50 border-emerald-200";
   if (rank <= 5) return "bg-surface border-border";
-  if (rank <= 7) return "bg-orange-600/5 border-orange-600/15";
-  if (rank <= 9) return "bg-red-500/5 border-red-500/15";
-  return "bg-red-500/10 border-red-500/20";
+  if (rank <= 7) return "bg-orange-50 border-orange-200";
+  if (rank <= 9) return "bg-red-50 border-red-200";
+  return "bg-red-100 border-red-300";
 }
 
 function fmtValue(cat: string, val: number | undefined): string {
@@ -50,14 +50,14 @@ function fmtValue(cat: string, val: number | undefined): string {
 function EspnSetupCard() {
   return (
     <div className="mx-auto max-w-lg rounded-xl border border-border bg-surface px-8 py-10 text-center">
-      <div className="text-[11px] font-semibold uppercase tracking-widest text-orange-500/60">Setup Required</div>
-      <div className="mt-3 text-xl font-bold text-white">Connect ESPN Credentials</div>
-      <div className="mt-3 text-[13px] text-slate-400">
+      <div className="text-[11px] font-semibold uppercase tracking-widest text-orange-600/60">Setup Required</div>
+      <div className="mt-3 text-xl font-bold text-gray-900">Connect ESPN Credentials</div>
+      <div className="mt-3 text-[13px] text-slate-500">
         Category Rank pulls live data from your private ESPN league. Add environment variables to Vercel.
       </div>
       <div className="mt-5 rounded-lg border border-border bg-background px-4 py-4 text-left text-[12px]">
         <div className="space-y-2 font-mono">
-          <div><span className="text-orange-500">ESPN_S2</span> · <span className="text-orange-500">ESPN_SWID</span> · <span className="text-orange-500">MY_ESPN_TEAM_ID</span></div>
+          <div><span className="text-orange-600">ESPN_S2</span> · <span className="text-orange-600">ESPN_SWID</span> · <span className="text-orange-600">MY_ESPN_TEAM_ID</span></div>
         </div>
       </div>
     </div>
@@ -113,7 +113,7 @@ export default function CategoryRankPage() {
   if (error || !data || !myTeam) {
     return (
       <div className="flex h-64 flex-col items-center justify-center gap-2">
-        <div className="text-red-400">Failed to load category rankings</div>
+        <div className="text-red-600">Failed to load category rankings</div>
         <div className="text-[12px] text-slate-600">{error}</div>
       </div>
     );
@@ -124,12 +124,12 @@ export default function CategoryRankPage() {
       {/* Header */}
       <div className="mb-5 flex flex-wrap items-start justify-between gap-4">
         <div>
-          <h1 className="text-lg font-bold text-white">Category Rankings</h1>
+          <h1 className="text-lg font-bold text-gray-900">Category Rankings</h1>
           <span className="text-[12px] text-slate-500">Week {data.scoringPeriodId} — Where you rank 1-10 in each category</span>
         </div>
         <div className="flex items-center gap-4">
           <div className="text-center">
-            <div className={`text-2xl font-bold tabular-nums ${avgRank <= 4 ? "text-emerald-400" : avgRank <= 6 ? "text-orange-500" : "text-red-400"}`}>
+            <div className={`text-2xl font-bold tabular-nums ${avgRank <= 4 ? "text-emerald-600" : avgRank <= 6 ? "text-orange-600" : "text-red-600"}`}>
               {avgRank.toFixed(1)}
             </div>
             <div className="text-[10px] text-slate-600">AVG RANK</div>
@@ -138,7 +138,7 @@ export default function CategoryRankPage() {
             {(["my-ranks", "leaderboard"] as const).map((v) => (
               <button key={v} onClick={() => setView(v)}
                 className={`rounded px-3 py-1 text-[11px] font-bold transition-colors ${
-                  view === v ? "bg-white/10 text-white" : "text-slate-500 hover:text-slate-300"
+                  view === v ? "bg-black/10 text-gray-900" : "text-slate-500 hover:text-slate-700"
                 }`}>
                 {v === "my-ranks" ? "My Ranks" : "Leaderboard"}
               </button>
@@ -155,7 +155,7 @@ export default function CategoryRankPage() {
             { label: "Pitching", cats: PIT_CATS },
           ].map(({ label, cats }) => (
             <div key={label} className="mb-6">
-              <div className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-slate-700">{label}</div>
+              <div className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-slate-400">{label}</div>
               <div className="grid grid-cols-4 gap-2 sm:grid-cols-8">
                 {cats.map((cat) => {
                   const rank = myTeam.ranks[cat] ?? 0;
@@ -178,16 +178,16 @@ export default function CategoryRankPage() {
 
           {/* Strengths & Weaknesses */}
           <div className="grid gap-4 sm:grid-cols-2">
-            <div className="rounded-lg border border-emerald-500/20 bg-surface p-4">
-              <div className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-emerald-400/70">
+            <div className="rounded-lg border border-emerald-300 bg-surface p-4">
+              <div className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-emerald-600/70">
                 Strengths (Top 3)
               </div>
               {strengths.length > 0 ? (
                 <div className="space-y-1">
                   {strengths.map((cat) => (
                     <div key={cat} className="flex items-center justify-between">
-                      <span className="text-[13px] text-slate-200">{cat}</span>
-                      <span className="font-mono text-[13px] text-emerald-400">#{myTeam.ranks[cat]}</span>
+                      <span className="text-[13px] text-slate-400">{cat}</span>
+                      <span className="font-mono text-[13px] text-emerald-600">#{myTeam.ranks[cat]}</span>
                     </div>
                   ))}
                 </div>
@@ -195,16 +195,16 @@ export default function CategoryRankPage() {
                 <div className="text-[12px] text-slate-600">No categories in top 3</div>
               )}
             </div>
-            <div className="rounded-lg border border-red-500/20 bg-surface p-4">
-              <div className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-red-400/70">
+            <div className="rounded-lg border border-red-300 bg-surface p-4">
+              <div className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-red-600/70">
                 Weaknesses (Bottom 3)
               </div>
               {weaknesses.length > 0 ? (
                 <div className="space-y-1">
                   {weaknesses.map((cat) => (
                     <div key={cat} className="flex items-center justify-between">
-                      <span className="text-[13px] text-slate-200">{cat}</span>
-                      <span className="font-mono text-[13px] text-red-400">#{myTeam.ranks[cat]}</span>
+                      <span className="text-[13px] text-slate-400">{cat}</span>
+                      <span className="font-mono text-[13px] text-red-600">#{myTeam.ranks[cat]}</span>
                     </div>
                   ))}
                 </div>
@@ -222,7 +222,7 @@ export default function CategoryRankPage() {
             { label: "Pitching", cats: PIT_CATS },
           ].map(({ label, cats }) => (
             <div key={label} className="mb-6">
-              <div className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-slate-700">{label}</div>
+              <div className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-slate-400">{label}</div>
               <div className="overflow-x-auto rounded-lg border border-border">
                 <table className="w-full text-left text-[12px]">
                   <thead className="border-b border-border bg-surface text-[10px] uppercase tracking-wider text-slate-500">
@@ -239,8 +239,8 @@ export default function CategoryRankPage() {
                       const isMe = team.teamId === data.myTeamId;
                       return (
                         <tr key={team.teamId}
-                          className={`border-b border-border/50 ${isMe ? "bg-orange-600/5" : i % 2 === 0 ? "" : "bg-white/[0.01]"}`}>
-                          <td className={`px-3 py-2 sticky left-0 ${isMe ? "text-orange-500 font-semibold bg-orange-600/5" : "text-slate-200 bg-background"}`}>
+                          className={`border-b border-border/50 ${isMe ? "bg-orange-50" : i % 2 === 0 ? "" : "bg-black/[0.02]"}`}>
+                          <td className={`px-3 py-2 sticky left-0 ${isMe ? "text-orange-600 font-semibold bg-orange-50" : "text-slate-400 bg-background"}`}>
                             {team.teamName}
                           </td>
                           <td className="px-2 py-2 text-center text-slate-500 tabular-nums">

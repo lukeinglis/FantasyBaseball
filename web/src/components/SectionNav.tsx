@@ -26,7 +26,7 @@ export function SectionNav({ subLinks }: Props) {
       <div className="mx-auto flex max-w-7xl items-center gap-4 px-4 py-3">
         {/* Logo */}
         <Link href="/draft" className="flex shrink-0 items-baseline gap-2">
-          <span className="text-lg font-bold tracking-tight text-orange-500">WAR ROOM</span>
+          <span className="text-lg font-bold tracking-tight text-orange-600">WAR ROOM</span>
           <span className="hidden text-[11px] font-medium tracking-widest text-slate-500 sm:block">
             TAMPA&apos;S FINEST
           </span>
@@ -40,8 +40,8 @@ export function SectionNav({ subLinks }: Props) {
               href={s.href}
               className={`rounded px-2.5 py-1 text-[11px] font-bold tracking-widest transition-colors ${
                 pathname.startsWith(s.href)
-                  ? "bg-orange-600/15 text-orange-500"
-                  : "text-slate-600 hover:text-slate-400"
+                  ? "bg-orange-600/15 text-orange-600"
+                  : "text-slate-500 hover:text-slate-700"
               }`}
             >
               {s.label}
@@ -52,7 +52,7 @@ export function SectionNav({ subLinks }: Props) {
         {/* Divider + sub-nav */}
         {subLinks.length > 0 && (
           <>
-            <div className="h-4 w-px shrink-0 bg-slate-800" />
+            <div className="h-4 w-px shrink-0 bg-slate-200" />
             <nav className="flex-1 overflow-x-auto">
               <ul className="flex gap-0.5 text-[13px]">
                 {subLinks.map((l) => (
@@ -61,8 +61,8 @@ export function SectionNav({ subLinks }: Props) {
                       href={l.href}
                       className={`block whitespace-nowrap rounded px-2.5 py-1.5 font-medium transition-colors ${
                         pathname === l.href
-                          ? "bg-white/10 text-white"
-                          : "text-slate-400 hover:text-slate-200"
+                          ? "bg-black/10 text-gray-900"
+                          : "text-slate-500 hover:text-slate-700"
                       }`}
                     >
                       {l.label}

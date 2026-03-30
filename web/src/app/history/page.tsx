@@ -50,7 +50,7 @@ export default function HistoryPage() {
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-5">
-      <h1 className="mb-5 text-xl font-bold text-white">League History</h1>
+      <h1 className="mb-5 text-xl font-bold text-gray-900">League History</h1>
 
       {/* Champions */}
       <div className="mb-6">
@@ -60,11 +60,11 @@ export default function HistoryPage() {
             <button key={c.year} onClick={() => setSelectedYear(c.year)}
               className={`rounded border px-3 py-1.5 text-center transition-colors ${
                 selectedYear === c.year
-                  ? "border-orange-600/30 bg-orange-600/10"
+                  ? "border-orange-600/30 bg-orange-100"
                   : "border-border bg-surface hover:border-slate-600"
               }`}>
               <div className="text-[11px] tabular-nums text-slate-600">{c.year}</div>
-              <div className="text-[13px] font-semibold text-orange-500">{c.team}</div>
+              <div className="text-[13px] font-semibold text-orange-600">{c.team}</div>
               <div className="font-mono text-[10px] text-slate-600">
                 {c.W}-{c.L}{c.T > 0 ? `-${c.T}` : ""}
               </div>
@@ -78,7 +78,7 @@ export default function HistoryPage() {
         {years.map((y) => (
           <button key={y} onClick={() => setSelectedYear(y)}
             className={`rounded px-2 py-0.5 font-mono text-[12px] transition-colors ${
-              selectedYear === y ? "bg-white/10 text-white" : "text-slate-600 hover:text-slate-300"
+              selectedYear === y ? "bg-black/10 text-gray-900" : "text-slate-600 hover:text-slate-700"
             }`}>
             {y}
           </button>
@@ -105,25 +105,25 @@ export default function HistoryPage() {
             <tbody>
               {yearStandings.map((row, idx) => (
                 <tr key={`${row.year}-${row.team}`}
-                  className={`border-b border-border/30 ${idx % 2 ? "bg-white/[0.01]" : ""} ${
+                  className={`border-b border-border ${idx % 2 ? "bg-black/[0.02]" : ""} ${
                     row.rank === 1 ? "bg-orange-600/[0.03]" : ""
                   }`}>
                   <td className="px-3 py-1.5">
                     <span className={`font-mono font-bold ${
-                      row.rank === 1 ? "text-orange-500" : row.rank <= 3 ? "text-sky-400" : "text-slate-600"
+                      row.rank === 1 ? "text-orange-600" : row.rank <= 3 ? "text-sky-600" : "text-slate-600"
                     }`}>{row.rank}</span>
                   </td>
-                  <td className="px-3 py-1.5 font-medium text-white">{row.team}</td>
-                  <td className="px-2 py-1.5 text-right font-mono text-slate-400">{row.W}</td>
-                  <td className="px-2 py-1.5 text-right font-mono text-slate-400">{row.L}</td>
-                  <td className="px-2 py-1.5 text-right font-mono text-slate-400">{row.T}</td>
-                  <td className="px-2 py-1.5 text-right font-mono text-sky-400/70">{row.PCT.toFixed(3)}</td>
+                  <td className="px-3 py-1.5 font-medium text-gray-900">{row.team}</td>
+                  <td className="px-2 py-1.5 text-right font-mono text-slate-500">{row.W}</td>
+                  <td className="px-2 py-1.5 text-right font-mono text-slate-500">{row.L}</td>
+                  <td className="px-2 py-1.5 text-right font-mono text-slate-500">{row.T}</td>
+                  <td className="px-2 py-1.5 text-right font-mono text-sky-600/70">{row.PCT.toFixed(3)}</td>
                   {activeCats.map((cat) => {
                     const val = (row as unknown as Record<string, number | undefined>)[cat];
                     const fmt = cat === "AVG" || cat === "ERA" || cat === "WHIP"
                       ? val?.toFixed(3) : val !== undefined ? Math.round(val).toString() : undefined;
                     return (
-                      <td key={cat} className="px-2 py-1.5 text-right font-mono text-slate-400">{fmt ?? "—"}</td>
+                      <td key={cat} className="px-2 py-1.5 text-right font-mono text-slate-500">{fmt ?? "—"}</td>
                     );
                   })}
                 </tr>

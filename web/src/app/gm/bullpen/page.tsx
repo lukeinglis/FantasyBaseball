@@ -60,9 +60,9 @@ function fmtShortDate(d: string): string {
 function EspnSetupCard() {
   return (
     <div className="mx-auto max-w-lg rounded-xl border border-border bg-surface px-8 py-10 text-center">
-      <div className="text-[11px] font-semibold uppercase tracking-widest text-orange-500/60">Setup Required</div>
-      <div className="mt-3 text-xl font-bold text-white">Connect ESPN Credentials</div>
-      <div className="mt-3 text-[13px] text-slate-400">
+      <div className="text-[11px] font-semibold uppercase tracking-widest text-orange-600/60">Setup Required</div>
+      <div className="mt-3 text-xl font-bold text-gray-900">Connect ESPN Credentials</div>
+      <div className="mt-3 text-[13px] text-slate-500">
         Bullpen pulls live data from your private ESPN league.
       </div>
     </div>
@@ -189,7 +189,7 @@ export default function BullpenPage() {
   if (error || !myTeam) {
     return (
       <div className="flex h-64 flex-col items-center justify-center gap-2">
-        <div className="text-red-400">Failed to load bullpen</div>
+        <div className="text-red-600">Failed to load bullpen</div>
         <div className="text-[12px] text-slate-600">{error}</div>
       </div>
     );
@@ -205,14 +205,14 @@ export default function BullpenPage() {
     const isStartingToday = starts.some((s) => s.date === today);
 
     return (
-      <div className={`border-b border-border/30 px-3 py-2.5 ${!isActive ? "opacity-60" : ""}`}>
+      <div className={`border-b border-border px-3 py-2.5 ${!isActive ? "opacity-60" : ""}`}>
         <div className="flex items-center gap-3">
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2">
               {isStartingToday && (
                 <span className="shrink-0 w-1.5 h-1.5 rounded-full bg-emerald-400" title="Starting today" />
               )}
-              <span className={`text-[13px] font-medium ${isInjured ? "text-slate-500" : "text-slate-100"}`}>
+              <span className={`text-[13px] font-medium ${isInjured ? "text-slate-500" : "text-slate-800"}`}>
                 {player.name}
               </span>
               {isInjured && (
@@ -221,9 +221,9 @@ export default function BullpenPage() {
             </div>
             <div className="flex items-center gap-2 mt-0.5">
               <span className="text-[10px] text-slate-600">{player.proTeam}</span>
-              <span className="text-[10px] text-slate-700">{player.slotLabel}</span>
+              <span className="text-[10px] text-slate-400">{player.slotLabel}</span>
               {player.acquisitionType && player.acquisitionType !== "DRAFT" && (
-                <span className="text-[9px] font-bold text-violet-400/60">
+                <span className="text-[9px] font-bold text-violet-600/60">
                   {player.acquisitionType === "ADD" ? "FA" : player.acquisitionType}
                 </span>
               )}
@@ -234,18 +234,18 @@ export default function BullpenPage() {
           <div className="text-right shrink-0">
             {hasGame ? (
               <div>
-                <div className="text-[11px] text-slate-300">{sched!.todayOpponent}</div>
+                <div className="text-[11px] text-slate-600">{sched!.todayOpponent}</div>
                 {sched!.todayTime && <div className="text-[10px] text-slate-600">{sched!.todayTime}</div>}
               </div>
             ) : (
-              <span className="text-[10px] text-slate-700">Off today</span>
+              <span className="text-[10px] text-slate-400">Off today</span>
             )}
           </div>
 
           {/* Starts this week */}
           {player.pos === "SP" && (
             <div className={`shrink-0 text-center min-w-[32px] ${
-              starts.length >= 2 ? "text-emerald-400" : starts.length === 1 ? "text-orange-500" : "text-slate-700"
+              starts.length >= 2 ? "text-emerald-600" : starts.length === 1 ? "text-orange-600" : "text-slate-400"
             }`}>
               <div className="text-[14px] font-bold tabular-nums">{starts.length}</div>
               <div className="text-[8px] uppercase">
@@ -257,8 +257,8 @@ export default function BullpenPage() {
           {/* Team games this week */}
           {sched && (
             <span className={`shrink-0 text-[10px] tabular-nums font-semibold ${
-              sched.weekGames >= 5 ? "text-emerald-400" :
-              sched.weekGames >= 3 ? "text-orange-500" : "text-slate-600"
+              sched.weekGames >= 5 ? "text-emerald-600" :
+              sched.weekGames >= 3 ? "text-orange-600" : "text-slate-600"
             }`}>{sched.weekGames}G</span>
           )}
         </div>
@@ -269,8 +269,8 @@ export default function BullpenPage() {
             {starts.map((s, i) => (
               <span key={i} className={`inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-[10px] ${
                 s.date === today
-                  ? "bg-emerald-500/15 text-emerald-400 border border-emerald-500/20"
-                  : "bg-white/[0.03] text-slate-400 border border-border/30"
+                  ? "bg-emerald-100 text-emerald-600 border border-emerald-300"
+                  : "bg-black/[0.03] text-slate-500 border border-border"
               }`}>
                 <span className="font-semibold">{fmtShortDate(s.date)}</span>
                 <span className="text-slate-600">{s.opponent}</span>
@@ -298,9 +298,9 @@ export default function BullpenPage() {
           <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-600">{label}</span>
           <div className="flex items-center gap-2">
             {view === "SP" && sectionStarts > 0 && (
-              <span className="text-[10px] tabular-nums text-orange-500/70">{sectionStarts} starts</span>
+              <span className="text-[10px] tabular-nums text-orange-600/70">{sectionStarts} starts</span>
             )}
-            <span className="text-[10px] tabular-nums text-slate-700">{players.length}</span>
+            <span className="text-[10px] tabular-nums text-slate-400">{players.length}</span>
           </div>
         </div>
         {players.map((p, i) => <PitcherCard key={i} player={p} />)}
@@ -318,7 +318,7 @@ export default function BullpenPage() {
       {/* Header */}
       <div className="mb-5 flex flex-wrap items-start justify-between gap-4">
         <div>
-          <h1 className="text-lg font-bold text-white">Bullpen</h1>
+          <h1 className="text-lg font-bold text-gray-900">Bullpen</h1>
           <span className="text-[12px] text-slate-500">
             {starters.length} SP · {relievers.length} RP
           </span>
@@ -327,20 +327,20 @@ export default function BullpenPage() {
           {view === "SP" && probables && (
             <div className="flex items-center gap-3">
               <div className="text-center">
-                <div className={`text-xl font-bold tabular-nums ${totalStarts >= 6 ? "text-emerald-400" : totalStarts >= 4 ? "text-orange-500" : "text-red-400"}`}>
+                <div className={`text-xl font-bold tabular-nums ${totalStarts >= 6 ? "text-emerald-600" : totalStarts >= 4 ? "text-orange-600" : "text-red-600"}`}>
                   {totalStarts}
                 </div>
                 <div className="text-[9px] text-slate-600">STARTS THIS WK</div>
               </div>
               <div className="text-center">
-                <div className="text-xl font-bold tabular-nums text-emerald-400">{todayStarters.length}</div>
+                <div className="text-xl font-bold tabular-nums text-emerald-600">{todayStarters.length}</div>
                 <div className="text-[9px] text-slate-600">TODAY</div>
               </div>
             </div>
           )}
           {view === "RP" && (
             <div className="text-center">
-              <div className="text-xl font-bold tabular-nums text-emerald-400">{pitchersWithGames}</div>
+              <div className="text-xl font-bold tabular-nums text-emerald-600">{pitchersWithGames}</div>
               <div className="text-[9px] text-slate-600">ACTIVE TODAY</div>
             </div>
           )}
@@ -348,7 +348,7 @@ export default function BullpenPage() {
             {(["SP", "RP"] as const).map((v) => (
               <button key={v} onClick={() => setView(v)}
                 className={`rounded px-4 py-1 text-[12px] font-bold transition-colors ${
-                  view === v ? "bg-white/10 text-white" : "text-slate-500 hover:text-slate-300"
+                  view === v ? "bg-black/10 text-gray-900" : "text-slate-500 hover:text-slate-700"
                 }`}>
                 {v} ({v === "SP" ? starters.length : relievers.length})
               </button>
@@ -359,8 +359,8 @@ export default function BullpenPage() {
 
       {/* Starting pitchers today callout */}
       {view === "SP" && todayStarters.length > 0 && (
-        <div className="mb-4 rounded-lg border border-emerald-500/20 bg-emerald-500/5 px-4 py-3">
-          <div className="text-[10px] font-semibold uppercase tracking-wider text-emerald-400/70 mb-1.5">
+        <div className="mb-4 rounded-lg border border-emerald-300 bg-emerald-50 px-4 py-3">
+          <div className="text-[10px] font-semibold uppercase tracking-wider text-emerald-600/70 mb-1.5">
             Starting Today
           </div>
           <div className="flex flex-wrap gap-3">
@@ -369,10 +369,10 @@ export default function BullpenPage() {
               const todayStart = starts.find((s) => s.date === new Date().toISOString().slice(0, 10));
               return (
                 <div key={p.name} className="flex items-center gap-2">
-                  <span className="text-[13px] font-medium text-emerald-300">{p.name}</span>
+                  <span className="text-[13px] font-medium text-emerald-600">{p.name}</span>
                   {todayStart && (
                     <>
-                      <span className="text-[11px] text-slate-400">{todayStart.opponent}</span>
+                      <span className="text-[11px] text-slate-500">{todayStart.opponent}</span>
                       {todayStart.gameTime && <span className="text-[10px] text-slate-600">{todayStart.gameTime}</span>}
                     </>
                   )}
@@ -385,23 +385,23 @@ export default function BullpenPage() {
 
       {/* Pitcher lists */}
       <div className="space-y-4">
-        <PitcherSection label="Active" players={active} borderColor="border-emerald-500/20" />
-        <PitcherSection label="Day-to-Day" players={dtd} borderColor="border-orange-600/20" />
+        <PitcherSection label="Active" players={active} borderColor="border-emerald-300" />
+        <PitcherSection label="Day-to-Day" players={dtd} borderColor="border-orange-300" />
         <PitcherSection label="Bench" players={benched} />
-        <PitcherSection label="Injured List" players={injured} borderColor="border-red-500/20" />
+        <PitcherSection label="Injured List" players={injured} borderColor="border-red-300" />
       </div>
 
       {/* No probable data notice */}
       {!probables && view === "SP" && (
-        <div className="mt-3 text-[11px] text-slate-700">
+        <div className="mt-3 text-[11px] text-slate-400">
           Probable pitcher data unavailable. Start counts will appear once the MLB schedule is published.
         </div>
       )}
 
       {/* Injury details */}
       {injured.length > 0 && (
-        <div className="mt-4 rounded-lg border border-red-500/20 bg-surface">
-          <div className="border-b border-red-500/20 px-3 py-2 text-[10px] font-semibold uppercase tracking-wider text-red-400/70">
+        <div className="mt-4 rounded-lg border border-red-300 bg-surface">
+          <div className="border-b border-red-300 px-3 py-2 text-[10px] font-semibold uppercase tracking-wider text-red-600/70">
             Injury Notes
           </div>
           <div className="divide-y divide-border/30">
@@ -409,7 +409,7 @@ export default function BullpenPage() {
               <div key={i} className="flex items-start gap-3 px-3 py-2">
                 <span className={`shrink-0 text-[11px] font-bold ${p.injuryColor}`}>{p.injuryLabel}</span>
                 <div className="min-w-0 flex-1">
-                  <div className="text-[12px] text-slate-200">{p.name}</div>
+                  <div className="text-[12px] text-slate-400">{p.name}</div>
                   {p.injuryNote && <div className="mt-0.5 text-[11px] text-slate-500">{p.injuryNote}</div>}
                 </div>
               </div>

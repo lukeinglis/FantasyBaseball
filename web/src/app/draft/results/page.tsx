@@ -53,14 +53,14 @@ export default function DraftResultsPage() {
   if (picks.length === 0) {
     return (
       <div className="mx-auto max-w-2xl px-4 py-16 text-center">
-        <div className="text-[13px] font-semibold uppercase tracking-widest text-orange-500/60">
+        <div className="text-[13px] font-semibold uppercase tracking-widest text-orange-600/60">
           2026 Draft Results
         </div>
-        <div className="mt-4 text-2xl font-bold text-white">No data yet</div>
+        <div className="mt-4 text-2xl font-bold text-gray-900">No data yet</div>
         <div className="mt-3 text-[14px] text-slate-500">
           Run the ESPN data fetch script to populate 2026 draft results:
         </div>
-        <pre className="mt-4 rounded-lg border border-border bg-surface px-4 py-3 text-left text-[12px] text-slate-300">
+        <pre className="mt-4 rounded-lg border border-border bg-surface px-4 py-3 text-left text-[12px] text-slate-600">
           cd /path/to/FantasyBaseball{"\n"}
           python3 scripts/fetch_espn_history.py{"\n"}
           # Then commit seasons/2026/draft_results.csv
@@ -73,7 +73,7 @@ export default function DraftResultsPage() {
     <div className="mx-auto max-w-5xl px-4 py-6">
       <div className="mb-6 flex items-baseline justify-between">
         <div>
-          <h1 className="text-xl font-bold text-white">2026 Draft Results</h1>
+          <h1 className="text-xl font-bold text-gray-900">2026 Draft Results</h1>
           <div className="mt-1 text-[12px] text-slate-500">
             {picks.length} picks · {teams.length} teams · {rounds.length} rounds
           </div>
@@ -87,7 +87,7 @@ export default function DraftResultsPage() {
           <select
             value={teamFilter}
             onChange={(e) => setTeamFilter(e.target.value)}
-            className="rounded border border-border bg-surface px-2 py-1 text-[12px] text-white focus:outline-none"
+            className="rounded border border-border bg-surface px-2 py-1 text-[12px] text-gray-900 focus:outline-none"
           >
             <option value="all">All</option>
             {teams.map((t) => (
@@ -100,7 +100,7 @@ export default function DraftResultsPage() {
           <select
             value={roundFilter}
             onChange={(e) => setRoundFilter(e.target.value === "all" ? "all" : Number(e.target.value))}
-            className="rounded border border-border bg-surface px-2 py-1 text-[12px] text-white focus:outline-none"
+            className="rounded border border-border bg-surface px-2 py-1 text-[12px] text-gray-900 focus:outline-none"
           >
             <option value="all">All</option>
             {rounds.map((r) => (
@@ -111,7 +111,7 @@ export default function DraftResultsPage() {
         {(teamFilter !== "all" || roundFilter !== "all") && (
           <button
             onClick={() => { setTeamFilter("all"); setRoundFilter("all"); }}
-            className="text-[11px] text-slate-600 hover:text-slate-400"
+            className="text-[11px] text-slate-600 hover:text-slate-500"
           >
             Clear filters
           </button>
@@ -137,18 +137,18 @@ export default function DraftResultsPage() {
                 <tr
                   key={i}
                   className={`border-b border-border/50 transition-colors ${
-                    isMe ? "bg-orange-600/5" : i % 2 === 0 ? "" : "bg-white/[0.01]"
-                  } hover:bg-white/[0.03]`}
+                    isMe ? "bg-orange-50" : i % 2 === 0 ? "" : "bg-black/[0.02]"
+                  } hover:bg-black/[0.05]`}
                 >
                   <td className="px-3 py-1.5 font-mono text-slate-500">{p.round}</td>
                   <td className="px-2 py-1.5 font-mono text-slate-600">{p.pick}</td>
-                  <td className={`px-3 py-1.5 ${isMe ? "font-semibold text-orange-500" : "text-slate-300"}`}>
+                  <td className={`px-3 py-1.5 ${isMe ? "font-semibold text-orange-600" : "text-slate-600"}`}>
                     {p.team}
                   </td>
-                  <td className="px-3 py-1.5 font-medium text-slate-100">{p.playerName}</td>
+                  <td className="px-3 py-1.5 font-medium text-slate-800">{p.playerName}</td>
                   <td className="px-3 py-1.5">
                     {p.keeper && (
-                      <span className="rounded bg-sky-500/15 px-1.5 py-0.5 text-[10px] font-bold text-sky-400">
+                      <span className="rounded bg-sky-500/15 px-1.5 py-0.5 text-[10px] font-bold text-sky-600">
                         KEEPER
                       </span>
                     )}

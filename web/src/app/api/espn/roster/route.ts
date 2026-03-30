@@ -34,7 +34,7 @@ function parseTeams(data: any): EspnTeam[] {
       const ppe = e.playerPoolEntry ?? {};
       const player = ppe.player ?? {};
       const injuryStatus: string = player.injuryStatus ?? "ACTIVE";
-      const injuryInfo = INJURY_MAP[injuryStatus] ?? { label: injuryStatus, color: "text-slate-400" };
+      const injuryInfo = INJURY_MAP[injuryStatus] ?? { label: injuryStatus, color: "text-slate-500" };
       return {
         name: player.fullName ?? "Unknown",
         pos: POS_MAP[player.defaultPositionId] ?? "?",

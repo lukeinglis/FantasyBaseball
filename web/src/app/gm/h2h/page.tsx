@@ -35,24 +35,24 @@ const PIT_CATS = ["K", "QS", "W", "L", "SV", "HD", "ERA", "WHIP"];
 const ALL_CATS = [...BAT_CATS, ...PIT_CATS];
 
 function resultColor(w: number, l: number): string {
-  if (w > l) return "text-emerald-400";
-  if (l > w) return "text-red-400";
-  return "text-orange-500";
+  if (w > l) return "text-emerald-600";
+  if (l > w) return "text-red-600";
+  return "text-orange-600";
 }
 
 function catCellColor(wins: number, losses: number): string {
-  if (wins > losses) return "text-emerald-400";
-  if (losses > wins) return "text-red-400";
-  if (wins === 0 && losses === 0) return "text-slate-700";
-  return "text-orange-500";
+  if (wins > losses) return "text-emerald-600";
+  if (losses > wins) return "text-red-600";
+  if (wins === 0 && losses === 0) return "text-slate-400";
+  return "text-orange-600";
 }
 
 function EspnSetupCard() {
   return (
     <div className="mx-auto max-w-lg rounded-xl border border-border bg-surface px-8 py-10 text-center">
-      <div className="text-[11px] font-semibold uppercase tracking-widest text-orange-500/60">Setup Required</div>
-      <div className="mt-3 text-xl font-bold text-white">Connect ESPN Credentials</div>
-      <div className="mt-3 text-[13px] text-slate-400">
+      <div className="text-[11px] font-semibold uppercase tracking-widest text-orange-600/60">Setup Required</div>
+      <div className="mt-3 text-xl font-bold text-gray-900">Connect ESPN Credentials</div>
+      <div className="mt-3 text-[13px] text-slate-500">
         Team H2H pulls live data from your private ESPN league.
       </div>
     </div>
@@ -100,7 +100,7 @@ export default function TeamH2HPage() {
   if (error || !data) {
     return (
       <div className="flex h-64 flex-col items-center justify-center gap-2">
-        <div className="text-red-400">Failed to load H2H records</div>
+        <div className="text-red-600">Failed to load H2H records</div>
         <div className="text-[12px] text-slate-600">{error}</div>
       </div>
     );
@@ -111,7 +111,7 @@ export default function TeamH2HPage() {
       {/* Header */}
       <div className="mb-5 flex flex-wrap items-start justify-between gap-4">
         <div>
-          <h1 className="text-lg font-bold text-white">Head-to-Head</h1>
+          <h1 className="text-lg font-bold text-gray-900">Head-to-Head</h1>
           <div className="flex items-center gap-3 text-[12px]">
             <span className="text-slate-500">Season Record:</span>
             <span className={`font-bold tabular-nums ${resultColor(seasonRecord.w, seasonRecord.l)}`}>
@@ -123,7 +123,7 @@ export default function TeamH2HPage() {
           {(["opponents", "weekly"] as const).map((v) => (
             <button key={v} onClick={() => setView(v)}
               className={`rounded px-3 py-1 text-[11px] font-bold transition-colors ${
-                view === v ? "bg-white/10 text-white" : "text-slate-500 hover:text-slate-300"
+                view === v ? "bg-black/10 text-gray-900" : "text-slate-500 hover:text-slate-700"
               }`}>
               {v === "opponents" ? "By Opponent" : "Week by Week"}
             </button>
@@ -143,7 +143,7 @@ export default function TeamH2HPage() {
                   {/* Opponent header */}
                   <div className="flex items-center justify-between border-b border-border px-4 py-3">
                     <div>
-                      <span className="text-[14px] font-semibold text-slate-200">{opp.teamName}</span>
+                      <span className="text-[14px] font-semibold text-slate-400">{opp.teamName}</span>
                       <span className="ml-2 text-[11px] text-slate-600">
                         ({opp.matchupsPlayed} matchup{opp.matchupsPlayed !== 1 ? "s" : ""})
                       </span>
@@ -154,8 +154,8 @@ export default function TeamH2HPage() {
                         {opp.totalTies > 0 ? `-${opp.totalTies}` : ""}
                       </span>
                       <span className={`text-[10px] font-semibold uppercase ${
-                        matchupResult === "winning" ? "text-emerald-400/60" :
-                        matchupResult === "losing" ? "text-red-400/60" : "text-orange-500/60"
+                        matchupResult === "winning" ? "text-emerald-600/60" :
+                        matchupResult === "losing" ? "text-red-600/60" : "text-orange-600/60"
                       }`}>cats</span>
                     </div>
                   </div>
@@ -166,7 +166,7 @@ export default function TeamH2HPage() {
                       const w = opp.catWins[cat] ?? 0;
                       const l = opp.catLosses[cat] ?? 0;
                       return (
-                        <div key={cat} className="px-2 py-2 text-center border-r border-border/30 last:border-r-0">
+                        <div key={cat} className="px-2 py-2 text-center border-r border-border last:border-r-0">
                           <div className="text-[9px] font-bold text-slate-600">{cat}</div>
                           <div className={`text-[12px] font-mono tabular-nums font-semibold ${catCellColor(w, l)}`}>
                             {w}-{l}
@@ -206,10 +206,10 @@ export default function TeamH2HPage() {
                 const isLoss = m.myLosses > m.myWins;
                 return (
                   <tr key={m.week} className={`border-b border-border/50 ${
-                    isWin ? "bg-emerald-500/5" : isLoss ? "bg-red-500/5" : ""
+                    isWin ? "bg-emerald-50" : isLoss ? "bg-red-50" : ""
                   }`}>
-                    <td className="px-3 py-2 font-bold text-slate-400 sticky left-0 bg-inherit">{m.week}</td>
-                    <td className="px-2 py-2 text-slate-200 whitespace-nowrap">{m.oppTeamName}</td>
+                    <td className="px-3 py-2 font-bold text-slate-500 sticky left-0 bg-inherit">{m.week}</td>
+                    <td className="px-2 py-2 text-slate-400 whitespace-nowrap">{m.oppTeamName}</td>
                     <td className="px-2 py-2 text-center">
                       <span className={`font-bold font-mono tabular-nums ${resultColor(m.myWins, m.myLosses)}`}>
                         {m.myWins}-{m.myLosses}{m.myTies > 0 ? `-${m.myTies}` : ""}
@@ -217,11 +217,11 @@ export default function TeamH2HPage() {
                     </td>
                     {ALL_CATS.map((cat) => {
                       const c = m.categories[cat];
-                      if (!c) return <td key={cat} className="px-1.5 py-2 text-center text-slate-700">-</td>;
+                      if (!c) return <td key={cat} className="px-1.5 py-2 text-center text-slate-400">-</td>;
                       return (
                         <td key={cat} className={`px-1.5 py-2 text-center text-[11px] font-bold ${
-                          c.result === "WIN" ? "text-emerald-400" :
-                          c.result === "LOSS" ? "text-red-400" : "text-orange-500"
+                          c.result === "WIN" ? "text-emerald-600" :
+                          c.result === "LOSS" ? "text-red-600" : "text-orange-600"
                         }`}>
                           {c.result === "WIN" ? "W" : c.result === "LOSS" ? "L" : "T"}
                         </td>

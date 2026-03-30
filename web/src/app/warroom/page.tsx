@@ -59,11 +59,11 @@ interface DraftSession {
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
 function zColor(z: number): string {
-  if (z >= 1.0) return "text-sky-300 font-semibold";
-  if (z >= 0.5) return "text-sky-400/90";
-  if (z >= 0.0) return "text-slate-300";
+  if (z >= 1.0) return "text-sky-600 font-semibold";
+  if (z >= 0.5) return "text-sky-600/90";
+  if (z >= 0.0) return "text-slate-600";
   if (z >= -0.3) return "text-slate-500";
-  return "text-red-400/70";
+  return "text-red-600/70";
 }
 
 const BAT_COLS = ["H", "R", "HR", "TB", "RBI", "BB", "SB", "AVG"] as const;
@@ -78,9 +78,9 @@ function fmtStat(p: Player, col: StatCol): string {
 }
 
 function urgencyTag(pct: number): { label: string; color: string; bar: string } {
-  if (pct >= 75) return { label: "CRITICAL", color: "text-red-400", bar: "bg-red-500" };
-  if (pct >= 50) return { label: "THIN", color: "text-orange-400", bar: "bg-orange-500" };
-  if (pct >= 25) return { label: "WATCH", color: "text-orange-500", bar: "bg-orange-600" };
+  if (pct >= 75) return { label: "CRITICAL", color: "text-red-600", bar: "bg-red-500" };
+  if (pct >= 50) return { label: "THIN", color: "text-orange-600", bar: "bg-orange-500" };
+  if (pct >= 25) return { label: "WATCH", color: "text-orange-600", bar: "bg-orange-600" };
   return { label: "DEEP", color: "text-slate-500", bar: "bg-sky-600" };
 }
 
@@ -358,12 +358,12 @@ export default function DraftBoardPage() {
   };
 
   const SortTh = ({ col, label, className }: { col: string; label: string; className?: string }) => (
-    <th className={`cursor-pointer select-none px-2 py-2.5 font-medium hover:text-slate-300 ${className ?? ""}`}
+    <th className={`cursor-pointer select-none px-2 py-2.5 font-medium hover:text-slate-700 ${className ?? ""}`}
       onClick={() => handleSort(col)}>
       <span className="flex items-center gap-0.5">
         {label}
         {sortCol === col && (
-          <span className="text-orange-500">{sortDir === "asc" ? "↑" : "↓"}</span>
+          <span className="text-orange-600">{sortDir === "asc" ? "↑" : "↓"}</span>
         )}
       </span>
     </th>
@@ -381,24 +381,24 @@ export default function DraftBoardPage() {
         <div className="rounded-lg border border-border bg-surface">
           <div className="flex items-center justify-between border-b border-border px-3 py-2">
             <h2 className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">My Lineup</h2>
-            <span className="text-[11px] tabular-nums text-orange-500/70">{myPickPlayers.length} / 24 picks</span>
+            <span className="text-[11px] tabular-nums text-orange-600/70">{myPickPlayers.length} / 24 picks</span>
           </div>
           <div className="p-3">
             <div className="grid grid-cols-3 gap-x-4">
               {/* Batting slots */}
               <div>
-                <div className="mb-1.5 text-[10px] font-semibold uppercase tracking-wider text-slate-700">Batting</div>
+                <div className="mb-1.5 text-[10px] font-semibold uppercase tracking-wider text-slate-400">Batting</div>
                 <div className="space-y-0.5">
                   {lineupSlots.batSlots.map((s, i) => (
                     <div key={i} className="flex items-center gap-2 py-0.5">
                       <span className="w-8 shrink-0 text-[10px] font-bold text-slate-600">{s.slot}</span>
                       {s.player ? (
                         <>
-                          <span className="min-w-0 flex-1 truncate text-[12px] text-slate-200">{s.player.name}</span>
+                          <span className="min-w-0 flex-1 truncate text-[12px] text-slate-400">{s.player.name}</span>
                           <span className={`shrink-0 font-mono text-[11px] ${zColor(s.player.zTotal)}`}>{s.player.zTotal.toFixed(2)}</span>
                         </>
                       ) : (
-                        <span className="flex-1 text-[11px] text-slate-700">—</span>
+                        <span className="flex-1 text-[11px] text-slate-400">—</span>
                       )}
                     </div>
                   ))}
@@ -406,18 +406,18 @@ export default function DraftBoardPage() {
               </div>
               {/* Pitching slots */}
               <div>
-                <div className="mb-1.5 text-[10px] font-semibold uppercase tracking-wider text-slate-700">Pitching</div>
+                <div className="mb-1.5 text-[10px] font-semibold uppercase tracking-wider text-slate-400">Pitching</div>
                 <div className="space-y-0.5">
                   {lineupSlots.pitSlots.map((s, i) => (
                     <div key={i} className="flex items-center gap-2 py-0.5">
                       <span className="w-6 shrink-0 text-[10px] font-bold text-slate-600">{s.slot}</span>
                       {s.player ? (
                         <>
-                          <span className="min-w-0 flex-1 truncate text-[12px] text-slate-200">{s.player.name}</span>
+                          <span className="min-w-0 flex-1 truncate text-[12px] text-slate-400">{s.player.name}</span>
                           <span className={`shrink-0 font-mono text-[11px] ${zColor(s.player.zTotal)}`}>{s.player.zTotal.toFixed(2)}</span>
                         </>
                       ) : (
-                        <span className="flex-1 text-[11px] text-slate-700">—</span>
+                        <span className="flex-1 text-[11px] text-slate-400">—</span>
                       )}
                     </div>
                   ))}
@@ -425,15 +425,15 @@ export default function DraftBoardPage() {
               </div>
               {/* Bench */}
               <div>
-                <div className="mb-1.5 text-[10px] font-semibold uppercase tracking-wider text-slate-700">Bench</div>
+                <div className="mb-1.5 text-[10px] font-semibold uppercase tracking-wider text-slate-400">Bench</div>
                 <div className="space-y-0.5">
                   {lineupSlots.bnSlots.map((s, i) => (
                     <div key={i} className="flex items-center gap-2 py-0.5">
                       <span className="shrink-0 text-[10px] font-bold text-slate-600">BN</span>
                       {s.player ? (
-                        <span className="min-w-0 truncate text-[12px] text-slate-400">{s.player.name}</span>
+                        <span className="min-w-0 truncate text-[12px] text-slate-500">{s.player.name}</span>
                       ) : (
-                        <span className="text-[11px] text-slate-700">—</span>
+                        <span className="text-[11px] text-slate-400">—</span>
                       )}
                     </div>
                   ))}
@@ -452,14 +452,14 @@ export default function DraftBoardPage() {
             {scarcityData.map((d) => {
               const tag = urgencyTag(d.startersPct);
               return (
-                <div key={d.pos} className="rounded bg-white/[0.02] px-2 py-1.5 text-center">
-                  <div className="text-[12px] font-bold text-white">{d.pos}</div>
+                <div key={d.pos} className="rounded bg-black/[0.03] px-2 py-1.5 text-center">
+                  <div className="text-[12px] font-bold text-gray-900">{d.pos}</div>
                   <div className={`text-[10px] font-bold ${tag.color}`}>{tag.label}</div>
-                  <div className="mt-1 text-[11px] font-mono text-sky-400">{d.availElite}</div>
+                  <div className="mt-1 text-[11px] font-mono text-sky-600">{d.availElite}</div>
                   <div className="text-[9px] text-slate-600">elite left</div>
-                  <div className="mt-1 text-[11px] font-mono text-emerald-400">{d.availStarters}/{d.starterCap}</div>
+                  <div className="mt-1 text-[11px] font-mono text-emerald-600">{d.availStarters}/{d.starterCap}</div>
                   <div className="text-[9px] text-slate-600">starters left</div>
-                  <div className="mt-1.5 h-0.5 overflow-hidden rounded-full bg-slate-800">
+                  <div className="mt-1.5 h-0.5 overflow-hidden rounded-full bg-slate-200">
                     <div className={`h-full rounded-full ${tag.bar}`} style={{ width: `${d.startersPct}%` }} />
                   </div>
                 </div>
@@ -479,24 +479,24 @@ export default function DraftBoardPage() {
           <div className="mb-4 flex flex-wrap items-center gap-3">
             <div className="flex items-center gap-3 rounded bg-surface px-3 py-1.5 text-[13px] tabular-nums">
               <span className="text-slate-500">Drafted</span>
-              <span className="font-semibold text-white">{session.drafted.length}</span>
-              <span className="text-slate-700">|</span>
+              <span className="font-semibold text-gray-900">{session.drafted.length}</span>
+              <span className="text-slate-400">|</span>
               <span className="text-slate-500">Mine</span>
-              <span className="font-semibold text-orange-500">{session.myPicks.length}</span>
-              <span className="text-slate-700">|</span>
+              <span className="font-semibold text-orange-600">{session.myPicks.length}</span>
+              <span className="text-slate-400">|</span>
               <span className="text-slate-500">Drafting for:</span>
-              <span className={`font-bold ${isMine ? "text-orange-500" : "text-white"}`}>
+              <span className={`font-bold ${isMine ? "text-orange-600" : "text-gray-900"}`}>
                 {activeDrafter}
               </span>
               <span className="text-slate-600">Rd {drafter.round} Pk {drafter.pick}</span>
             </div>
             <div className="flex gap-1.5 text-[12px]">
               <button onClick={undoLast}
-                className="rounded px-2.5 py-1 text-slate-400 transition-colors hover:bg-white/5 hover:text-slate-200">
+                className="rounded px-2.5 py-1 text-slate-500 transition-colors hover:bg-black/5 hover:text-slate-700">
                 Undo
               </button>
               <button onClick={resetDraft}
-                className="rounded px-2.5 py-1 text-red-400/60 transition-colors hover:bg-red-500/10 hover:text-red-400">
+                className="rounded px-2.5 py-1 text-red-600/60 transition-colors hover:bg-red-100 hover:text-red-600">
                 Reset
               </button>
             </div>
@@ -508,7 +508,7 @@ export default function DraftBoardPage() {
               {(["All", "BAT", "PIT"] as const).map((t) => (
                 <button key={t} onClick={() => setTypeFilter(t)}
                   className={`rounded px-3 py-1 text-[12px] font-medium transition-colors ${
-                    typeFilter === t ? "bg-white/10 text-white" : "text-slate-500 hover:text-slate-300"
+                    typeFilter === t ? "bg-black/10 text-gray-900" : "text-slate-500 hover:text-slate-700"
                   }`}>
                   {t === "BAT" ? "Bat" : t === "PIT" ? "Pitch" : "All"}
                 </button>
@@ -519,8 +519,8 @@ export default function DraftBoardPage() {
                 <button key={pos} onClick={() => togglePos(pos)}
                   className={`rounded px-2 py-0.5 text-[11px] font-medium transition-colors ${
                     posFilter.includes(pos)
-                      ? "bg-orange-600/20 text-orange-400"
-                      : "text-slate-600 hover:text-slate-400"
+                      ? "bg-orange-600/20 text-orange-600"
+                      : "text-slate-600 hover:text-slate-500"
                   }`}>
                   {pos}
                 </button>
@@ -537,7 +537,7 @@ export default function DraftBoardPage() {
             </label>
             <input type="text" value={search} onChange={(e) => setSearch(e.target.value)}
               placeholder="Search..."
-              className="rounded border border-border bg-surface px-2.5 py-1 text-[12px] text-white placeholder:text-slate-600 focus:border-slate-500 focus:outline-none" />
+              className="rounded border border-border bg-surface px-2.5 py-1 text-[12px] text-gray-900 placeholder:text-slate-600 focus:border-slate-500 focus:outline-none" />
           </div>
 
           {/* Rankings table */}
@@ -567,8 +567,8 @@ export default function DraftBoardPage() {
                   return (
                     <tr key={p.name}
                       className={`border-b border-border/50 transition-colors ${
-                        drafted ? "opacity-30" : "hover:bg-white/[0.02]"
-                      } ${idx % 2 === 0 ? "" : "bg-white/[0.01]"}`}>
+                        drafted ? "opacity-30" : "hover:bg-black/[0.05]"
+                      } ${idx % 2 === 0 ? "" : "bg-black/[0.02]"}`}>
                       <td className="px-2 py-1.5 font-mono text-slate-600">{espnData[p.name]?.espnRank ?? "—"}</td>
                       <td className="px-2 py-1.5 font-mono text-slate-500">{espnData[p.name]?.adp ?? "—"}</td>
                       <td className="px-2 py-1.5 font-mono text-slate-600">{p.rank}</td>
@@ -578,15 +578,15 @@ export default function DraftBoardPage() {
                       <td className="px-2 py-1.5 text-[11px] text-slate-500">
                         {espnData[p.name]?.eligiblePos.join(", ") ?? "—"}
                       </td>
-                      <td className="px-3 py-1.5 font-medium text-slate-100">{p.name}</td>
+                      <td className="px-3 py-1.5 font-medium text-slate-800">{p.name}</td>
                       <td className="px-2 py-1.5 text-slate-500">{p.team}</td>
                       <td className="px-2 py-1.5">
                         {!drafted && (
                           <button onClick={() => draftPlayer(p.name, isMine)}
                             className={`rounded px-2.5 py-0.5 text-[11px] font-medium transition-colors ${
                               isMine
-                                ? "bg-orange-600/20 text-orange-400 hover:bg-orange-600/30"
-                                : "bg-white/5 text-slate-400 hover:bg-white/10 hover:text-slate-200"
+                                ? "bg-orange-600/20 text-orange-600 hover:bg-orange-600/30"
+                                : "bg-black/5 text-slate-500 hover:bg-black/10 hover:text-slate-700"
                             }`}>
                             Draft
                           </button>
@@ -599,7 +599,7 @@ export default function DraftBoardPage() {
                         {farByPlayer.has(p.name) ? (farByPlayer.get(p.name)! >= 0 ? "+" : "") + farByPlayer.get(p.name)!.toFixed(2) : "—"}
                       </td>
                       {statCols.map((c) => (
-                        <td key={c} className="px-2 py-1.5 text-right font-mono text-slate-400">
+                        <td key={c} className="px-2 py-1.5 text-right font-mono text-slate-500">
                           {fmtStat(p, c)}
                         </td>
                       ))}
@@ -625,13 +625,13 @@ export default function DraftBoardPage() {
                 <div className="flex items-center gap-2">
                   {selectedDrafter && (
                     <button onClick={() => setSelectedDrafter(null)}
-                      className="text-[10px] text-slate-600 hover:text-slate-400">
+                      className="text-[10px] text-slate-600 hover:text-slate-500">
                       clear
                     </button>
                   )}
                   {session.drafted.length > 0 && (
                     <button onClick={undoLast}
-                      className="rounded bg-white/5 px-2 py-0.5 text-[11px] text-slate-400 transition-colors hover:bg-white/10 hover:text-slate-200">
+                      className="rounded bg-black/5 px-2 py-0.5 text-[11px] text-slate-500 transition-colors hover:bg-black/10 hover:text-slate-700">
                       ← Undo pick
                     </button>
                   )}
@@ -656,10 +656,10 @@ export default function DraftBoardPage() {
                       <span className="w-8 font-mono text-[10px] text-slate-600">
                         {pick.round}.{pick.pick}
                       </span>
-                      <span className={`w-14 text-[11px] ${isMe ? "text-orange-500/70" : "text-slate-500"}`}>
+                      <span className={`w-14 text-[11px] ${isMe ? "text-orange-600/70" : "text-slate-500"}`}>
                         {pick.drafter}
                       </span>
-                      <span className="flex-1 truncate text-[11px] text-slate-400">{draftedPlayer ?? ""}</span>
+                      <span className="flex-1 truncate text-[11px] text-slate-500">{draftedPlayer ?? ""}</span>
                     </div>
                   );
                 }
@@ -667,16 +667,16 @@ export default function DraftBoardPage() {
                 if (isCurrent) {
                   return (
                     <div key={pick.overall} ref={currentPickRef}
-                      className={`flex items-center gap-2 border-b border-orange-600/20 px-3 py-2.5 ${
-                        isMe ? "bg-orange-600/10" : "bg-white/5"
+                      className={`flex items-center gap-2 border-b border-orange-300 px-3 py-2.5 ${
+                        isMe ? "bg-orange-100" : "bg-black/5"
                       }`}>
                       <span className="w-8 font-mono text-[10px] text-slate-500">
                         {pick.round}.{pick.pick}
                       </span>
-                      <span className={`flex-1 text-[13px] font-bold ${isMe ? "text-orange-400" : "text-white"}`}>
+                      <span className={`flex-1 text-[13px] font-bold ${isMe ? "text-orange-600" : "text-gray-900"}`}>
                         {pick.drafter}
                       </span>
-                      <span className="text-[10px] font-semibold text-orange-500">ON CLOCK</span>
+                      <span className="text-[10px] font-semibold text-orange-600">ON CLOCK</span>
                     </div>
                   );
                 }
@@ -688,16 +688,16 @@ export default function DraftBoardPage() {
                       onClick={() => setSelectedDrafter(pick.drafter === selectedDrafter ? null : pick.drafter)}
                       className={`flex w-full items-center gap-2 border-b border-border/20 px-3 py-1.5 text-left transition-colors ${
                         isSelected && isManual
-                          ? isMe ? "bg-orange-600/10" : "bg-blue-500/8"
-                          : "hover:bg-white/[0.03]"
+                          ? isMe ? "bg-orange-100" : "bg-blue-500/8"
+                          : "hover:bg-black/[0.05]"
                       }`}>
-                      <span className="w-8 font-mono text-[10px] text-slate-700">
+                      <span className="w-8 font-mono text-[10px] text-slate-400">
                         {pick.round}.{pick.pick}
                       </span>
                       <span className={`flex-1 text-[11px] ${
-                        isSelected && isManual && isMe ? "font-semibold text-orange-500" :
-                        isSelected && isManual ? "font-semibold text-blue-400" :
-                        isMe ? "text-orange-500/50" : "text-slate-600"
+                        isSelected && isManual && isMe ? "font-semibold text-orange-600" :
+                        isSelected && isManual ? "font-semibold text-blue-600" :
+                        isMe ? "text-orange-600/50" : "text-slate-600"
                       }`}>
                         {pick.drafter}
                       </span>
@@ -716,7 +716,7 @@ export default function DraftBoardPage() {
             <div className="border-b border-border px-3 py-2 flex items-center justify-between">
               <h2 className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Team Projections</h2>
               {winnerAverages && (
-                <span className="text-[10px] text-slate-700">vs avg champion</span>
+                <span className="text-[10px] text-slate-400">vs avg champion</span>
               )}
             </div>
             <div className="px-3 py-2 space-y-2">
@@ -737,12 +737,12 @@ export default function DraftBoardPage() {
                       <div key={stat} className="text-center">
                         <div className="text-[10px] text-slate-600">{stat}</div>
                         <div className={`font-mono text-[12px] font-bold ${
-                          ahead === true ? "text-emerald-400" : ahead === false ? "text-red-400/80" : "text-slate-200"
+                          ahead === true ? "text-emerald-600" : ahead === false ? "text-red-600/80" : "text-slate-400"
                         }`}>
                           {cur === null ? "—" : isDecimal ? cur.toFixed(3) : Math.round(cur)}
                         </div>
                         {winAvg !== null && (
-                          <div className="font-mono text-[9px] text-slate-700">
+                          <div className="font-mono text-[9px] text-slate-400">
                             {isDecimal ? winAvg.toFixed(2) : Math.round(winAvg)}
                           </div>
                         )}
@@ -759,30 +759,30 @@ export default function DraftBoardPage() {
 
       {/* ── Footer / Glossary ────────────────────────────────────────────── */}
       <div className="mt-8 border-t border-border/40 pt-5 pb-8 text-[11px] text-slate-600">
-        <div className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-slate-700">Glossary</div>
+        <div className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-slate-400">Glossary</div>
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           <div>
-            <span className="font-semibold text-slate-400">zScore</span>
+            <span className="font-semibold text-slate-500">zScore</span>
             {" — "}Weighted z-score across all 16 scoring categories. Measures how far above or below average a player projects, with each category weighted by how strongly it predicts H2H wins in this league (e.g. TB 11.4%, HR 10.8%, SV 0.2%). Higher is better. Negative means below the average draftable player.
           </div>
           <div>
-            <span className="font-semibold text-slate-400">FAR</span>
+            <span className="font-semibold text-slate-500">FAR</span>
             {" — "}Fantasy Above Replacement. Same as zScore but relative to the replacement-level player at the position — the first player you'd be forced to start if you skipped the position entirely (C/1B/2B/3B/SS: 11th best, OF: 31st, SP: 51st, RP: 21st). Positive means genuine starter value above what's freely available. Negative means replaceable. FAR adjusts for positional scarcity: a +0.4 catcher is worth more than a +0.4 outfielder because the catcher alternatives are worse.
           </div>
           <div>
-            <span className="font-semibold text-slate-400">ADP</span>
+            <span className="font-semibold text-slate-500">ADP</span>
             {" — "}Average Draft Position from live ESPN fantasy drafts for the 2026 season. Lower = being drafted earlier. Compare to your rank to spot value: a player ranked 40th with ADP 65 is being undervalued by the market.
           </div>
           <div>
-            <span className="font-semibold text-slate-400">POS#</span>
+            <span className="font-semibold text-slate-500">POS#</span>
             {" — "}Positional rank among available players (e.g. OF3 = 3rd outfielder still on the board). Updates in real time as players are drafted.
           </div>
           <div>
-            <span className="font-semibold text-slate-400">Scarcity</span>
+            <span className="font-semibold text-slate-500">Scarcity</span>
             {" — "}For each position: elite left = players with zScore ≥ 0.5 still available. Starters left = how many of the top N players (league-wide starter count) remain undrafted. Urgency bar tracks what % of the starter pool has been drafted.
           </div>
           <div>
-            <span className="font-semibold text-slate-400">Category weights</span>
+            <span className="font-semibold text-slate-500">Category weights</span>
             {" — "}Derived via Spearman correlation between per-category win% and overall H2H win% across 60 team-seasons (2019–2025, excl. 2020). TB and HR are the most predictive; SV is weakest — do not reach for closers.
           </div>
         </div>

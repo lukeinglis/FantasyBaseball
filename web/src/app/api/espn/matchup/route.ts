@@ -45,7 +45,7 @@ function parsePlayers(entries: any[]): MatchupPlayer[] {
   return (entries ?? []).map((e: any) => {
     const player = e.playerPoolEntry?.player ?? {};
     const injuryStatus = player.injuryStatus ?? "ACTIVE";
-    const injuryInfo = INJURY_MAP[injuryStatus] ?? { label: injuryStatus, color: "text-slate-400" };
+    const injuryInfo = INJURY_MAP[injuryStatus] ?? { label: injuryStatus, color: "text-slate-500" };
     return {
       name: player.fullName ?? "Unknown",
       pos: POS_MAP[player.defaultPositionId] ?? "?",

@@ -47,9 +47,9 @@ function getZ(p: PlayerRanking, cat: string): number {
 function EspnSetupCard() {
   return (
     <div className="mx-auto max-w-lg rounded-xl border border-border bg-surface px-8 py-10 text-center">
-      <div className="text-[11px] font-semibold uppercase tracking-widest text-orange-500/60">Setup Required</div>
-      <div className="mt-3 text-xl font-bold text-white">Connect ESPN Credentials</div>
-      <div className="mt-3 text-[13px] text-slate-400">
+      <div className="text-[11px] font-semibold uppercase tracking-widest text-orange-600/60">Setup Required</div>
+      <div className="mt-3 text-xl font-bold text-gray-900">Connect ESPN Credentials</div>
+      <div className="mt-3 text-[13px] text-slate-500">
         Trade Room needs your ESPN roster data to evaluate trades.
       </div>
     </div>
@@ -146,7 +146,7 @@ export default function TradeRoomPage() {
   if (error || !myTeam) {
     return (
       <div className="flex h-64 flex-col items-center justify-center gap-2">
-        <div className="text-red-400">Failed to load trade room</div>
+        <div className="text-red-600">Failed to load trade room</div>
         <div className="text-[12px] text-slate-600">{error}</div>
       </div>
     );
@@ -155,14 +155,14 @@ export default function TradeRoomPage() {
   const PlayerChip = ({ name, onRemove }: { name: string; onRemove: () => void }) => {
     const p = rankMap.get(name);
     return (
-      <div className="flex items-center gap-1.5 rounded bg-white/5 border border-border px-2 py-1">
-        <span className="text-[12px] text-slate-200">{name}</span>
+      <div className="flex items-center gap-1.5 rounded bg-black/5 border border-border px-2 py-1">
+        <span className="text-[12px] text-slate-400">{name}</span>
         {p && (
-          <span className={`text-[10px] font-mono ${p.zTotal >= 0 ? "text-sky-400" : "text-red-400/70"}`}>
+          <span className={`text-[10px] font-mono ${p.zTotal >= 0 ? "text-sky-600" : "text-red-600/70"}`}>
             {p.zTotal.toFixed(2)}
           </span>
         )}
-        <button onClick={onRemove} className="ml-1 text-slate-600 hover:text-red-400 text-[10px]">x</button>
+        <button onClick={onRemove} className="ml-1 text-slate-600 hover:text-red-600 text-[10px]">x</button>
       </div>
     );
   };
@@ -170,7 +170,7 @@ export default function TradeRoomPage() {
   return (
     <div className="mx-auto max-w-6xl px-4 py-6">
       <div className="mb-5">
-        <h1 className="text-lg font-bold text-white">Trade Room</h1>
+        <h1 className="text-lg font-bold text-gray-900">Trade Room</h1>
         <span className="text-[12px] text-slate-500">Evaluate trade impact using projected z-scores</span>
       </div>
 
@@ -186,7 +186,7 @@ export default function TradeRoomPage() {
             setReceiving([]);
             setSearchReceive("");
           }}
-          className="rounded border border-border bg-surface px-3 py-1.5 text-[13px] text-slate-200 outline-none"
+          className="rounded border border-border bg-surface px-3 py-1.5 text-[13px] text-slate-400 outline-none"
         >
           <option value="">Select a team...</option>
           {otherTeams.map((t) => (
@@ -198,13 +198,13 @@ export default function TradeRoomPage() {
       {/* Two-column trade builder */}
       <div className="grid gap-4 lg:grid-cols-2 mb-6">
         {/* Sending (my players) */}
-        <div className="rounded-lg border border-red-500/20 bg-surface">
-          <div className="border-b border-red-500/20 px-3 py-2">
-            <span className="text-[10px] font-semibold uppercase tracking-wider text-red-400/70">Sending</span>
+        <div className="rounded-lg border border-red-300 bg-surface">
+          <div className="border-b border-red-300 px-3 py-2">
+            <span className="text-[10px] font-semibold uppercase tracking-wider text-red-600/70">Sending</span>
           </div>
           {/* Selected players */}
           {sending.length > 0 && (
-            <div className="flex flex-wrap gap-1.5 px-3 py-2 border-b border-border/30">
+            <div className="flex flex-wrap gap-1.5 px-3 py-2 border-b border-border">
               {sending.map((name) => (
                 <PlayerChip key={name} name={name} onRemove={() => setSending(sending.filter((n) => n !== name))} />
               ))}
@@ -217,19 +217,19 @@ export default function TradeRoomPage() {
               placeholder="Search your roster..."
               value={searchSend}
               onChange={(e) => setSearchSend(e.target.value)}
-              className="w-full rounded border border-border bg-background px-2 py-1 text-[12px] text-slate-200 outline-none placeholder:text-slate-700"
+              className="w-full rounded border border-border bg-background px-2 py-1 text-[12px] text-slate-400 outline-none placeholder:text-slate-400"
             />
           </div>
           <div className="overflow-y-auto max-h-[240px]">
             {myRosterFiltered.map((p, i) => (
               <button key={i}
                 onClick={() => { setSending([...sending, p.name]); setSearchSend(""); }}
-                className="flex w-full items-center gap-2 border-b border-border/20 px-3 py-1.5 text-left hover:bg-white/[0.03]">
-                <span className="text-[12px] text-slate-300">{p.name}</span>
+                className="flex w-full items-center gap-2 border-b border-border/20 px-3 py-1.5 text-left hover:bg-black/[0.05]">
+                <span className="text-[12px] text-slate-600">{p.name}</span>
                 <span className="text-[10px] text-slate-600">{p.pos} · {p.proTeam}</span>
                 {rankMap.get(p.name) && (
                   <span className={`ml-auto text-[10px] font-mono ${
-                    (rankMap.get(p.name)?.zTotal ?? 0) >= 0 ? "text-sky-400/70" : "text-red-400/60"
+                    (rankMap.get(p.name)?.zTotal ?? 0) >= 0 ? "text-sky-600/70" : "text-red-600/60"
                   }`}>{rankMap.get(p.name)!.zTotal.toFixed(2)}</span>
                 )}
               </button>
@@ -238,12 +238,12 @@ export default function TradeRoomPage() {
         </div>
 
         {/* Receiving (partner's players) */}
-        <div className="rounded-lg border border-emerald-500/20 bg-surface">
-          <div className="border-b border-emerald-500/20 px-3 py-2">
-            <span className="text-[10px] font-semibold uppercase tracking-wider text-emerald-400/70">Receiving</span>
+        <div className="rounded-lg border border-emerald-300 bg-surface">
+          <div className="border-b border-emerald-300 px-3 py-2">
+            <span className="text-[10px] font-semibold uppercase tracking-wider text-emerald-600/70">Receiving</span>
           </div>
           {receiving.length > 0 && (
-            <div className="flex flex-wrap gap-1.5 px-3 py-2 border-b border-border/30">
+            <div className="flex flex-wrap gap-1.5 px-3 py-2 border-b border-border">
               {receiving.map((name) => (
                 <PlayerChip key={name} name={name} onRemove={() => setReceiving(receiving.filter((n) => n !== name))} />
               ))}
@@ -257,19 +257,19 @@ export default function TradeRoomPage() {
                   placeholder={`Search ${partnerTeam?.name ?? "partner"}'s roster...`}
                   value={searchReceive}
                   onChange={(e) => setSearchReceive(e.target.value)}
-                  className="w-full rounded border border-border bg-background px-2 py-1 text-[12px] text-slate-200 outline-none placeholder:text-slate-700"
+                  className="w-full rounded border border-border bg-background px-2 py-1 text-[12px] text-slate-400 outline-none placeholder:text-slate-400"
                 />
               </div>
               <div className="overflow-y-auto max-h-[240px]">
                 {partnerRosterFiltered.map((p, i) => (
                   <button key={i}
                     onClick={() => { setReceiving([...receiving, p.name]); setSearchReceive(""); }}
-                    className="flex w-full items-center gap-2 border-b border-border/20 px-3 py-1.5 text-left hover:bg-white/[0.03]">
-                    <span className="text-[12px] text-slate-300">{p.name}</span>
+                    className="flex w-full items-center gap-2 border-b border-border/20 px-3 py-1.5 text-left hover:bg-black/[0.05]">
+                    <span className="text-[12px] text-slate-600">{p.name}</span>
                     <span className="text-[10px] text-slate-600">{p.pos} · {p.proTeam}</span>
                     {rankMap.get(p.name) && (
                       <span className={`ml-auto text-[10px] font-mono ${
-                        (rankMap.get(p.name)?.zTotal ?? 0) >= 0 ? "text-sky-400/70" : "text-red-400/60"
+                        (rankMap.get(p.name)?.zTotal ?? 0) >= 0 ? "text-sky-600/70" : "text-red-600/60"
                       }`}>{rankMap.get(p.name)!.zTotal.toFixed(2)}</span>
                     )}
                   </button>
@@ -291,8 +291,8 @@ export default function TradeRoomPage() {
             <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Trade Impact</span>
             <div className="flex items-center gap-3">
               <span className={`text-[18px] font-bold font-mono tabular-nums ${
-                tradeImpact.netTotal > 0.05 ? "text-emerald-400" :
-                tradeImpact.netTotal < -0.05 ? "text-red-400" : "text-orange-500"
+                tradeImpact.netTotal > 0.05 ? "text-emerald-600" :
+                tradeImpact.netTotal < -0.05 ? "text-red-600" : "text-orange-600"
               }`}>
                 {tradeImpact.netTotal > 0 ? "+" : ""}{tradeImpact.netTotal.toFixed(2)}
               </span>
@@ -306,7 +306,7 @@ export default function TradeRoomPage() {
             { label: "Pitching", cats: PIT_CATS },
           ].map(({ label, cats }) => (
             <div key={label}>
-              <div className="px-4 py-1.5 text-[9px] font-bold uppercase tracking-widest text-slate-700 bg-white/[0.02]">
+              <div className="px-4 py-1.5 text-[9px] font-bold uppercase tracking-widest text-slate-400 bg-black/[0.03]">
                 {label}
               </div>
               <div className="grid grid-cols-4 sm:grid-cols-8">
@@ -315,17 +315,17 @@ export default function TradeRoomPage() {
                   if (!imp) return null;
                   const net = imp.net;
                   return (
-                    <div key={cat} className="border-r border-b border-border/30 last:border-r-0 px-2 py-2.5 text-center">
+                    <div key={cat} className="border-r border-b border-border last:border-r-0 px-2 py-2.5 text-center">
                       <div className="text-[10px] font-bold text-slate-500">{cat}</div>
                       <div className={`mt-0.5 text-[14px] font-bold font-mono tabular-nums ${
-                        net > 0.05 ? "text-emerald-400" :
-                        net < -0.05 ? "text-red-400" : "text-slate-500"
+                        net > 0.05 ? "text-emerald-600" :
+                        net < -0.05 ? "text-red-600" : "text-slate-500"
                       }`}>
                         {net > 0 ? "+" : ""}{net.toFixed(2)}
                       </div>
                       <div className="mt-0.5 flex justify-center gap-1 text-[9px]">
-                        <span className="text-red-400/50">-{Math.abs(imp.sending).toFixed(1)}</span>
-                        <span className="text-emerald-400/50">+{Math.abs(imp.receiving).toFixed(1)}</span>
+                        <span className="text-red-600/50">-{Math.abs(imp.sending).toFixed(1)}</span>
+                        <span className="text-emerald-600/50">+{Math.abs(imp.receiving).toFixed(1)}</span>
                       </div>
                     </div>
                   );
@@ -335,10 +335,10 @@ export default function TradeRoomPage() {
           ))}
 
           {/* Reset */}
-          <div className="px-4 py-3 border-t border-border/30">
+          <div className="px-4 py-3 border-t border-border">
             <button
               onClick={() => { setSending([]); setReceiving([]); }}
-              className="text-[11px] text-slate-500 hover:text-slate-300"
+              className="text-[11px] text-slate-500 hover:text-slate-700"
             >
               Clear trade
             </button>

@@ -66,7 +66,7 @@ export default function OwnersPage() {
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-5">
-      <h1 className="mb-5 text-xl font-bold text-white">Owner Records</h1>
+      <h1 className="mb-5 text-xl font-bold text-gray-900">Owner Records</h1>
 
       <div className="mb-6 overflow-x-auto rounded-lg border border-border">
         <table className="w-full text-left text-[13px]">
@@ -86,33 +86,33 @@ export default function OwnersPage() {
             {summaries.map((s, i) => (
               <tr key={s.owner}
                 onClick={() => setSelectedOwner(selectedOwner === s.owner ? "" : s.owner)}
-                className={`cursor-pointer border-b border-border/30 transition-colors ${
-                  selectedOwner === s.owner ? "bg-white/[0.04]" : "hover:bg-white/[0.02]"
-                } ${i % 2 ? "bg-white/[0.01]" : ""}`}>
+                className={`cursor-pointer border-b border-border transition-colors ${
+                  selectedOwner === s.owner ? "bg-white/[0.04]" : "hover:bg-black/[0.05]"
+                } ${i % 2 ? "bg-black/[0.02]" : ""}`}>
                 <td className="px-3 py-1.5 font-mono text-slate-600">{i + 1}</td>
-                <td className="px-3 py-1.5 font-medium text-white">{s.owner}</td>
-                <td className="px-2 py-1.5 text-right font-mono text-slate-400">{s.seasons}</td>
+                <td className="px-3 py-1.5 font-medium text-gray-900">{s.owner}</td>
+                <td className="px-2 py-1.5 text-right font-mono text-slate-500">{s.seasons}</td>
                 <td className="px-2 py-1.5 text-right">
                   <span className={`font-mono font-semibold ${
-                    s.avgFinish <= 3 ? "text-sky-400" : s.avgFinish <= 5 ? "text-orange-500/80" : "text-slate-400"
+                    s.avgFinish <= 3 ? "text-sky-600" : s.avgFinish <= 5 ? "text-orange-600/80" : "text-slate-500"
                   }`}>{s.avgFinish.toFixed(1)}</span>
                 </td>
                 <td className="px-2 py-1.5 text-right">
-                  <span className={`font-mono ${s.bestFinish === 1 ? "font-bold text-orange-500" : "text-slate-400"}`}>
+                  <span className={`font-mono ${s.bestFinish === 1 ? "font-bold text-orange-600" : "text-slate-500"}`}>
                     {s.bestFinish}
                   </span>
                 </td>
-                <td className="px-3 py-1.5 text-right font-mono text-slate-400 whitespace-nowrap">
+                <td className="px-3 py-1.5 text-right font-mono text-slate-500 whitespace-nowrap">
                   {s.totalWins}-{s.totalLosses}{s.totalTies > 0 ? `-${s.totalTies}` : ""}
                 </td>
-                <td className="px-2 py-1.5 text-right font-mono text-slate-400">
+                <td className="px-2 py-1.5 text-right font-mono text-slate-500">
                   {(s.winPct * 100).toFixed(1)}%
                 </td>
                 <td className="px-2 py-1.5 text-right">
                   {s.championships > 0 ? (
-                    <span className="font-mono font-bold text-orange-500">{s.championships}</span>
+                    <span className="font-mono font-bold text-orange-600">{s.championships}</span>
                   ) : (
-                    <span className="text-slate-700">0</span>
+                    <span className="text-slate-400">0</span>
                   )}
                 </td>
               </tr>
@@ -124,7 +124,7 @@ export default function OwnersPage() {
       {selectedOwner && (
         <div className="rounded-lg border border-border bg-surface">
           <div className="border-b border-border px-3 py-2">
-            <h2 className="text-[13px] font-semibold text-white">{selectedOwner}</h2>
+            <h2 className="text-[13px] font-semibold text-gray-900">{selectedOwner}</h2>
           </div>
           <table className="w-full text-left text-[13px]">
             <thead className="border-b border-border text-[11px] uppercase tracking-wider text-slate-600">
@@ -143,18 +143,18 @@ export default function OwnersPage() {
                 const games = s.wins + s.losses + s.ties;
                 const pct = games > 0 ? s.wins / games : 0;
                 return (
-                  <tr key={s.year} className={`border-b border-border/30 ${idx % 2 ? "bg-white/[0.01]" : ""}`}>
+                  <tr key={s.year} className={`border-b border-border ${idx % 2 ? "bg-black/[0.02]" : ""}`}>
                     <td className="px-3 py-1.5 font-mono text-slate-500">{s.year}</td>
-                    <td className="px-3 py-1.5 text-white">{s.teamName}</td>
+                    <td className="px-3 py-1.5 text-gray-900">{s.teamName}</td>
                     <td className="px-2 py-1.5 text-right">
                       <span className={`font-mono font-bold ${
-                        s.standing === 1 ? "text-orange-500" : s.standing <= 3 ? "text-sky-400" : s.standing >= 8 ? "text-red-400/70" : "text-white"
+                        s.standing === 1 ? "text-orange-600" : s.standing <= 3 ? "text-sky-600" : s.standing >= 8 ? "text-red-600/70" : "text-gray-900"
                       }`}>{s.standing}</span>
                     </td>
-                    <td className="px-2 py-1.5 text-right font-mono text-slate-400">{s.wins}</td>
-                    <td className="px-2 py-1.5 text-right font-mono text-slate-400">{s.losses}</td>
-                    <td className="px-2 py-1.5 text-right font-mono text-slate-400">{s.ties}</td>
-                    <td className="px-2 py-1.5 text-right font-mono text-slate-400">{(pct * 100).toFixed(1)}%</td>
+                    <td className="px-2 py-1.5 text-right font-mono text-slate-500">{s.wins}</td>
+                    <td className="px-2 py-1.5 text-right font-mono text-slate-500">{s.losses}</td>
+                    <td className="px-2 py-1.5 text-right font-mono text-slate-500">{s.ties}</td>
+                    <td className="px-2 py-1.5 text-right font-mono text-slate-500">{(pct * 100).toFixed(1)}%</td>
                   </tr>
                 );
               })}

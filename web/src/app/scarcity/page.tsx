@@ -18,17 +18,17 @@ const STARTER_COUNTS: Record<string, number> = {
 };
 
 function tierLabel(z: number): { label: string; color: string } {
-  if (z >= 0.8) return { label: "Elite", color: "text-sky-400" };
-  if (z >= 0.4) return { label: "Great", color: "text-sky-400/60" };
-  if (z >= 0.0) return { label: "Solid", color: "text-orange-500/70" };
+  if (z >= 0.8) return { label: "Elite", color: "text-sky-600" };
+  if (z >= 0.4) return { label: "Great", color: "text-sky-600/60" };
+  if (z >= 0.0) return { label: "Solid", color: "text-orange-600/70" };
   return { label: "Depth", color: "text-slate-600" };
 }
 
 function urgencyTag(pct: number): { label: string; color: string; bar: string } {
-  if (pct >= 75) return { label: "CRITICAL", color: "text-red-400 bg-red-500/10", bar: "bg-red-500" };
-  if (pct >= 50) return { label: "THIN", color: "text-orange-400 bg-orange-500/10", bar: "bg-orange-500" };
-  if (pct >= 25) return { label: "WATCH", color: "text-orange-500 bg-orange-600/10", bar: "bg-orange-600" };
-  return { label: "DEEP", color: "text-slate-500 bg-white/5", bar: "bg-sky-600" };
+  if (pct >= 75) return { label: "CRITICAL", color: "text-red-600 bg-red-100", bar: "bg-red-500" };
+  if (pct >= 50) return { label: "THIN", color: "text-orange-600 bg-orange-500/10", bar: "bg-orange-500" };
+  if (pct >= 25) return { label: "WATCH", color: "text-orange-600 bg-orange-100", bar: "bg-orange-600" };
+  return { label: "DEEP", color: "text-slate-500 bg-black/5", bar: "bg-sky-600" };
 }
 
 export default function ScarcityPage() {
@@ -84,7 +84,7 @@ export default function ScarcityPage() {
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-5">
-      <h1 className="mb-5 text-xl font-bold text-white">Position Scarcity</h1>
+      <h1 className="mb-5 text-xl font-bold text-gray-900">Position Scarcity</h1>
 
       <div className="mb-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         {scarcityData.map((d) => {
@@ -95,7 +95,7 @@ export default function ScarcityPage() {
                 drillPos === d.pos ? "border-slate-500" : "border-border hover:border-slate-600"
               }`}>
               <div className="mb-2 flex items-center justify-between">
-                <span className="text-lg font-bold text-white">{d.pos}</span>
+                <span className="text-lg font-bold text-gray-900">{d.pos}</span>
                 <span className={`rounded px-1.5 py-0.5 text-[10px] font-bold ${tag.color}`}>
                   {tag.label}
                 </span>
@@ -103,22 +103,22 @@ export default function ScarcityPage() {
               <div className="space-y-1 text-[12px]">
                 <div className="flex justify-between">
                   <span className="text-slate-500">Elite left</span>
-                  <span className="font-mono text-sky-400">{d.availElite}</span>
+                  <span className="font-mono text-sky-600">{d.availElite}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-slate-500">Solid left</span>
-                  <span className="font-mono text-slate-300">{d.availSolid}</span>
+                  <span className="font-mono text-slate-600">{d.availSolid}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-slate-500">Starters left</span>
-                  <span className="font-mono text-emerald-400">{d.availStarters}/{d.starterCap}</span>
+                  <span className="font-mono text-emerald-600">{d.availStarters}/{d.starterCap}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-slate-500">Starters gone</span>
-                  <span className="font-mono text-red-400/70">{d.startersPct}%</span>
+                  <span className="font-mono text-red-600/70">{d.startersPct}%</span>
                 </div>
               </div>
-              <div className="mt-3 h-1 overflow-hidden rounded-full bg-slate-800">
+              <div className="mt-3 h-1 overflow-hidden rounded-full bg-slate-200">
                 <div className={`h-full rounded-full transition-all ${tag.bar}`}
                   style={{ width: `${d.startersPct}%` }} />
               </div>
@@ -149,11 +149,11 @@ export default function ScarcityPage() {
               {drillPlayers.map((p, idx) => {
                 const tier = tierLabel(p.zTotal);
                 return (
-                  <tr key={p.name} className={`border-b border-border/30 ${idx % 2 ? "bg-white/[0.01]" : ""}`}>
+                  <tr key={p.name} className={`border-b border-border ${idx % 2 ? "bg-black/[0.02]" : ""}`}>
                     <td className="px-3 py-1.5 font-mono text-slate-600">{p.rank}</td>
-                    <td className="px-3 py-1.5 font-medium text-white">{p.name}</td>
+                    <td className="px-3 py-1.5 font-medium text-gray-900">{p.name}</td>
                     <td className="px-3 py-1.5 text-slate-500">{p.team}</td>
-                    <td className="px-3 py-1.5 text-right font-mono text-sky-400/80">{p.zTotal.toFixed(2)}</td>
+                    <td className="px-3 py-1.5 text-right font-mono text-sky-600/80">{p.zTotal.toFixed(2)}</td>
                     <td className={`px-3 py-1.5 text-right text-[11px] font-bold ${tier.color}`}>{tier.label}</td>
                   </tr>
                 );
