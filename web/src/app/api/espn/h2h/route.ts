@@ -40,8 +40,11 @@ export async function GET() {
 
   try {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const data: any = await espnFetch(["mMatchup", "mMatchupScore", "mTeam"]);
-    const scoringPeriodId: number = data.scoringPeriodId ?? 1;
+    const data: any = await espnFetch(["mMatchup", "mMatchupScore", "mTeam", "mStatus"]);
+
+    // Determine current matchup period (week number)
+    // scoringPeriodId is DAILY, matchupPeriodId is WEEKLY in ESPN baseball
+    const currentMatchupPeriod: number = data.status?.currentMatchupPeriod ?? 1;
 
     // Build team name lookup
     const teamNames: Record<number, string> = {};
@@ -69,8 +72,8 @@ export async function GET() {
       const myCumulative = mySide?.cumulativeScore ?? {};
       const oppCumulative = oppSide?.cumulativeScore ?? {};
 
-      // Skip future matchups with no scores
-      if (!myCumulative.scoreByStat && m.matchupPeriodId > scoringPeriodId) continue;
+      // Skip future matchups (beyond current matchup period) with no scores
+      if (!myCumulative.scoreByStat && m.matchupPeriodId > currentMatchupPeriod) continue;
 
       const categories: H2HMatchup["categories"] = {};
       let myWins = 0, myLosses = 0, myTies = 0;
@@ -146,7 +149,7 @@ export async function GET() {
     const result: H2HData = {
       myTeamId: MY_TEAM_ID,
       myTeamName: teamNames[MY_TEAM_ID] ?? `Team ${MY_TEAM_ID}`,
-      scoringPeriodId,
+      scoringPeriodId: currentMatchupPeriod,
       matchups,
       opponents,
     };

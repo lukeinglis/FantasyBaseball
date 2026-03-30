@@ -31,8 +31,8 @@ export async function GET() {
 
   try {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const data: any = await espnFetch(["mMatchup", "mMatchupScore", "mTeam"]);
-    const scoringPeriodId: number = data.scoringPeriodId ?? 1;
+    const data: any = await espnFetch(["mMatchup", "mMatchupScore", "mTeam", "mStatus"]);
+    const currentMatchupPeriod: number = data.status?.currentMatchupPeriod ?? 1;
 
     // Build team name lookup
     const teamMeta: Record<number, { name: string; abbrev: string; wins: number; losses: number; ties: number }> = {};
@@ -54,7 +54,7 @@ export async function GET() {
 
     for (const matchup of schedule) {
       // Only count completed or in-progress matchups (matchupPeriodId <= current)
-      if (matchup.matchupPeriodId > scoringPeriodId) continue;
+      if (matchup.matchupPeriodId > currentMatchupPeriod) continue;
 
       for (const side of [matchup.home, matchup.away]) {
         if (!side?.teamId) continue;
@@ -83,7 +83,7 @@ export async function GET() {
     // Re-approach: just use the current matchup period's cumulative scores which reflect season totals
     const currentTeamStats: Record<number, Record<string, number>> = {};
     for (const matchup of schedule) {
-      if (matchup.matchupPeriodId !== scoringPeriodId) continue;
+      if (matchup.matchupPeriodId !== currentMatchupPeriod) continue;
       for (const side of [matchup.home, matchup.away]) {
         if (!side?.teamId) continue;
         const teamId = side.teamId;
@@ -126,7 +126,7 @@ export async function GET() {
     // Sort by overall record (wins desc)
     teams.sort((a, b) => b.wins - a.wins || a.losses - b.losses);
 
-    return Response.json({ scoringPeriodId, myTeamId: MY_TEAM_ID, teams } as LeagueStatsData);
+    return Response.json({ scoringPeriodId: currentMatchupPeriod, myTeamId: MY_TEAM_ID, teams } as LeagueStatsData);
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
     return Response.json({ error: msg }, { status: 502 });
