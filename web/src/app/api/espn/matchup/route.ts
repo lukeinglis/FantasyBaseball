@@ -39,6 +39,7 @@ export interface MatchupData {
 
 const MY_TEAM_ID = parseInt(process.env.MY_ESPN_TEAM_ID ?? "0");
 const CATS_ORDER = ["H", "R", "HR", "TB", "RBI", "BB", "SB", "AVG", "K", "QS", "W", "L", "SV", "HD", "ERA", "WHIP"];
+const LOWER_IS_BETTER = new Set(["ERA", "WHIP", "L"]);
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function parsePlayers(entries: any[]): MatchupPlayer[] {
@@ -154,29 +155,42 @@ function parseMatchup(data: any, myTeamId: number): MatchupData | null {
   const oppCumulative = oppSide?.cumulativeScore ?? {};
 
   // Parse per-category scores
-  const myStatScores: Record<string, { score: number; result: string }> = {};
-  const oppStatScores: Record<string, { score: number; result: string }> = {};
+  const myStatValues: Record<string, number> = {};
+  const oppStatValues: Record<string, number> = {};
 
   for (const [statId, statData] of Object.entries(myCumulative.scoreByStat ?? {})) {
     const cat = STAT_ID_MAP[parseInt(statId)];
-    if (cat) myStatScores[cat] = { score: (statData as any).score ?? 0, result: (statData as any).result ?? "PENDING" };
+    if (cat) myStatValues[cat] = (statData as any).score ?? (typeof statData === "number" ? statData : 0);
   }
   for (const [statId, statData] of Object.entries(oppCumulative.scoreByStat ?? {})) {
     const cat = STAT_ID_MAP[parseInt(statId)];
-    if (cat) oppStatScores[cat] = { score: (statData as any).score ?? 0, result: (statData as any).result ?? "PENDING" };
+    if (cat) oppStatValues[cat] = (statData as any).score ?? (typeof statData === "number" ? statData : 0);
   }
 
+  // Compute WIN/LOSS/TIE by comparing values directly
   const categories: MatchupCatResult[] = CATS_ORDER.map((cat) => {
-    const mine = myStatScores[cat];
-    const opp = oppStatScores[cat];
+    const myVal = myStatValues[cat] ?? null;
+    const oppVal = oppStatValues[cat] ?? null;
     let result: MatchupCatResult["result"] = "PENDING";
-    if (mine?.result === "WIN") result = "WIN";
-    else if (mine?.result === "LOSS") result = "LOSS";
-    else if (mine?.result === "TIE") result = "TIE";
+
+    if (myVal !== null && oppVal !== null) {
+      if (LOWER_IS_BETTER.has(cat)) {
+        // For ERA, WHIP, L: lower value wins
+        if (myVal < oppVal) result = "WIN";
+        else if (myVal > oppVal) result = "LOSS";
+        else result = "TIE";
+      } else {
+        // For counting stats and AVG: higher value wins
+        if (myVal > oppVal) result = "WIN";
+        else if (myVal < oppVal) result = "LOSS";
+        else result = "TIE";
+      }
+    }
+
     return {
       cat,
-      myValue: mine?.score ?? null,
-      oppValue: opp?.score ?? null,
+      myValue: myVal,
+      oppValue: oppVal,
       result,
     };
   });
@@ -189,12 +203,12 @@ function parseMatchup(data: any, myTeamId: number): MatchupData | null {
     myTeamName: teamNames[myTeamId] ?? `Team ${myTeamId}`,
     oppTeamId,
     oppTeamName: teamNames[oppTeamId] ?? `Team ${oppTeamId}`,
-    myWins: myCumulative.wins ?? 0,
-    myLosses: myCumulative.losses ?? 0,
-    myTies: myCumulative.ties ?? 0,
-    oppWins: oppCumulative.wins ?? 0,
-    oppLosses: oppCumulative.losses ?? 0,
-    oppTies: oppCumulative.ties ?? 0,
+    myWins: categories.filter((c) => c.result === "WIN").length,
+    myLosses: categories.filter((c) => c.result === "LOSS").length,
+    myTies: categories.filter((c) => c.result === "TIE").length,
+    oppWins: categories.filter((c) => c.result === "LOSS").length,
+    oppLosses: categories.filter((c) => c.result === "WIN").length,
+    oppTies: categories.filter((c) => c.result === "TIE").length,
     categories,
     myRoster: rosters[myTeamId] ?? [],
     oppRoster: rosters[oppTeamId] ?? [],
