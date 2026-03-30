@@ -76,7 +76,7 @@ function PlayerRow({
       {schedule && (
         <span className={`shrink-0 text-[10px] tabular-nums font-semibold ${
           schedule.weekGames >= 5 ? "text-emerald-400" :
-          schedule.weekGames >= 3 ? "text-amber-400" : "text-slate-600"
+          schedule.weekGames >= 3 ? "text-orange-500" : "text-slate-600"
         }`}>{schedule.weekGames}G</span>
       )}
 
@@ -100,7 +100,7 @@ function PlayerRow({
 function EspnSetupCard() {
   return (
     <div className="mx-auto max-w-lg rounded-xl border border-border bg-surface px-8 py-10 text-center">
-      <div className="text-[11px] font-semibold uppercase tracking-widest text-amber-400/60">Setup Required</div>
+      <div className="text-[11px] font-semibold uppercase tracking-widest text-orange-500/60">Setup Required</div>
       <div className="mt-3 text-xl font-bold text-white">Connect ESPN Credentials</div>
       <div className="mt-3 text-[13px] text-slate-400">
         The Roster view pulls live data from your private ESPN league. Add these environment variables to Vercel.
@@ -110,9 +110,9 @@ function EspnSetupCard() {
           Vercel → Settings → Environment Variables
         </div>
         <div className="space-y-2 font-mono">
-          <div><span className="text-amber-400">ESPN_S2</span> <span className="text-slate-600">=</span> <span className="text-slate-400">AE...</span></div>
-          <div><span className="text-amber-400">ESPN_SWID</span> <span className="text-slate-600">=</span> <span className="text-slate-400">{"{XXXX-...}"}</span></div>
-          <div><span className="text-amber-400">MY_ESPN_TEAM_ID</span> <span className="text-slate-600">=</span> <span className="text-slate-400">9</span></div>
+          <div><span className="text-orange-500">ESPN_S2</span> <span className="text-slate-600">=</span> <span className="text-slate-400">AE...</span></div>
+          <div><span className="text-orange-500">ESPN_SWID</span> <span className="text-slate-600">=</span> <span className="text-slate-400">{"{XXXX-...}"}</span></div>
+          <div><span className="text-orange-500">MY_ESPN_TEAM_ID</span> <span className="text-slate-600">=</span> <span className="text-slate-400">9</span></div>
         </div>
       </div>
     </div>
@@ -229,7 +229,7 @@ export default function RosterPage() {
         <div className="text-[10px] text-slate-700">
           <span className="text-emerald-400">5G+</span>
           <span className="mx-1">/</span>
-          <span className="text-amber-400">3-4G</span>
+          <span className="text-orange-500">3-4G</span>
           <span className="mx-1">/</span>
           <span className="text-slate-600">&le;2G</span>
           <span className="ml-1">this week</span>
@@ -238,7 +238,7 @@ export default function RosterPage() {
 
       {/* Roster grid */}
       <div className="grid gap-4 lg:grid-cols-3">
-        <Section label="Batting" players={batters} borderColor="border-amber-500/20" />
+        <Section label="Batting" players={batters} borderColor="border-orange-600/20" />
         <Section label="Pitching" players={pitchers} />
         <div className="space-y-4">
           <Section label="Bench" players={bench} />

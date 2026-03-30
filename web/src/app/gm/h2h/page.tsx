@@ -37,20 +37,20 @@ const ALL_CATS = [...BAT_CATS, ...PIT_CATS];
 function resultColor(w: number, l: number): string {
   if (w > l) return "text-emerald-400";
   if (l > w) return "text-red-400";
-  return "text-amber-400";
+  return "text-orange-500";
 }
 
 function catCellColor(wins: number, losses: number): string {
   if (wins > losses) return "text-emerald-400";
   if (losses > wins) return "text-red-400";
   if (wins === 0 && losses === 0) return "text-slate-700";
-  return "text-amber-400";
+  return "text-orange-500";
 }
 
 function EspnSetupCard() {
   return (
     <div className="mx-auto max-w-lg rounded-xl border border-border bg-surface px-8 py-10 text-center">
-      <div className="text-[11px] font-semibold uppercase tracking-widest text-amber-400/60">Setup Required</div>
+      <div className="text-[11px] font-semibold uppercase tracking-widest text-orange-500/60">Setup Required</div>
       <div className="mt-3 text-xl font-bold text-white">Connect ESPN Credentials</div>
       <div className="mt-3 text-[13px] text-slate-400">
         Team H2H pulls live data from your private ESPN league.
@@ -155,7 +155,7 @@ export default function TeamH2HPage() {
                       </span>
                       <span className={`text-[10px] font-semibold uppercase ${
                         matchupResult === "winning" ? "text-emerald-400/60" :
-                        matchupResult === "losing" ? "text-red-400/60" : "text-amber-400/60"
+                        matchupResult === "losing" ? "text-red-400/60" : "text-orange-500/60"
                       }`}>cats</span>
                     </div>
                   </div>
@@ -221,7 +221,7 @@ export default function TeamH2HPage() {
                       return (
                         <td key={cat} className={`px-1.5 py-2 text-center text-[11px] font-bold ${
                           c.result === "WIN" ? "text-emerald-400" :
-                          c.result === "LOSS" ? "text-red-400" : "text-amber-400"
+                          c.result === "LOSS" ? "text-red-400" : "text-orange-500"
                         }`}>
                           {c.result === "WIN" ? "W" : c.result === "LOSS" ? "L" : "T"}
                         </td>

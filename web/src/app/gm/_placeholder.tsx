@@ -9,7 +9,7 @@ export function PlaceholderPage({ title, description }: Props) {
   return (
     <div className="flex min-h-[60vh] items-center justify-center px-4">
       <div className="max-w-md text-center">
-        <div className="text-[11px] font-semibold uppercase tracking-widest text-amber-400/50">
+        <div className="text-[11px] font-semibold uppercase tracking-widest text-orange-500/50">
           Coming Soon
         </div>
         <div className="mt-3 text-2xl font-bold text-white">{title}</div>

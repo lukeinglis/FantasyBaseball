@@ -20,12 +20,12 @@ function rankColor(rank: number, n: number) {
   const pct = (rank - 1) / (n - 1 || 1);
   if (pct <= 0.25) return { bar: "bg-sky-500", text: "text-sky-400", label: "ELITE" };
   if (pct <= 0.50) return { bar: "bg-emerald-500", text: "text-emerald-400", label: "SOLID" };
-  if (pct <= 0.75) return { bar: "bg-amber-500", text: "text-amber-400", label: "AVG" };
+  if (pct <= 0.75) return { bar: "bg-orange-600", text: "text-orange-500", label: "AVG" };
   return { bar: "bg-red-500", text: "text-red-400", label: "WEAK" };
 }
 
 function finishColor(f: number) {
-  if (f === 1) return "text-amber-400 font-bold";
+  if (f === 1) return "text-orange-500 font-bold";
   if (f <= 3) return "text-sky-400";
   if (f >= 8) return "text-red-400/70";
   return "text-white";
@@ -334,7 +334,7 @@ export default function ScoutingPage() {
             ].map((s) => (
               <div key={s.label} className="rounded border border-border bg-background p-3 text-center">
                 <div className="text-[11px] text-slate-600">{s.label}</div>
-                <div className={`mt-1 font-mono text-2xl font-bold ${s.label === "Best Finish" && bestFinish === 1 ? "text-amber-400" : "text-white"}`}>
+                <div className={`mt-1 font-mono text-2xl font-bold ${s.label === "Best Finish" && bestFinish === 1 ? "text-orange-500" : "text-white"}`}>
                   {s.value}
                 </div>
                 <div className="text-[11px] text-slate-600">{s.sub}</div>
@@ -358,7 +358,7 @@ export default function ScoutingPage() {
                   const hasData = n > 0;
                   // Color: earlier = more urgent (amber/red), later = deeper (slate)
                   const roundColor = !hasData ? "text-slate-700"
-                    : avg <= 3 ? "text-amber-400"
+                    : avg <= 3 ? "text-orange-500"
                     : avg <= 6 ? "text-sky-400"
                     : avg <= 10 ? "text-slate-300"
                     : "text-slate-500";
@@ -377,7 +377,7 @@ export default function ScoutingPage() {
               {/* Tendencies callout */}
               <div className="mt-3 space-y-1 text-[12px]">
                 {posAvgRounds["SP"].avg > 0 && posAvgRounds["SP"].avg <= 3 && (
-                  <p className="text-amber-400/80">⚡ Drafts SP in top 3 rounds (R{posAvgRounds["SP"].avg.toFixed(1)})</p>
+                  <p className="text-orange-500/80">⚡ Drafts SP in top 3 rounds (R{posAvgRounds["SP"].avg.toFixed(1)})</p>
                 )}
                 {posAvgRounds["RP"].avg > 0 && posAvgRounds["RP"].avg >= 12 && (
                   <p className="text-slate-500">⏳ Waits on RP until round {posAvgRounds["RP"].avg.toFixed(1)}</p>
@@ -427,7 +427,7 @@ export default function ScoutingPage() {
                           return (
                             <td key={year} className="px-3 py-1.5 text-slate-300">
                               {pick ? (
-                                <span className={pick.keeper ? "text-amber-400/70" : ""}>
+                                <span className={pick.keeper ? "text-orange-500/70" : ""}>
                                   {pick.playerName}
                                   {pick.keeper && " ®"}
                                 </span>

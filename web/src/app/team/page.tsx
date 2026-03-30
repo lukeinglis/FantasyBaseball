@@ -155,7 +155,7 @@ export default function TeamPage() {
         ) : (
           <button onClick={() => setAssigningSlot(assigningSlot === slot ? null : slot)}
             className={`flex-1 text-left text-[12px] ${
-              assigningSlot === slot ? "text-amber-400" : "text-slate-700 hover:text-slate-500"
+              assigningSlot === slot ? "text-orange-500" : "text-slate-700 hover:text-slate-500"
             }`}>
             {assigningSlot === slot ? "Select below..." : "—"}
           </button>
@@ -204,10 +204,10 @@ export default function TeamPage() {
 
       {/* Assign picker */}
       {assigningSlot && (
-        <div className="mb-6 rounded-lg border border-amber-500/20 bg-surface p-4">
+        <div className="mb-6 rounded-lg border border-orange-600/20 bg-surface p-4">
           <div className="mb-3 flex items-center justify-between">
             <span className="text-[13px] text-slate-300">
-              Assign to <span className="font-mono font-bold text-amber-400">{assigningSlot}</span>
+              Assign to <span className="font-mono font-bold text-orange-500">{assigningSlot}</span>
             </span>
             <button onClick={() => setAssigningSlot(null)}
               className="text-[11px] text-slate-600 hover:text-slate-400">Cancel</button>
@@ -264,7 +264,7 @@ export default function TeamPage() {
       {unassigned.length > 0 && (
         <div className="mt-6 rounded-lg border border-border bg-surface">
           <div className="border-b border-border px-3 py-2">
-            <h2 className="text-[11px] font-semibold uppercase tracking-wider text-amber-400/80">
+            <h2 className="text-[11px] font-semibold uppercase tracking-wider text-orange-500/80">
               Unassigned ({unassigned.length})
             </h2>
           </div>

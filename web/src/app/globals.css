@@ -1,11 +1,13 @@
 @import "tailwindcss";
 
 @theme inline {
-  --color-background: #111827;
+  --color-background: #0a0a0a;
   --color-foreground: #e2e8f0;
-  --color-surface: #1a2436;
-  --color-surface-raised: #1f2d42;
-  --color-border: #2a3f5f;
+  --color-surface: #141414;
+  --color-surface-raised: #1c1c1c;
+  --color-border: #2a2a2a;
+  --color-oriole: #DF4601;
+  --color-oriole-light: #F26522;
   --font-mono: var(--font-geist-mono);
 }
 
@@ -23,15 +25,15 @@ body {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: #2a3f5f;
+  background: #2a2a2a;
   border-radius: 3px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #3a5278;
+  background: #3a3a3a;
 }
 
 /* Override select dropdowns for dark theme */
 select option {
-  background: #1a2436;
+  background: #141414;
   color: #e2e8f0;
 }

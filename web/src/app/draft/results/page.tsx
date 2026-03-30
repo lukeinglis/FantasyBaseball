@@ -53,7 +53,7 @@ export default function DraftResultsPage() {
   if (picks.length === 0) {
     return (
       <div className="mx-auto max-w-2xl px-4 py-16 text-center">
-        <div className="text-[13px] font-semibold uppercase tracking-widest text-amber-400/60">
+        <div className="text-[13px] font-semibold uppercase tracking-widest text-orange-500/60">
           2026 Draft Results
         </div>
         <div className="mt-4 text-2xl font-bold text-white">No data yet</div>
@@ -137,12 +137,12 @@ export default function DraftResultsPage() {
                 <tr
                   key={i}
                   className={`border-b border-border/50 transition-colors ${
-                    isMe ? "bg-amber-500/5" : i % 2 === 0 ? "" : "bg-white/[0.01]"
+                    isMe ? "bg-orange-600/5" : i % 2 === 0 ? "" : "bg-white/[0.01]"
                   } hover:bg-white/[0.03]`}
                 >
                   <td className="px-3 py-1.5 font-mono text-slate-500">{p.round}</td>
                   <td className="px-2 py-1.5 font-mono text-slate-600">{p.pick}</td>
-                  <td className={`px-3 py-1.5 ${isMe ? "font-semibold text-amber-400" : "text-slate-300"}`}>
+                  <td className={`px-3 py-1.5 ${isMe ? "font-semibold text-orange-500" : "text-slate-300"}`}>
                     {p.team}
                   </td>
                   <td className="px-3 py-1.5 font-medium text-slate-100">{p.playerName}</td>

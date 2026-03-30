@@ -55,7 +55,7 @@ export const STAT_ID_MAP: Record<number, string> = {
 // Injury status labels
 export const INJURY_MAP: Record<string, { label: string; color: string }> = {
   ACTIVE:      { label: "Active",       color: "text-emerald-400" },
-  DAY_TO_DAY:  { label: "Day-to-Day",   color: "text-amber-400" },
+  DAY_TO_DAY:  { label: "Day-to-Day",   color: "text-orange-500" },
   SEVEN_DAY_DL:  { label: "7-Day IL",   color: "text-orange-400" },
   FIFTEEN_DAY_DL:{ label: "15-Day IL",  color: "text-red-400" },
   SIXTY_DAY_DL:  { label: "60-Day IL",  color: "text-red-500" },

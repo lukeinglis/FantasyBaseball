@@ -37,14 +37,14 @@ const LOWER_IS_BETTER = new Set(["ERA", "WHIP", "L"]);
 function resultColor(result: string) {
   if (result === "WIN") return "text-emerald-400";
   if (result === "LOSS") return "text-red-400";
-  if (result === "TIE") return "text-amber-400";
+  if (result === "TIE") return "text-orange-500";
   return "text-slate-500";
 }
 
 function resultBg(result: string) {
   if (result === "WIN") return "bg-emerald-500/10 border-emerald-500/20";
   if (result === "LOSS") return "bg-red-500/10 border-red-500/20";
-  if (result === "TIE") return "bg-amber-500/10 border-amber-500/20";
+  if (result === "TIE") return "bg-orange-600/10 border-orange-600/20";
   return "bg-surface border-border";
 }
 
@@ -70,7 +70,7 @@ function fmtDateRange(start: string | null, end: string | null): string {
 function EspnSetupCard() {
   return (
     <div className="mx-auto max-w-lg rounded-xl border border-border bg-surface px-8 py-10 text-center">
-      <div className="text-[11px] font-semibold uppercase tracking-widest text-amber-400/60">Setup Required</div>
+      <div className="text-[11px] font-semibold uppercase tracking-widest text-orange-500/60">Setup Required</div>
       <div className="mt-3 text-xl font-bold text-white">Connect ESPN Credentials</div>
       <div className="mt-3 text-[13px] text-slate-400">
         Category Breakdown pulls live data from your private ESPN league.
@@ -231,7 +231,7 @@ export default function CategoryBreakdownPage() {
                     {d.teamAheadName && (
                       <div className="flex justify-between text-[10px]">
                         <span className="text-slate-600">Gap to #{d.leagueRank - 1}</span>
-                        <span className="text-amber-400 tabular-nums font-mono">
+                        <span className="text-orange-500 tabular-nums font-mono">
                           {LOWER_IS_BETTER.has(d.cat) ? "+" : "-"}{Math.abs(d.gapAhead).toFixed(
                             d.cat === "AVG" ? 3 : d.cat === "ERA" || d.cat === "WHIP" ? 2 : 0
                           )}

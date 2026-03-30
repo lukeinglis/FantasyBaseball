@@ -20,14 +20,14 @@ const STARTER_COUNTS: Record<string, number> = {
 function tierLabel(z: number): { label: string; color: string } {
   if (z >= 0.8) return { label: "Elite", color: "text-sky-400" };
   if (z >= 0.4) return { label: "Great", color: "text-sky-400/60" };
-  if (z >= 0.0) return { label: "Solid", color: "text-amber-400/70" };
+  if (z >= 0.0) return { label: "Solid", color: "text-orange-500/70" };
   return { label: "Depth", color: "text-slate-600" };
 }
 
 function urgencyTag(pct: number): { label: string; color: string; bar: string } {
   if (pct >= 75) return { label: "CRITICAL", color: "text-red-400 bg-red-500/10", bar: "bg-red-500" };
   if (pct >= 50) return { label: "THIN", color: "text-orange-400 bg-orange-500/10", bar: "bg-orange-500" };
-  if (pct >= 25) return { label: "WATCH", color: "text-amber-400 bg-amber-500/10", bar: "bg-amber-500" };
+  if (pct >= 25) return { label: "WATCH", color: "text-orange-500 bg-orange-600/10", bar: "bg-orange-600" };
   return { label: "DEEP", color: "text-slate-500 bg-white/5", bar: "bg-sky-600" };
 }
 

@@ -47,7 +47,7 @@ function getZ(p: PlayerRanking, cat: string): number {
 function EspnSetupCard() {
   return (
     <div className="mx-auto max-w-lg rounded-xl border border-border bg-surface px-8 py-10 text-center">
-      <div className="text-[11px] font-semibold uppercase tracking-widest text-amber-400/60">Setup Required</div>
+      <div className="text-[11px] font-semibold uppercase tracking-widest text-orange-500/60">Setup Required</div>
       <div className="mt-3 text-xl font-bold text-white">Connect ESPN Credentials</div>
       <div className="mt-3 text-[13px] text-slate-400">
         Trade Room needs your ESPN roster data to evaluate trades.
@@ -292,7 +292,7 @@ export default function TradeRoomPage() {
             <div className="flex items-center gap-3">
               <span className={`text-[18px] font-bold font-mono tabular-nums ${
                 tradeImpact.netTotal > 0.05 ? "text-emerald-400" :
-                tradeImpact.netTotal < -0.05 ? "text-red-400" : "text-amber-400"
+                tradeImpact.netTotal < -0.05 ? "text-red-400" : "text-orange-500"
               }`}>
                 {tradeImpact.netTotal > 0 ? "+" : ""}{tradeImpact.netTotal.toFixed(2)}
               </span>

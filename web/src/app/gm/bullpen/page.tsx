@@ -60,7 +60,7 @@ function fmtShortDate(d: string): string {
 function EspnSetupCard() {
   return (
     <div className="mx-auto max-w-lg rounded-xl border border-border bg-surface px-8 py-10 text-center">
-      <div className="text-[11px] font-semibold uppercase tracking-widest text-amber-400/60">Setup Required</div>
+      <div className="text-[11px] font-semibold uppercase tracking-widest text-orange-500/60">Setup Required</div>
       <div className="mt-3 text-xl font-bold text-white">Connect ESPN Credentials</div>
       <div className="mt-3 text-[13px] text-slate-400">
         Bullpen pulls live data from your private ESPN league.
@@ -245,7 +245,7 @@ export default function BullpenPage() {
           {/* Starts this week */}
           {player.pos === "SP" && (
             <div className={`shrink-0 text-center min-w-[32px] ${
-              starts.length >= 2 ? "text-emerald-400" : starts.length === 1 ? "text-amber-400" : "text-slate-700"
+              starts.length >= 2 ? "text-emerald-400" : starts.length === 1 ? "text-orange-500" : "text-slate-700"
             }`}>
               <div className="text-[14px] font-bold tabular-nums">{starts.length}</div>
               <div className="text-[8px] uppercase">
@@ -258,7 +258,7 @@ export default function BullpenPage() {
           {sched && (
             <span className={`shrink-0 text-[10px] tabular-nums font-semibold ${
               sched.weekGames >= 5 ? "text-emerald-400" :
-              sched.weekGames >= 3 ? "text-amber-400" : "text-slate-600"
+              sched.weekGames >= 3 ? "text-orange-500" : "text-slate-600"
             }`}>{sched.weekGames}G</span>
           )}
         </div>
@@ -298,7 +298,7 @@ export default function BullpenPage() {
           <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-600">{label}</span>
           <div className="flex items-center gap-2">
             {view === "SP" && sectionStarts > 0 && (
-              <span className="text-[10px] tabular-nums text-amber-400/70">{sectionStarts} starts</span>
+              <span className="text-[10px] tabular-nums text-orange-500/70">{sectionStarts} starts</span>
             )}
             <span className="text-[10px] tabular-nums text-slate-700">{players.length}</span>
           </div>
@@ -327,7 +327,7 @@ export default function BullpenPage() {
           {view === "SP" && probables && (
             <div className="flex items-center gap-3">
               <div className="text-center">
-                <div className={`text-xl font-bold tabular-nums ${totalStarts >= 6 ? "text-emerald-400" : totalStarts >= 4 ? "text-amber-400" : "text-red-400"}`}>
+                <div className={`text-xl font-bold tabular-nums ${totalStarts >= 6 ? "text-emerald-400" : totalStarts >= 4 ? "text-orange-500" : "text-red-400"}`}>
                   {totalStarts}
                 </div>
                 <div className="text-[9px] text-slate-600">STARTS THIS WK</div>
@@ -386,7 +386,7 @@ export default function BullpenPage() {
       {/* Pitcher lists */}
       <div className="space-y-4">
         <PitcherSection label="Active" players={active} borderColor="border-emerald-500/20" />
-        <PitcherSection label="Day-to-Day" players={dtd} borderColor="border-amber-500/20" />
+        <PitcherSection label="Day-to-Day" players={dtd} borderColor="border-orange-600/20" />
         <PitcherSection label="Bench" players={benched} />
         <PitcherSection label="Injured List" players={injured} borderColor="border-red-500/20" />
       </div>

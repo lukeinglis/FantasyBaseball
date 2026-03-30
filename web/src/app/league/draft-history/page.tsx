@@ -171,12 +171,12 @@ export default function DraftHistoryPage() {
                     <tr
                       key={i}
                       className={`border-b border-border/50 transition-colors ${
-                        isMe ? "bg-amber-500/5" : i % 2 === 0 ? "" : "bg-white/[0.01]"
+                        isMe ? "bg-orange-600/5" : i % 2 === 0 ? "" : "bg-white/[0.01]"
                       } hover:bg-white/[0.03]`}
                     >
                       <td className="px-3 py-1.5 font-mono text-slate-500">{p.round}</td>
                       <td className="px-2 py-1.5 font-mono text-slate-600">{p.pick}</td>
-                      <td className={`px-3 py-1.5 ${isMe ? "font-semibold text-amber-400" : "text-slate-300"}`}>
+                      <td className={`px-3 py-1.5 ${isMe ? "font-semibold text-orange-500" : "text-slate-300"}`}>
                         {p.team}
                       </td>
                       <td className="px-3 py-1.5 font-medium text-slate-100">{p.playerName}</td>

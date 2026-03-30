@@ -60,11 +60,11 @@ export default function HistoryPage() {
             <button key={c.year} onClick={() => setSelectedYear(c.year)}
               className={`rounded border px-3 py-1.5 text-center transition-colors ${
                 selectedYear === c.year
-                  ? "border-amber-500/30 bg-amber-500/10"
+                  ? "border-orange-600/30 bg-orange-600/10"
                   : "border-border bg-surface hover:border-slate-600"
               }`}>
               <div className="text-[11px] tabular-nums text-slate-600">{c.year}</div>
-              <div className="text-[13px] font-semibold text-amber-400">{c.team}</div>
+              <div className="text-[13px] font-semibold text-orange-500">{c.team}</div>
               <div className="font-mono text-[10px] text-slate-600">
                 {c.W}-{c.L}{c.T > 0 ? `-${c.T}` : ""}
               </div>
@@ -106,11 +106,11 @@ export default function HistoryPage() {
               {yearStandings.map((row, idx) => (
                 <tr key={`${row.year}-${row.team}`}
                   className={`border-b border-border/30 ${idx % 2 ? "bg-white/[0.01]" : ""} ${
-                    row.rank === 1 ? "bg-amber-500/[0.03]" : ""
+                    row.rank === 1 ? "bg-orange-600/[0.03]" : ""
                   }`}>
                   <td className="px-3 py-1.5">
                     <span className={`font-mono font-bold ${
-                      row.rank === 1 ? "text-amber-400" : row.rank <= 3 ? "text-sky-400" : "text-slate-600"
+                      row.rank === 1 ? "text-orange-500" : row.rank <= 3 ? "text-sky-400" : "text-slate-600"
                     }`}>{row.rank}</span>
                   </td>
                   <td className="px-3 py-1.5 font-medium text-white">{row.team}</td>

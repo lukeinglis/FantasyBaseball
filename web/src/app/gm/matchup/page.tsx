@@ -68,14 +68,14 @@ const LOWER_IS_BETTER = new Set(["ERA", "WHIP", "L"]);
 function catResultColor(result: string) {
   if (result === "WIN") return "text-emerald-400";
   if (result === "LOSS") return "text-red-400";
-  if (result === "TIE") return "text-amber-400";
+  if (result === "TIE") return "text-orange-500";
   return "text-slate-500";
 }
 
 function catBg(result: string) {
   if (result === "WIN") return "bg-emerald-500/10 border-emerald-500/20";
   if (result === "LOSS") return "bg-red-500/10 border-red-500/20";
-  if (result === "TIE") return "bg-amber-500/10 border-amber-500/20";
+  if (result === "TIE") return "bg-orange-600/10 border-orange-600/20";
   return "bg-surface border-border";
 }
 
@@ -134,7 +134,7 @@ function PlayerRow({
       {/* Starts this matchup (SP only) */}
       {isPitcher && player.pos === "SP" && starts > 0 && (
         <span className={`shrink-0 text-[10px] tabular-nums font-bold ${
-          starts >= 2 ? "text-emerald-400" : "text-amber-400"
+          starts >= 2 ? "text-emerald-400" : "text-orange-500"
         }`}>{starts}S</span>
       )}
 
@@ -142,7 +142,7 @@ function PlayerRow({
       {schedule && (
         <span className={`shrink-0 text-[10px] tabular-nums font-semibold ${
           schedule.weekGames >= 5 ? "text-emerald-400" :
-          schedule.weekGames >= 3 ? "text-amber-400" : "text-slate-600"
+          schedule.weekGames >= 3 ? "text-orange-500" : "text-slate-600"
         }`}>{schedule.weekGames}G</span>
       )}
 
@@ -174,8 +174,8 @@ function RosterPanel({
   const bench = roster.filter((p) => p.slotId === BENCH_SLOT_ID);
   const il = roster.filter((p) => p.slotId === IL_SLOT_ID);
 
-  const borderColor = isMine ? "border-amber-500/20" : "border-border";
-  const headerColor = isMine ? "text-amber-400 border-amber-500/20" : "text-slate-300 border-border";
+  const borderColor = isMine ? "border-orange-600/20" : "border-border";
+  const headerColor = isMine ? "text-orange-500 border-orange-600/20" : "text-slate-300 border-border";
 
   function getStarts(playerName: string): number {
     if (!probables) return 0;
@@ -192,7 +192,7 @@ function RosterPanel({
       <div className="px-2 py-1 text-[9px] font-bold uppercase tracking-widest text-slate-700 bg-white/[0.02] flex justify-between">
         <span>{label}</span>
         {showStarts && totalStarts > 0 && (
-          <span className="text-amber-400/60">{totalStarts} starts</span>
+          <span className="text-orange-500/60">{totalStarts} starts</span>
         )}
       </div>
       {players.map((p, i) => (
@@ -217,7 +217,7 @@ function RosterPanel({
 function EspnSetupCard() {
   return (
     <div className="mx-auto max-w-lg rounded-xl border border-border bg-surface px-8 py-10 text-center">
-      <div className="text-[11px] font-semibold uppercase tracking-widest text-amber-400/60">Setup Required</div>
+      <div className="text-[11px] font-semibold uppercase tracking-widest text-orange-500/60">Setup Required</div>
       <div className="mt-3 text-xl font-bold text-white">Connect ESPN Credentials</div>
       <div className="mt-3 text-[13px] text-slate-400">
         The Matchup view pulls live data from your private ESPN league. Add these environment variables to Vercel.
@@ -227,9 +227,9 @@ function EspnSetupCard() {
           Vercel → Settings → Environment Variables
         </div>
         <div className="space-y-2 font-mono">
-          <div><span className="text-amber-400">ESPN_S2</span> <span className="text-slate-600">=</span> <span className="text-slate-400">AE...</span></div>
-          <div><span className="text-amber-400">ESPN_SWID</span> <span className="text-slate-600">=</span> <span className="text-slate-400">{"{XXXX-...}"}</span></div>
-          <div><span className="text-amber-400">MY_ESPN_TEAM_ID</span> <span className="text-slate-600">=</span> <span className="text-slate-400">9</span></div>
+          <div><span className="text-orange-500">ESPN_S2</span> <span className="text-slate-600">=</span> <span className="text-slate-400">AE...</span></div>
+          <div><span className="text-orange-500">ESPN_SWID</span> <span className="text-slate-600">=</span> <span className="text-slate-400">{"{XXXX-...}"}</span></div>
+          <div><span className="text-orange-500">MY_ESPN_TEAM_ID</span> <span className="text-slate-600">=</span> <span className="text-slate-400">9</span></div>
         </div>
       </div>
     </div>
@@ -305,7 +305,7 @@ export default function MatchupPage() {
             )}
           </div>
           <div className="mt-1 flex items-center gap-3">
-            <span className="text-xl font-bold text-amber-400">{data.myTeamName}</span>
+            <span className="text-xl font-bold text-orange-500">{data.myTeamName}</span>
             <span className="text-slate-600">vs</span>
             <span className="text-xl font-bold text-slate-200">{data.oppTeamName}</span>
           </div>
@@ -360,7 +360,7 @@ export default function MatchupPage() {
           <span className="mr-3">Slot · Name · Team · Today&apos;s game</span>
           <span className="text-emerald-400">5G+</span>
           <span className="mx-1 text-slate-700">/</span>
-          <span className="text-amber-400">3–4G</span>
+          <span className="text-orange-500">3–4G</span>
           <span className="mx-1 text-slate-700">/</span>
           <span className="text-slate-600">≤2G</span>
           <span className="ml-1 text-slate-700">this matchup</span>

@@ -26,7 +26,7 @@ export function SectionNav({ subLinks }: Props) {
       <div className="mx-auto flex max-w-7xl items-center gap-4 px-4 py-3">
         {/* Logo */}
         <Link href="/draft" className="flex shrink-0 items-baseline gap-2">
-          <span className="text-lg font-bold tracking-tight text-amber-400">WAR ROOM</span>
+          <span className="text-lg font-bold tracking-tight text-orange-500">WAR ROOM</span>
           <span className="hidden text-[11px] font-medium tracking-widest text-slate-500 sm:block">
             TAMPA&apos;S FINEST
           </span>
@@ -40,7 +40,7 @@ export function SectionNav({ subLinks }: Props) {
               href={s.href}
               className={`rounded px-2.5 py-1 text-[11px] font-bold tracking-widest transition-colors ${
                 pathname.startsWith(s.href)
-                  ? "bg-amber-500/15 text-amber-400"
+                  ? "bg-orange-600/15 text-orange-500"
                   : "text-slate-600 hover:text-slate-400"
               }`}
             >

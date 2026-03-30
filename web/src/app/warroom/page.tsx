@@ -80,7 +80,7 @@ function fmtStat(p: Player, col: StatCol): string {
 function urgencyTag(pct: number): { label: string; color: string; bar: string } {
   if (pct >= 75) return { label: "CRITICAL", color: "text-red-400", bar: "bg-red-500" };
   if (pct >= 50) return { label: "THIN", color: "text-orange-400", bar: "bg-orange-500" };
-  if (pct >= 25) return { label: "WATCH", color: "text-amber-400", bar: "bg-amber-500" };
+  if (pct >= 25) return { label: "WATCH", color: "text-orange-500", bar: "bg-orange-600" };
   return { label: "DEEP", color: "text-slate-500", bar: "bg-sky-600" };
 }
 
@@ -363,7 +363,7 @@ export default function DraftBoardPage() {
       <span className="flex items-center gap-0.5">
         {label}
         {sortCol === col && (
-          <span className="text-amber-400">{sortDir === "asc" ? "↑" : "↓"}</span>
+          <span className="text-orange-500">{sortDir === "asc" ? "↑" : "↓"}</span>
         )}
       </span>
     </th>
@@ -381,7 +381,7 @@ export default function DraftBoardPage() {
         <div className="rounded-lg border border-border bg-surface">
           <div className="flex items-center justify-between border-b border-border px-3 py-2">
             <h2 className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">My Lineup</h2>
-            <span className="text-[11px] tabular-nums text-amber-400/70">{myPickPlayers.length} / 24 picks</span>
+            <span className="text-[11px] tabular-nums text-orange-500/70">{myPickPlayers.length} / 24 picks</span>
           </div>
           <div className="p-3">
             <div className="grid grid-cols-3 gap-x-4">
@@ -482,10 +482,10 @@ export default function DraftBoardPage() {
               <span className="font-semibold text-white">{session.drafted.length}</span>
               <span className="text-slate-700">|</span>
               <span className="text-slate-500">Mine</span>
-              <span className="font-semibold text-amber-400">{session.myPicks.length}</span>
+              <span className="font-semibold text-orange-500">{session.myPicks.length}</span>
               <span className="text-slate-700">|</span>
               <span className="text-slate-500">Drafting for:</span>
-              <span className={`font-bold ${isMine ? "text-amber-400" : "text-white"}`}>
+              <span className={`font-bold ${isMine ? "text-orange-500" : "text-white"}`}>
                 {activeDrafter}
               </span>
               <span className="text-slate-600">Rd {drafter.round} Pk {drafter.pick}</span>
@@ -519,7 +519,7 @@ export default function DraftBoardPage() {
                 <button key={pos} onClick={() => togglePos(pos)}
                   className={`rounded px-2 py-0.5 text-[11px] font-medium transition-colors ${
                     posFilter.includes(pos)
-                      ? "bg-amber-500/20 text-amber-300"
+                      ? "bg-orange-600/20 text-orange-400"
                       : "text-slate-600 hover:text-slate-400"
                   }`}>
                   {pos}
@@ -531,7 +531,7 @@ export default function DraftBoardPage() {
                 type="checkbox"
                 checked={showAvail}
                 onChange={(e) => setShowAvail(e.target.checked)}
-                className="accent-amber-500"
+                className="accent-orange-600"
               />
               Available
             </label>
@@ -585,7 +585,7 @@ export default function DraftBoardPage() {
                           <button onClick={() => draftPlayer(p.name, isMine)}
                             className={`rounded px-2.5 py-0.5 text-[11px] font-medium transition-colors ${
                               isMine
-                                ? "bg-amber-500/20 text-amber-300 hover:bg-amber-500/30"
+                                ? "bg-orange-600/20 text-orange-400 hover:bg-orange-600/30"
                                 : "bg-white/5 text-slate-400 hover:bg-white/10 hover:text-slate-200"
                             }`}>
                             Draft
@@ -656,7 +656,7 @@ export default function DraftBoardPage() {
                       <span className="w-8 font-mono text-[10px] text-slate-600">
                         {pick.round}.{pick.pick}
                       </span>
-                      <span className={`w-14 text-[11px] ${isMe ? "text-amber-400/70" : "text-slate-500"}`}>
+                      <span className={`w-14 text-[11px] ${isMe ? "text-orange-500/70" : "text-slate-500"}`}>
                         {pick.drafter}
                       </span>
                       <span className="flex-1 truncate text-[11px] text-slate-400">{draftedPlayer ?? ""}</span>
@@ -667,16 +667,16 @@ export default function DraftBoardPage() {
                 if (isCurrent) {
                   return (
                     <div key={pick.overall} ref={currentPickRef}
-                      className={`flex items-center gap-2 border-b border-amber-500/20 px-3 py-2.5 ${
-                        isMe ? "bg-amber-500/10" : "bg-white/5"
+                      className={`flex items-center gap-2 border-b border-orange-600/20 px-3 py-2.5 ${
+                        isMe ? "bg-orange-600/10" : "bg-white/5"
                       }`}>
                       <span className="w-8 font-mono text-[10px] text-slate-500">
                         {pick.round}.{pick.pick}
                       </span>
-                      <span className={`flex-1 text-[13px] font-bold ${isMe ? "text-amber-300" : "text-white"}`}>
+                      <span className={`flex-1 text-[13px] font-bold ${isMe ? "text-orange-400" : "text-white"}`}>
                         {pick.drafter}
                       </span>
-                      <span className="text-[10px] font-semibold text-amber-400">ON CLOCK</span>
+                      <span className="text-[10px] font-semibold text-orange-500">ON CLOCK</span>
                     </div>
                   );
                 }
@@ -688,21 +688,21 @@ export default function DraftBoardPage() {
                       onClick={() => setSelectedDrafter(pick.drafter === selectedDrafter ? null : pick.drafter)}
                       className={`flex w-full items-center gap-2 border-b border-border/20 px-3 py-1.5 text-left transition-colors ${
                         isSelected && isManual
-                          ? isMe ? "bg-amber-500/10" : "bg-blue-500/8"
+                          ? isMe ? "bg-orange-600/10" : "bg-blue-500/8"
                           : "hover:bg-white/[0.03]"
                       }`}>
                       <span className="w-8 font-mono text-[10px] text-slate-700">
                         {pick.round}.{pick.pick}
                       </span>
                       <span className={`flex-1 text-[11px] ${
-                        isSelected && isManual && isMe ? "font-semibold text-amber-400" :
+                        isSelected && isManual && isMe ? "font-semibold text-orange-500" :
                         isSelected && isManual ? "font-semibold text-blue-400" :
-                        isMe ? "text-amber-400/50" : "text-slate-600"
+                        isMe ? "text-orange-500/50" : "text-slate-600"
                       }`}>
                         {pick.drafter}
                       </span>
                       {isSelected && isManual && (
-                        <span className={`text-[10px] ${isMe ? "text-amber-500" : "text-blue-500"}`}>●</span>
+                        <span className={`text-[10px] ${isMe ? "text-orange-600" : "text-blue-500"}`}>●</span>
                       )}
                     </button>
                   );

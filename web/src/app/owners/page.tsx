@@ -94,11 +94,11 @@ export default function OwnersPage() {
                 <td className="px-2 py-1.5 text-right font-mono text-slate-400">{s.seasons}</td>
                 <td className="px-2 py-1.5 text-right">
                   <span className={`font-mono font-semibold ${
-                    s.avgFinish <= 3 ? "text-sky-400" : s.avgFinish <= 5 ? "text-amber-400/80" : "text-slate-400"
+                    s.avgFinish <= 3 ? "text-sky-400" : s.avgFinish <= 5 ? "text-orange-500/80" : "text-slate-400"
                   }`}>{s.avgFinish.toFixed(1)}</span>
                 </td>
                 <td className="px-2 py-1.5 text-right">
-                  <span className={`font-mono ${s.bestFinish === 1 ? "font-bold text-amber-400" : "text-slate-400"}`}>
+                  <span className={`font-mono ${s.bestFinish === 1 ? "font-bold text-orange-500" : "text-slate-400"}`}>
                     {s.bestFinish}
                   </span>
                 </td>
@@ -110,7 +110,7 @@ export default function OwnersPage() {
                 </td>
                 <td className="px-2 py-1.5 text-right">
                   {s.championships > 0 ? (
-                    <span className="font-mono font-bold text-amber-400">{s.championships}</span>
+                    <span className="font-mono font-bold text-orange-500">{s.championships}</span>
                   ) : (
                     <span className="text-slate-700">0</span>
                   )}
@@ -148,7 +148,7 @@ export default function OwnersPage() {
                     <td className="px-3 py-1.5 text-white">{s.teamName}</td>
                     <td className="px-2 py-1.5 text-right">
                       <span className={`font-mono font-bold ${
-                        s.standing === 1 ? "text-amber-400" : s.standing <= 3 ? "text-sky-400" : s.standing >= 8 ? "text-red-400/70" : "text-white"
+                        s.standing === 1 ? "text-orange-500" : s.standing <= 3 ? "text-sky-400" : s.standing >= 8 ? "text-red-400/70" : "text-white"
                       }`}>{s.standing}</span>
                     </td>
                     <td className="px-2 py-1.5 text-right font-mono text-slate-400">{s.wins}</td>

@@ -122,12 +122,12 @@ export default function CategoryIntelPage() {
           </div>
 
           {svWeight !== undefined && (
-            <div className="rounded-lg border border-amber-500/20 bg-amber-500/5 p-4">
-              <h3 className="mb-1 text-[11px] font-bold uppercase tracking-wider text-amber-400/80">
+            <div className="rounded-lg border border-orange-600/20 bg-orange-600/5 p-4">
+              <h3 className="mb-1 text-[11px] font-bold uppercase tracking-wider text-orange-500/80">
                 Saves Are Overrated
               </h3>
               <p className="text-[13px] text-slate-400">
-                SV weight: <span className="font-mono text-amber-300">{svWeight.toFixed(4)}</span>
+                SV weight: <span className="font-mono text-orange-400">{svWeight.toFixed(4)}</span>
                 {Math.abs(svWeight) < Math.abs(sorted[Math.floor(sorted.length / 2)]?.weight ?? 0) && (
                   <span> — below median. Don&apos;t overpay for closers.</span>
                 )}

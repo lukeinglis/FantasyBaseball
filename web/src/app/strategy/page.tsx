@@ -43,7 +43,7 @@ function myPicksForRound(round: number): number {
 function urgencyColor(round: number) {
   if (round <= 4)  return "text-sky-300";
   if (round <= 8)  return "text-emerald-400";
-  if (round <= 15) return "text-amber-400";
+  if (round <= 15) return "text-orange-500";
   return "text-slate-500";
 }
 
@@ -166,7 +166,7 @@ export default function StrategyPage() {
 
   const urgencyBadge = (u: string) =>
     u === "high"   ? "bg-red-500/15 text-red-400" :
-    u === "medium" ? "bg-amber-500/15 text-amber-400" :
+    u === "medium" ? "bg-orange-600/15 text-orange-500" :
                      "bg-slate-500/10 text-slate-500";
 
   return (
@@ -376,7 +376,7 @@ export default function StrategyPage() {
                   <div key={cat} className="flex items-center gap-2">
                     <span className={`w-10 text-[11px] font-bold ${NEGATIVE_CATS.has(cat) ? "text-slate-500" : "text-slate-300"}`}>{cat}</span>
                     <div className="flex-1 h-1.5 overflow-hidden rounded-full bg-slate-800">
-                      <div className="h-full rounded-full bg-amber-500" style={{ width: `${(w / 0.072) * 100}%` }} />
+                      <div className="h-full rounded-full bg-orange-600" style={{ width: `${(w / 0.072) * 100}%` }} />
                     </div>
                     <span className="w-10 text-right font-mono text-[10px] text-slate-600">{(w * 100).toFixed(1)}%</span>
                   </div>
@@ -394,12 +394,12 @@ export default function StrategyPage() {
               Key Principles
             </h2>
             <ul className="space-y-2 text-[11px] text-slate-400">
-              <li><span className="text-amber-400 font-bold">TB & HR first.</span> The two most predictive stats in this league. Prioritize power hitters in rounds 1-4.</li>
-              <li><span className="text-amber-400 font-bold">Pick 3 advantage.</span> Aaron Judge and Shohei Ohtani likely gone at 1-2. Juan Soto / Bobby Witt Jr. are the most likely targets. Both project elite TB+HR.</li>
-              <li><span className="text-amber-400 font-bold">Delay closers.</span> SV predicts wins less than any other category (0.2%). Let others reach for closers; pick one late.</li>
-              <li><span className="text-amber-400 font-bold">Cal Raleigh is worth a reach.</span> Elite catcher bats are rare. His z-score and FAR both show genuine starter-level value. Round 4-5 is not too early.</li>
-              <li><span className="text-amber-400 font-bold">W and K matter more than ERA.</span> Wins (7.2%) and strikeouts (7.0%) are the top pitching categories. ERA (5.7%) matters less than people think.</li>
-              <li><span className="text-amber-400 font-bold">Trust the FAR column.</span> When two players have similar z-scores, the one with higher FAR is harder to replace from the waiver wire.</li>
+              <li><span className="text-orange-500 font-bold">TB & HR first.</span> The two most predictive stats in this league. Prioritize power hitters in rounds 1-4.</li>
+              <li><span className="text-orange-500 font-bold">Pick 3 advantage.</span> Aaron Judge and Shohei Ohtani likely gone at 1-2. Juan Soto / Bobby Witt Jr. are the most likely targets. Both project elite TB+HR.</li>
+              <li><span className="text-orange-500 font-bold">Delay closers.</span> SV predicts wins less than any other category (0.2%). Let others reach for closers; pick one late.</li>
+              <li><span className="text-orange-500 font-bold">Cal Raleigh is worth a reach.</span> Elite catcher bats are rare. His z-score and FAR both show genuine starter-level value. Round 4-5 is not too early.</li>
+              <li><span className="text-orange-500 font-bold">W and K matter more than ERA.</span> Wins (7.2%) and strikeouts (7.0%) are the top pitching categories. ERA (5.7%) matters less than people think.</li>
+              <li><span className="text-orange-500 font-bold">Trust the FAR column.</span> When two players have similar z-scores, the one with higher FAR is harder to replace from the waiver wire.</li>
             </ul>
           </section>
 

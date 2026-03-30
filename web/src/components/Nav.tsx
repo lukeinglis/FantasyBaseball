@@ -22,7 +22,7 @@ export function Nav() {
     <header className="sticky top-0 z-40 border-b border-border bg-surface/95 backdrop-blur-sm">
       <div className="mx-auto flex max-w-7xl items-center gap-8 px-4 py-3">
         <Link href="/warroom" className="flex items-baseline gap-2">
-          <span className="text-lg font-bold tracking-tight text-amber-400">
+          <span className="text-lg font-bold tracking-tight text-orange-500">
             WAR ROOM
           </span>
           <span className="hidden text-[11px] font-medium tracking-widest text-slate-500 sm:block">
