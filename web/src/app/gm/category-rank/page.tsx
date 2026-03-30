@@ -1,10 +1,273 @@
-import { PlaceholderPage } from "@/app/gm/_placeholder";
+"use client";
+
+import { useState, useEffect, useMemo } from "react";
+
+interface TeamCategoryStats {
+  teamId: number;
+  teamName: string;
+  abbrev: string;
+  wins: number;
+  losses: number;
+  ties: number;
+  categories: Record<string, number>;
+  ranks: Record<string, number>;
+}
+
+interface LeagueStatsData {
+  scoringPeriodId: number;
+  myTeamId: number;
+  teams: TeamCategoryStats[];
+}
+
+const BAT_CATS = ["H", "R", "HR", "TB", "RBI", "BB", "SB", "AVG"];
+const PIT_CATS = ["K", "QS", "W", "L", "SV", "HD", "ERA", "WHIP"];
+const LOWER_IS_BETTER = new Set(["ERA", "WHIP", "L"]);
+
+function rankColor(rank: number): string {
+  if (rank <= 2) return "text-emerald-400 font-bold";
+  if (rank <= 4) return "text-emerald-400/70";
+  if (rank <= 6) return "text-slate-300";
+  if (rank <= 8) return "text-amber-400";
+  return "text-red-400 font-bold";
+}
+
+function rankBg(rank: number): string {
+  if (rank === 1) return "bg-emerald-500/15 border-emerald-500/30";
+  if (rank <= 3) return "bg-emerald-500/8 border-emerald-500/15";
+  if (rank <= 5) return "bg-surface border-border";
+  if (rank <= 7) return "bg-amber-500/5 border-amber-500/15";
+  if (rank <= 9) return "bg-red-500/5 border-red-500/15";
+  return "bg-red-500/10 border-red-500/20";
+}
+
+function fmtValue(cat: string, val: number | undefined): string {
+  if (val === undefined) return "-";
+  if (cat === "AVG") return val.toFixed(3);
+  if (cat === "ERA" || cat === "WHIP") return val.toFixed(2);
+  return String(Math.round(val));
+}
+
+function EspnSetupCard() {
+  return (
+    <div className="mx-auto max-w-lg rounded-xl border border-border bg-surface px-8 py-10 text-center">
+      <div className="text-[11px] font-semibold uppercase tracking-widest text-amber-400/60">Setup Required</div>
+      <div className="mt-3 text-xl font-bold text-white">Connect ESPN Credentials</div>
+      <div className="mt-3 text-[13px] text-slate-400">
+        Category Rank pulls live data from your private ESPN league. Add environment variables to Vercel.
+      </div>
+      <div className="mt-5 rounded-lg border border-border bg-background px-4 py-4 text-left text-[12px]">
+        <div className="space-y-2 font-mono">
+          <div><span className="text-amber-400">ESPN_S2</span> · <span className="text-amber-400">ESPN_SWID</span> · <span className="text-amber-400">MY_ESPN_TEAM_ID</span></div>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export default function CategoryRankPage() {
+  const [data, setData] = useState<LeagueStatsData | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [view, setView] = useState<"my-ranks" | "leaderboard">("my-ranks");
+
+  useEffect(() => {
+    fetch("/api/espn/league-stats")
+      .then((r) => r.json())
+      .then((d) => {
+        if (d.error) { setError(d.error); setLoading(false); return; }
+        setData(d);
+      })
+      .catch(() => setError("FETCH_FAILED"))
+      .finally(() => setLoading(false));
+  }, []);
+
+  const myTeam = useMemo(
+    () => data?.teams.find((t) => t.teamId === data.myTeamId) ?? null,
+    [data]
+  );
+
+  const avgRank = useMemo(() => {
+    if (!myTeam) return 0;
+    const allRanks = Object.values(myTeam.ranks);
+    return allRanks.length ? allRanks.reduce((a, b) => a + b, 0) / allRanks.length : 0;
+  }, [myTeam]);
+
+  const strengths = useMemo(() => {
+    if (!myTeam) return [];
+    return [...BAT_CATS, ...PIT_CATS]
+      .filter((cat) => (myTeam.ranks[cat] ?? 10) <= 3)
+      .sort((a, b) => (myTeam.ranks[a] ?? 10) - (myTeam.ranks[b] ?? 10));
+  }, [myTeam]);
+
+  const weaknesses = useMemo(() => {
+    if (!myTeam) return [];
+    return [...BAT_CATS, ...PIT_CATS]
+      .filter((cat) => (myTeam.ranks[cat] ?? 0) >= 8)
+      .sort((a, b) => (myTeam.ranks[b] ?? 0) - (myTeam.ranks[a] ?? 0));
+  }, [myTeam]);
+
+  if (loading) return <div className="flex h-64 items-center justify-center text-slate-500">Loading category rankings...</div>;
+  if (error === "ESPN_CREDS_MISSING" || error === "MY_ESPN_TEAM_ID_MISSING") {
+    return <div className="flex min-h-[70vh] items-center justify-center px-4"><EspnSetupCard /></div>;
+  }
+  if (error || !data || !myTeam) {
+    return (
+      <div className="flex h-64 flex-col items-center justify-center gap-2">
+        <div className="text-red-400">Failed to load category rankings</div>
+        <div className="text-[12px] text-slate-600">{error}</div>
+      </div>
+    );
+  }
+
   return (
-    <PlaceholderPage
-      title="Category Rank"
-      description="Where you stand in each of the 16 scoring categories across the full league — ranked 1–10 with trend lines over the season."
-    />
+    <div className="mx-auto max-w-6xl px-4 py-6">
+      {/* Header */}
+      <div className="mb-5 flex flex-wrap items-start justify-between gap-4">
+        <div>
+          <h1 className="text-lg font-bold text-white">Category Rankings</h1>
+          <span className="text-[12px] text-slate-500">Week {data.scoringPeriodId} — Where you rank 1-10 in each category</span>
+        </div>
+        <div className="flex items-center gap-4">
+          <div className="text-center">
+            <div className={`text-2xl font-bold tabular-nums ${avgRank <= 4 ? "text-emerald-400" : avgRank <= 6 ? "text-amber-400" : "text-red-400"}`}>
+              {avgRank.toFixed(1)}
+            </div>
+            <div className="text-[10px] text-slate-600">AVG RANK</div>
+          </div>
+          <div className="flex gap-0.5 rounded bg-surface p-0.5">
+            {(["my-ranks", "leaderboard"] as const).map((v) => (
+              <button key={v} onClick={() => setView(v)}
+                className={`rounded px-3 py-1 text-[11px] font-bold transition-colors ${
+                  view === v ? "bg-white/10 text-white" : "text-slate-500 hover:text-slate-300"
+                }`}>
+                {v === "my-ranks" ? "My Ranks" : "Leaderboard"}
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {view === "my-ranks" ? (
+        <>
+          {/* Category cards — my rankings */}
+          {[
+            { label: "Batting", cats: BAT_CATS },
+            { label: "Pitching", cats: PIT_CATS },
+          ].map(({ label, cats }) => (
+            <div key={label} className="mb-6">
+              <div className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-slate-700">{label}</div>
+              <div className="grid grid-cols-4 gap-2 sm:grid-cols-8">
+                {cats.map((cat) => {
+                  const rank = myTeam.ranks[cat] ?? 0;
+                  const val = myTeam.categories[cat];
+                  return (
+                    <div key={cat} className={`rounded-lg border px-3 py-3 text-center ${rankBg(rank)}`}>
+                      <div className="text-[10px] font-bold text-slate-500">{cat}</div>
+                      <div className={`mt-1 text-[22px] font-bold tabular-nums ${rankColor(rank)}`}>
+                        {rank > 0 ? `#${rank}` : "-"}
+                      </div>
+                      <div className="mt-0.5 text-[11px] font-mono text-slate-500">
+                        {fmtValue(cat, val)}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
+
+          {/* Strengths & Weaknesses */}
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="rounded-lg border border-emerald-500/20 bg-surface p-4">
+              <div className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-emerald-400/70">
+                Strengths (Top 3)
+              </div>
+              {strengths.length > 0 ? (
+                <div className="space-y-1">
+                  {strengths.map((cat) => (
+                    <div key={cat} className="flex items-center justify-between">
+                      <span className="text-[13px] text-slate-200">{cat}</span>
+                      <span className="font-mono text-[13px] text-emerald-400">#{myTeam.ranks[cat]}</span>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-[12px] text-slate-600">No categories in top 3</div>
+              )}
+            </div>
+            <div className="rounded-lg border border-red-500/20 bg-surface p-4">
+              <div className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-red-400/70">
+                Weaknesses (Bottom 3)
+              </div>
+              {weaknesses.length > 0 ? (
+                <div className="space-y-1">
+                  {weaknesses.map((cat) => (
+                    <div key={cat} className="flex items-center justify-between">
+                      <span className="text-[13px] text-slate-200">{cat}</span>
+                      <span className="font-mono text-[13px] text-red-400">#{myTeam.ranks[cat]}</span>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-[12px] text-slate-600">No categories in bottom 3</div>
+              )}
+            </div>
+          </div>
+        </>
+      ) : (
+        /* Leaderboard view — all teams, all categories */
+        <>
+          {[
+            { label: "Batting", cats: BAT_CATS },
+            { label: "Pitching", cats: PIT_CATS },
+          ].map(({ label, cats }) => (
+            <div key={label} className="mb-6">
+              <div className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-slate-700">{label}</div>
+              <div className="overflow-x-auto rounded-lg border border-border">
+                <table className="w-full text-left text-[12px]">
+                  <thead className="border-b border-border bg-surface text-[10px] uppercase tracking-wider text-slate-500">
+                    <tr>
+                      <th className="px-3 py-2.5 sticky left-0 bg-surface">Team</th>
+                      <th className="px-2 py-2.5 text-center w-10">W-L</th>
+                      {cats.map((cat) => (
+                        <th key={cat} className="px-2 py-2.5 text-right w-14">{cat}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {data.teams.map((team, i) => {
+                      const isMe = team.teamId === data.myTeamId;
+                      return (
+                        <tr key={team.teamId}
+                          className={`border-b border-border/50 ${isMe ? "bg-amber-500/5" : i % 2 === 0 ? "" : "bg-white/[0.01]"}`}>
+                          <td className={`px-3 py-2 sticky left-0 ${isMe ? "text-amber-400 font-semibold bg-amber-500/5" : "text-slate-200 bg-background"}`}>
+                            {team.teamName}
+                          </td>
+                          <td className="px-2 py-2 text-center text-slate-500 tabular-nums">
+                            {team.wins}-{team.losses}
+                          </td>
+                          {cats.map((cat) => {
+                            const rank = team.ranks[cat] ?? 0;
+                            const val = team.categories[cat];
+                            return (
+                              <td key={cat} className="px-2 py-2 text-right">
+                                <div className={`font-mono tabular-nums ${rankColor(rank)}`}>
+                                  {fmtValue(cat, val)}
+                                </div>
+                                <div className={`text-[9px] ${rankColor(rank)}`}>#{rank}</div>
+                              </td>
+                            );
+                          })}
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          ))}
+        </>
+      )}
+    </div>
   );
 }

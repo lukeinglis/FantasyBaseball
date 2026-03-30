@@ -1,271 +1,273 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
-import type { Player } from "@/lib/data";
 
-interface DraftSession {
-  drafted: string[];
-  myPicks: string[];
-  myRoster: Record<string, string>;
-}
-
-const BATTING_SLOTS = ["C", "1B", "2B", "3B", "SS", "OF", "OF", "OF", "UTIL"] as const;
-const PITCHING_SLOTS = ["SP", "SP", "SP", "SP", "SP", "RP", "RP", "P", "P"] as const;
-const SLOT_ELIGIBLE: Record<string, string[]> = {
-  C: ["C"], "1B": ["1B"], "2B": ["2B"], "3B": ["3B"], SS: ["SS"],
-  OF: ["OF"], UTIL: ["C", "1B", "2B", "3B", "SS", "OF", "DH"],
-  SP: ["SP"], RP: ["RP"], P: ["SP", "RP"],
-};
-
-function zColor(z: number) {
-  if (z >= 1.0) return "text-sky-300 font-semibold";
-  if (z >= 0.5) return "text-sky-400/90";
-  if (z >= 0.0) return "text-slate-300";
-  if (z >= -0.3) return "text-slate-500";
-  return "text-red-400/70";
-}
-
-function injuryBadge(status?: string) {
-  if (!status || status === "ACTIVE") return null;
-  const colors: Record<string, string> = {
-    DAY_TO_DAY: "text-amber-400",
-    SEVEN_DAY_DL: "text-orange-400",
-    FIFTEEN_DAY_DL: "text-red-400",
-    SIXTY_DAY_DL: "text-red-500",
-    OUT: "text-red-400",
-  };
-  const labels: Record<string, string> = {
-    DAY_TO_DAY: "DTD",
-    SEVEN_DAY_DL: "7-IL",
-    FIFTEEN_DAY_DL: "15-IL",
-    SIXTY_DAY_DL: "60-IL",
-    OUT: "OUT",
-  };
-  return (
-    <span className={`ml-1 text-[10px] font-bold ${colors[status] ?? "text-slate-500"}`}>
-      {labels[status] ?? status}
-    </span>
-  );
-}
-
-interface EspnRosterPlayer {
+interface RosterPlayer {
   name: string;
+  pos: string;
+  slotLabel: string;
+  slotId: number;
   injuryStatus: string;
   injuryLabel: string;
   injuryColor: string;
   injuryNote?: string;
-  slotLabel: string;
-  slotId: number;
   proTeam: string;
+  acquisitionType: string;
+}
+
+interface EspnTeam {
+  id: number;
+  name: string;
+  abbrev: string;
+  wins: number;
+  losses: number;
+  ties: number;
+  roster: RosterPlayer[];
+}
+
+interface TeamSchedule {
+  todayOpponent: string | null;
+  todayTime: string | null;
+  weekGames: number;
+}
+
+const MY_TEAM_ID_KEY = "espnMyTeamId";
+
+// Slot IDs
+const BATTER_SLOT_IDS = new Set([0, 1, 2, 3, 4, 5, 6, 7, 8]);
+const PITCHER_SLOT_IDS = new Set([14, 15, 17]);
+const BENCH_SLOT_ID = 16;
+const IL_SLOT_ID = 12;
+
+function PlayerRow({
+  player,
+  schedule,
+}: {
+  player: RosterPlayer;
+  schedule: TeamSchedule | null;
+}) {
+  const hasGame = !!schedule?.todayOpponent;
+  const isInjured = player.injuryStatus !== "ACTIVE";
+
+  return (
+    <div className="flex items-center gap-2 border-b border-border/30 px-2 py-1.5">
+      <span className="w-7 shrink-0 text-[10px] font-bold text-slate-600">{player.slotLabel}</span>
+      <span className={`min-w-0 w-[140px] truncate text-[12px] ${isInjured ? "text-slate-500" : "text-slate-200"}`}>
+        {player.name}
+      </span>
+      <span className="w-6 shrink-0 text-[10px] text-slate-600">{player.pos}</span>
+      <span className="w-7 shrink-0 text-[10px] text-slate-600">{player.proTeam}</span>
+
+      {/* Today's game */}
+      <div className="flex-1 min-w-0">
+        {hasGame ? (
+          <span className="text-[10px] text-slate-400 whitespace-nowrap">
+            {schedule!.todayOpponent}
+            {schedule!.todayTime && (
+              <span className="ml-1 text-slate-600">{schedule!.todayTime}</span>
+            )}
+          </span>
+        ) : (
+          <span className="text-[10px] text-slate-700">Off</span>
+        )}
+      </div>
+
+      {/* Games this week */}
+      {schedule && (
+        <span className={`shrink-0 text-[10px] tabular-nums font-semibold ${
+          schedule.weekGames >= 5 ? "text-emerald-400" :
+          schedule.weekGames >= 3 ? "text-amber-400" : "text-slate-600"
+        }`}>{schedule.weekGames}G</span>
+      )}
+
+      {/* Acquisition badge */}
+      {player.acquisitionType && player.acquisitionType !== "DRAFT" && (
+        <span className="shrink-0 text-[9px] font-bold text-violet-400/60">
+          {player.acquisitionType === "ADD" ? "FA" : player.acquisitionType}
+        </span>
+      )}
+
+      {/* Injury */}
+      {isInjured && (
+        <span className={`shrink-0 text-[10px] font-bold ${player.injuryColor}`}>
+          {player.injuryLabel}
+        </span>
+      )}
+    </div>
+  );
+}
+
+function EspnSetupCard() {
+  return (
+    <div className="mx-auto max-w-lg rounded-xl border border-border bg-surface px-8 py-10 text-center">
+      <div className="text-[11px] font-semibold uppercase tracking-widest text-amber-400/60">Setup Required</div>
+      <div className="mt-3 text-xl font-bold text-white">Connect ESPN Credentials</div>
+      <div className="mt-3 text-[13px] text-slate-400">
+        The Roster view pulls live data from your private ESPN league. Add these environment variables to Vercel.
+      </div>
+      <div className="mt-5 rounded-lg border border-border bg-background px-4 py-4 text-left text-[12px]">
+        <div className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-slate-600">
+          Vercel → Settings → Environment Variables
+        </div>
+        <div className="space-y-2 font-mono">
+          <div><span className="text-amber-400">ESPN_S2</span> <span className="text-slate-600">=</span> <span className="text-slate-400">AE...</span></div>
+          <div><span className="text-amber-400">ESPN_SWID</span> <span className="text-slate-600">=</span> <span className="text-slate-400">{"{XXXX-...}"}</span></div>
+          <div><span className="text-amber-400">MY_ESPN_TEAM_ID</span> <span className="text-slate-600">=</span> <span className="text-slate-400">9</span></div>
+        </div>
+      </div>
+    </div>
+  );
 }
 
 export default function RosterPage() {
-  const [players, setPlayers] = useState<Player[]>([]);
-  const [session, setSession] = useState<DraftSession>({ drafted: [], myPicks: [], myRoster: {} });
-  const [espnRoster, setEspnRoster] = useState<EspnRosterPlayer[] | null>(null);
+  const [teams, setTeams] = useState<EspnTeam[]>([]);
+  const [schedule, setSchedule] = useState<Record<string, TeamSchedule>>({});
+  const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
-  const [espnLoaded, setEspnLoaded] = useState(false);
 
   useEffect(() => {
-    Promise.all([
-      fetch("/api/rankings").then((r) => r.json()),
-      fetch("/api/draft").then((r) => r.json()),
-    ]).then(([p, s]) => {
-      setPlayers(p);
-      setSession(s);
-      setLoading(false);
-    });
-
-    // Try ESPN live roster (optional — works only if credentials configured)
     fetch("/api/espn/roster")
       .then((r) => r.json())
-      .then((teams) => {
-        if (!teams.error && Array.isArray(teams)) {
-          // Find my team — pick the one with MY_TEAM flag or just store all
-          setEspnRoster(teams.flatMap((t: any) => t.roster ?? []));
-        }
-        setEspnLoaded(true);
+      .then((data) => {
+        if (data.error) { setError(data.error); setLoading(false); return; }
+        setTeams(data);
+
+        // Fetch MLB schedule for the current week
+        const today = new Date().toISOString().slice(0, 10);
+        const end = new Date();
+        end.setDate(end.getDate() + 6);
+        const endDate = end.toISOString().slice(0, 10);
+        return fetch(`/api/mlb/schedule?startDate=${today}&endDate=${endDate}`)
+          .then((r) => r.json())
+          .then((s) => { if (!s.error) setSchedule(s); });
       })
-      .catch(() => setEspnLoaded(true));
+      .catch(() => setError("FETCH_FAILED"))
+      .finally(() => setLoading(false));
   }, []);
 
-  const playerMap = useMemo(() => {
-    const m = new Map<string, Player>();
-    players.forEach((p) => m.set(p.name, p));
-    return m;
-  }, [players]);
+  // Determine my team — use MY_ESPN_TEAM_ID from the matchup endpoint or first team
+  const myTeam = useMemo(() => {
+    if (teams.length === 0) return null;
+    // Try to get MY_ESPN_TEAM_ID from matchup endpoint
+    const stored = typeof window !== "undefined" ? localStorage.getItem(MY_TEAM_ID_KEY) : null;
+    if (stored) {
+      const found = teams.find((t) => t.id === parseInt(stored));
+      if (found) return found;
+    }
+    // Fetch from matchup to get the ID
+    return null;
+  }, [teams]);
 
-  const myPickPlayers = useMemo(
-    () => session.myPicks.map((n) => playerMap.get(n)).filter(Boolean) as Player[],
-    [session.myPicks, playerMap]
-  );
+  const [resolvedTeam, setResolvedTeam] = useState<EspnTeam | null>(null);
 
-  // Greedily fill lineup slots
-  const lineupSlots = useMemo(() => {
-    const pool = [...myPickPlayers].sort((a, b) => b.zTotal - a.zTotal);
-    const assigned = new Set<string>();
-    const fill = (slots: readonly string[]) =>
-      slots.map((slot) => {
-        const eligible = SLOT_ELIGIBLE[slot];
-        const player = pool.find((p) => {
-          if (assigned.has(p.name)) return false;
-          return eligible ? eligible.includes(p.pos) : true;
-        }) ?? null;
-        if (player) assigned.add(player.name);
-        return { slot, player };
-      });
-    const batSlots = fill(BATTING_SLOTS);
-    const pitSlots = fill(PITCHING_SLOTS);
-    const bnPlayers = myPickPlayers.filter((p) => !assigned.has(p.name));
-    return { batSlots, pitSlots, bnPlayers };
-  }, [myPickPlayers]);
+  useEffect(() => {
+    if (myTeam) {
+      setResolvedTeam(myTeam);
+      return;
+    }
+    if (teams.length === 0) return;
 
-  // FA / waiver suggestions: top available by z-score (not on my roster)
-  const draftedSet = useMemo(() => new Set(session.drafted), [session.drafted]);
-  const myPickSet = useMemo(() => new Set(session.myPicks), [session.myPicks]);
-  const faSuggestions = useMemo(() => {
-    const seen = new Set<string>();
-    return players
-      .filter((p) => {
-        if (seen.has(p.name)) { return false; }
-        seen.add(p.name);
-        return !draftedSet.has(p.name) && !myPickSet.has(p.name);
+    // Resolve from matchup API
+    fetch("/api/espn/matchup")
+      .then((r) => r.json())
+      .then((d) => {
+        if (d.myTeamId) {
+          localStorage.setItem(MY_TEAM_ID_KEY, String(d.myTeamId));
+          const found = teams.find((t) => t.id === d.myTeamId);
+          if (found) { setResolvedTeam(found); return; }
+        }
+        // Fallback to first team
+        setResolvedTeam(teams[0]);
       })
-      .sort((a, b) => b.zTotal - a.zTotal)
-      .slice(0, 30);
-  }, [players, draftedSet, myPickSet]);
+      .catch(() => setResolvedTeam(teams[0]));
+  }, [myTeam, teams]);
 
-  // IL players (from ESPN roster if available)
-  const ilPlayers = useMemo(() => {
-    if (!espnRoster) return [];
-    return espnRoster.filter((p) =>
-      ["SEVEN_DAY_DL", "FIFTEEN_DAY_DL", "SIXTY_DAY_DL", "OUT"].includes(p.injuryStatus)
+  const roster = resolvedTeam?.roster ?? [];
+  const batters = useMemo(() => roster.filter((p) => BATTER_SLOT_IDS.has(p.slotId)).sort((a, b) => a.slotId - b.slotId), [roster]);
+  const pitchers = useMemo(() => roster.filter((p) => PITCHER_SLOT_IDS.has(p.slotId)).sort((a, b) => a.slotId - b.slotId), [roster]);
+  const bench = useMemo(() => roster.filter((p) => p.slotId === BENCH_SLOT_ID), [roster]);
+  const il = useMemo(() => roster.filter((p) => p.slotId === IL_SLOT_ID), [roster]);
+
+  if (loading) return <div className="flex h-64 items-center justify-center text-slate-500">Loading roster...</div>;
+  if (error === "ESPN_CREDS_MISSING") {
+    return <div className="flex min-h-[70vh] items-center justify-center px-4"><EspnSetupCard /></div>;
+  }
+  if (error || !resolvedTeam) {
+    return (
+      <div className="flex h-64 flex-col items-center justify-center gap-2">
+        <div className="text-red-400">Failed to load roster</div>
+        <div className="text-[12px] text-slate-600">{error}</div>
+      </div>
     );
-  }, [espnRoster]);
-
-  if (loading) {
-    return <div className="flex h-64 items-center justify-center text-slate-500">Loading...</div>;
   }
 
-  const SlotRow = ({ slot, player }: { slot: string; player: Player | null }) => (
-    <div className="flex items-center gap-2 border-b border-border/30 px-2 py-1.5">
-      <span className="w-8 shrink-0 text-[10px] font-bold text-slate-600">{slot}</span>
-      {player ? (
-        <>
-          <span className="min-w-0 flex-1 truncate text-[12px] text-slate-200">{player.name}</span>
-          <span className="shrink-0 text-[10px] text-slate-600">{player.team}</span>
-          <span className={`shrink-0 font-mono text-[11px] ${zColor(player.zTotal)}`}>
-            {player.zTotal.toFixed(2)}
-          </span>
-        </>
-      ) : (
-        <span className="text-[11px] text-slate-700">—</span>
+  const Section = ({ label, players, borderColor = "border-border" }: { label: string; players: RosterPlayer[]; borderColor?: string }) => (
+    <div className={`rounded-lg border ${borderColor} bg-surface`}>
+      <div className={`border-b ${borderColor} px-3 py-2 flex items-center justify-between`}>
+        <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-600">{label}</span>
+        <span className="text-[10px] tabular-nums text-slate-700">{players.length}</span>
+      </div>
+      {players.map((p, i) => (
+        <PlayerRow key={i} player={p} schedule={schedule[p.proTeam] ?? null} />
+      ))}
+      {players.length === 0 && (
+        <div className="px-3 py-3 text-[11px] text-slate-700">-</div>
       )}
     </div>
   );
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-6">
-      <div className="grid gap-6 lg:grid-cols-[1fr_280px]">
+    <div className="mx-auto max-w-6xl px-4 py-6">
+      {/* Header */}
+      <div className="mb-5 flex items-baseline justify-between">
+        <div>
+          <h1 className="text-lg font-bold text-white">{resolvedTeam.name}</h1>
+          <span className="text-[12px] tabular-nums text-slate-500">
+            {resolvedTeam.wins}-{resolvedTeam.losses}{resolvedTeam.ties > 0 ? `-${resolvedTeam.ties}` : ""}
+          </span>
+        </div>
+        <div className="text-[10px] text-slate-700">
+          <span className="text-emerald-400">5G+</span>
+          <span className="mx-1">/</span>
+          <span className="text-amber-400">3-4G</span>
+          <span className="mx-1">/</span>
+          <span className="text-slate-600">&le;2G</span>
+          <span className="ml-1">this week</span>
+        </div>
+      </div>
 
-        {/* Main roster */}
+      {/* Roster grid */}
+      <div className="grid gap-4 lg:grid-cols-3">
+        <Section label="Batting" players={batters} borderColor="border-amber-500/20" />
+        <Section label="Pitching" players={pitchers} />
         <div className="space-y-4">
-          <div className="flex items-baseline justify-between">
-            <h1 className="text-lg font-bold text-white">My Roster</h1>
-            <span className="text-[12px] tabular-nums text-slate-500">
-              {myPickPlayers.length} players
-            </span>
-          </div>
-
-          {myPickPlayers.length === 0 ? (
-            <div className="rounded-lg border border-border bg-surface px-6 py-10 text-center text-slate-500">
-              No roster data yet. Use the War Room to log your draft picks.
-            </div>
-          ) : (
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {/* Batting */}
-              <div className="rounded-lg border border-border bg-surface">
-                <div className="border-b border-border px-3 py-2 text-[10px] font-semibold uppercase tracking-wider text-slate-600">
-                  Batting
-                </div>
-                {lineupSlots.batSlots.map((s, i) => <SlotRow key={i} {...s} />)}
-              </div>
-              {/* Pitching */}
-              <div className="rounded-lg border border-border bg-surface">
-                <div className="border-b border-border px-3 py-2 text-[10px] font-semibold uppercase tracking-wider text-slate-600">
-                  Pitching
-                </div>
-                {lineupSlots.pitSlots.map((s, i) => <SlotRow key={i} {...s} />)}
-              </div>
-              {/* Bench */}
-              <div className="rounded-lg border border-border bg-surface">
-                <div className="border-b border-border px-3 py-2 text-[10px] font-semibold uppercase tracking-wider text-slate-600">
-                  Bench
-                </div>
-                {lineupSlots.bnPlayers.map((p, i) => (
-                  <div key={i} className="flex items-center gap-2 border-b border-border/30 px-2 py-1.5">
-                    <span className="w-8 shrink-0 text-[10px] font-bold text-slate-600">BN</span>
-                    <span className="min-w-0 flex-1 truncate text-[12px] text-slate-400">{p.name}</span>
-                    <span className={`shrink-0 font-mono text-[11px] ${zColor(p.zTotal)}`}>{p.zTotal.toFixed(2)}</span>
-                  </div>
-                ))}
-                {lineupSlots.bnPlayers.length === 0 && (
-                  <div className="px-3 py-3 text-[11px] text-slate-700">—</div>
-                )}
-              </div>
-            </div>
-          )}
-
-          {/* IL section */}
-          {ilPlayers.length > 0 && (
-            <div className="rounded-lg border border-red-500/20 bg-surface">
-              <div className="border-b border-red-500/20 px-3 py-2 text-[10px] font-semibold uppercase tracking-wider text-red-400/70">
-                Injured List ({ilPlayers.length})
-              </div>
-              <div className="divide-y divide-border/30">
-                {ilPlayers.map((p, i) => (
-                  <div key={i} className="flex items-start gap-3 px-3 py-2">
-                    <span className={`shrink-0 text-[11px] font-bold ${p.injuryColor}`}>
-                      {p.injuryLabel}
-                    </span>
-                    <div className="min-w-0 flex-1">
-                      <div className="text-[12px] text-slate-200">{p.name}</div>
-                      {p.injuryNote && (
-                        <div className="mt-0.5 text-[11px] text-slate-500">{p.injuryNote}</div>
-                      )}
-                    </div>
-                    <span className="shrink-0 text-[10px] text-slate-600">{p.proTeam}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
+          <Section label="Bench" players={bench} />
+          {il.length > 0 && (
+            <Section label="Injured List" players={il} borderColor="border-red-500/20" />
           )}
         </div>
+      </div>
 
-        {/* FA sidebar */}
-        <div className="rounded-lg border border-border bg-surface">
-          <div className="border-b border-border px-3 py-2">
-            <div className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">
-              Free Agents
-            </div>
-            <div className="mt-0.5 text-[10px] text-slate-700">Top available by z-score</div>
+      {/* IL details */}
+      {il.length > 0 && (
+        <div className="mt-4 rounded-lg border border-red-500/20 bg-surface">
+          <div className="border-b border-red-500/20 px-3 py-2 text-[10px] font-semibold uppercase tracking-wider text-red-400/70">
+            Injury Details
           </div>
-          <div className="overflow-y-auto" style={{ maxHeight: "600px" }}>
-            {faSuggestions.map((p, i) => (
-              <div key={i} className="flex items-center gap-2 border-b border-border/30 px-3 py-1.5">
-                <span className="w-4 shrink-0 text-[10px] tabular-nums text-slate-700">{i + 1}</span>
+          <div className="divide-y divide-border/30">
+            {il.map((p, i) => (
+              <div key={i} className="flex items-start gap-3 px-3 py-2">
+                <span className={`shrink-0 text-[11px] font-bold ${p.injuryColor}`}>{p.injuryLabel}</span>
                 <div className="min-w-0 flex-1">
-                  <div className="truncate text-[12px] text-slate-300">{p.name}</div>
-                  <div className="text-[10px] text-slate-600">{p.pos} · {p.team}</div>
+                  <div className="text-[12px] text-slate-200">{p.name}</div>
+                  {p.injuryNote && <div className="mt-0.5 text-[11px] text-slate-500">{p.injuryNote}</div>}
                 </div>
-                <span className={`shrink-0 font-mono text-[11px] ${zColor(p.zTotal)}`}>
-                  {p.zTotal.toFixed(2)}
-                </span>
+                <span className="shrink-0 text-[10px] text-slate-600">{p.proTeam}</span>
               </div>
             ))}
           </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }
