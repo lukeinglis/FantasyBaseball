@@ -441,29 +441,68 @@ export default function MatchupPage() {
           { label: "Pitching", cats: pitCats },
         ].map(({ label, cats }) => (
           <div key={label}>
-            <div className="mb-1.5 text-[10px] font-semibold uppercase tracking-wider text-slate-400">{label}</div>
-            <div className="grid grid-cols-4 gap-1.5 sm:grid-cols-8">
+            <div className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-slate-400">{label}</div>
+            <div className="space-y-1">
               {cats.map((c) => {
                 const pct = lockPct(c.cat, c.myValue, c.oppValue, daysLeft);
+                const myVal = c.myValue ?? 0;
+                const oppVal = c.oppValue ?? 0;
+                const lower = LOWER_IS_BETTER.has(c.cat);
+                // For bar width: normalize to percentage of the larger value
+                const maxVal = Math.max(Math.abs(myVal), Math.abs(oppVal), 0.001);
+                const myBarPct = (Math.abs(myVal) / maxVal) * 100;
+                const oppBarPct = (Math.abs(oppVal) / maxVal) * 100;
+
                 return (
-                  <div key={c.cat} className={`rounded-lg border px-2 py-2 text-center ${catBg(c.result)}`}>
-                    <div className="text-[10px] font-bold text-slate-500">{c.cat}</div>
-                    <div className={`mt-0.5 font-mono text-[14px] font-bold ${catResultColor(c.result)}`}>
-                      {fmtCat(c.cat, c.myValue)}
-                    </div>
-                    <div className="text-[11px] font-mono text-slate-600">
-                      {fmtCat(c.cat, c.oppValue)}
-                    </div>
-                    {c.result !== "PENDING" && (
-                      <div className={`mt-0.5 text-[9px] font-bold uppercase ${catResultColor(c.result)}`}>
-                        {c.result}
+                  <div key={c.cat} className="rounded-lg border border-border bg-surface px-3 py-2">
+                    <div className="flex items-center justify-between mb-1">
+                      <div className="flex items-center gap-2">
+                        <span className="text-[11px] font-bold text-slate-500 w-10">{c.cat}</span>
+                        {c.result !== "PENDING" && (
+                          <span className={`text-[9px] font-bold uppercase px-1.5 py-0.5 rounded ${
+                            c.result === "WIN" ? "bg-emerald-100 text-emerald-700" :
+                            c.result === "LOSS" ? "bg-red-100 text-red-700" :
+                            "bg-orange-100 text-orange-700"
+                          }`}>{c.result}</span>
+                        )}
+                        {pct !== null && daysLeft > 0 && (
+                          <span className={`text-[9px] font-bold ${lockColor(pct)}`}>
+                            {pct}%
+                          </span>
+                        )}
                       </div>
-                    )}
-                    {pct !== null && daysLeft > 0 && (
-                      <div className={`mt-0.5 text-[8px] font-bold ${lockColor(pct)}`}>
-                        {pct}% {lockLabel(pct)}
+                    </div>
+                    {/* Comparison bars */}
+                    <div className="space-y-0.5">
+                      {/* My bar */}
+                      <div className="flex items-center gap-2">
+                        <span className={`text-[11px] font-mono font-bold tabular-nums w-14 text-right ${
+                          c.result === "WIN" ? "text-emerald-700" : c.result === "LOSS" ? "text-slate-500" : "text-slate-600"
+                        }`}>{fmtCat(c.cat, c.myValue)}</span>
+                        <div className="flex-1 h-3 bg-slate-100 rounded-full overflow-hidden">
+                          <div
+                            className={`h-full rounded-full transition-all ${
+                              c.result === "WIN" ? "bg-emerald-500" : c.result === "TIE" ? "bg-orange-400" : "bg-slate-300"
+                            }`}
+                            style={{ width: `${myBarPct}%` }}
+                          />
+                        </div>
                       </div>
-                    )}
+                      {/* Opponent bar */}
+                      <div className="flex items-center gap-2">
+                        <span className="text-[11px] font-mono tabular-nums w-14 text-right text-slate-500">
+                          {fmtCat(c.cat, c.oppValue)}
+                        </span>
+                        <div className="flex-1 h-3 bg-slate-100 rounded-full overflow-hidden">
+                          <div
+                            className={`h-full rounded-full transition-all ${
+                              c.result === "LOSS" ? "bg-red-400" : c.result === "TIE" ? "bg-orange-400" : "bg-slate-300"
+                            }`}
+                            style={{ width: `${oppBarPct}%` }}
+                          />
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 );
               })}
