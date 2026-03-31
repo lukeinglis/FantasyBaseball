@@ -434,96 +434,88 @@ export default function MatchupPage() {
         </div>
       </div>
 
-      {/* Category scoreboard — compact two-column layout */}
-      <div className="mb-6 grid gap-4 lg:grid-cols-2">
+      {/* Category scoreboard — donut charts */}
+      <div className="mb-6 space-y-3">
         {[
           { label: "Batting", cats: batCats },
           { label: "Pitching", cats: pitCats },
         ].map(({ label, cats }) => (
-          <div key={label} className="rounded-lg border border-border bg-surface overflow-hidden">
-            <div className="px-3 py-1.5 border-b border-border bg-black/[0.02]">
-              <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">{label}</span>
-            </div>
-            <table className="w-full text-[12px]">
-              <thead>
-                <tr className="text-[9px] uppercase tracking-wider text-slate-400">
-                  <th className="px-3 py-1 text-left w-10">Cat</th>
-                  <th className="px-1 py-1 text-right w-12">You</th>
-                  <th className="px-2 py-1"><span className="sr-only">Bar</span></th>
-                  <th className="px-1 py-1 text-left w-12">Opp</th>
-                  <th className="px-2 py-1 text-right w-16">Lock</th>
-                </tr>
-              </thead>
-              <tbody>
-                {cats.map((c) => {
-                  const pct = lockPct(c.cat, c.myValue, c.oppValue, daysLeft);
-                  const myVal = c.myValue ?? 0;
-                  const oppVal = c.oppValue ?? 0;
-                  const maxVal = Math.max(Math.abs(myVal), Math.abs(oppVal), 0.001);
-                  const myPct = (Math.abs(myVal) / maxVal) * 50;
-                  const oppPct = (Math.abs(oppVal) / maxVal) * 50;
+          <div key={label}>
+            <div className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-slate-400">{label}</div>
+            <div className="grid grid-cols-4 gap-3 sm:grid-cols-8">
+              {cats.map((c) => {
+                const pct = lockPct(c.cat, c.myValue, c.oppValue, daysLeft);
+                const myVal = c.myValue ?? 0;
+                const oppVal = c.oppValue ?? 0;
+                const total = Math.abs(myVal) + Math.abs(oppVal);
+                // For donut: my share as percentage
+                const myShare = total > 0 ? (Math.abs(myVal) / total) * 100 : 50;
+                // SVG donut math (circumference of r=30 circle = 2πr ≈ 188.5)
+                const circumference = 188.5;
+                const myArc = (myShare / 100) * circumference;
+                const oppArc = circumference - myArc;
 
-                  return (
-                    <tr key={c.cat} className={`border-b border-border last:border-b-0 ${
-                      c.result === "WIN" ? "bg-emerald-50/50" :
-                      c.result === "LOSS" ? "bg-red-50/50" : ""
-                    }`}>
-                      <td className="px-3 py-1.5">
-                        <span className="font-bold text-slate-600">{c.cat}</span>
-                      </td>
-                      <td className={`px-1 py-1.5 text-right font-mono font-bold tabular-nums ${
-                        c.result === "WIN" ? "text-emerald-700" :
-                        c.result === "LOSS" ? "text-slate-500" : "text-slate-600"
-                      }`}>
-                        {fmtCat(c.cat, c.myValue)}
-                      </td>
-                      <td className="px-2 py-1.5">
-                        {/* Tug-of-war bar */}
-                        <div className="flex items-center h-4">
-                          {/* My side (grows right) */}
-                          <div className="flex-1 flex justify-end">
-                            <div
-                              className={`h-3 rounded-l transition-all ${
-                                c.result === "WIN" ? "bg-emerald-500" :
-                                c.result === "TIE" ? "bg-orange-400" : "bg-slate-200"
-                              }`}
-                              style={{ width: `${myPct}%` }}
-                            />
-                          </div>
-                          <div className="w-px h-4 bg-slate-300 shrink-0" />
-                          {/* Opponent side (grows left) */}
-                          <div className="flex-1">
-                            <div
-                              className={`h-3 rounded-r transition-all ${
-                                c.result === "LOSS" ? "bg-red-400" :
-                                c.result === "TIE" ? "bg-orange-400" : "bg-slate-200"
-                              }`}
-                              style={{ width: `${oppPct}%` }}
-                            />
-                          </div>
-                        </div>
-                      </td>
-                      <td className="px-1 py-1.5 font-mono tabular-nums text-slate-500">
-                        {fmtCat(c.cat, c.oppValue)}
-                      </td>
-                      <td className="px-2 py-1.5 text-right">
-                        {pct !== null && daysLeft > 0 ? (
-                          <span className={`text-[10px] font-bold ${lockColor(pct)}`}>
-                            {pct}%
-                          </span>
-                        ) : (
-                          c.result !== "PENDING" && (
-                            <span className={`text-[9px] font-bold uppercase ${catResultColor(c.result)}`}>
-                              {c.result}
-                            </span>
-                          )
-                        )}
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+                // Colors based on result
+                const myColor = c.result === "WIN" ? "#059669" : c.result === "TIE" ? "#ea580c" : "#cbd5e1";
+                const oppColor = c.result === "LOSS" ? "#dc2626" : c.result === "TIE" ? "#ea580c" : "#cbd5e1";
+
+                return (
+                  <div key={c.cat} className="flex flex-col items-center">
+                    {/* Category label */}
+                    <span className="text-[10px] font-bold text-slate-500 mb-1">{c.cat}</span>
+
+                    {/* Donut chart */}
+                    <div className="relative w-[72px] h-[72px]">
+                      <svg viewBox="0 0 80 80" className="w-full h-full -rotate-90">
+                        {/* My arc */}
+                        <circle
+                          cx="40" cy="40" r="30"
+                          fill="none"
+                          stroke={myColor}
+                          strokeWidth="8"
+                          strokeDasharray={`${myArc} ${circumference}`}
+                          strokeDashoffset="0"
+                          strokeLinecap="round"
+                        />
+                        {/* Opponent arc */}
+                        <circle
+                          cx="40" cy="40" r="30"
+                          fill="none"
+                          stroke={oppColor}
+                          strokeWidth="8"
+                          strokeDasharray={`${oppArc} ${circumference}`}
+                          strokeDashoffset={`${-myArc}`}
+                          strokeLinecap="round"
+                        />
+                      </svg>
+                      {/* Center value */}
+                      <div className="absolute inset-0 flex flex-col items-center justify-center">
+                        <span className={`text-[11px] font-bold font-mono tabular-nums leading-tight ${catResultColor(c.result)}`}>
+                          {fmtCat(c.cat, c.myValue)}
+                        </span>
+                        <span className="text-[9px] font-mono tabular-nums text-slate-400 leading-tight">
+                          {fmtCat(c.cat, c.oppValue)}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Result + lock */}
+                    <div className="mt-1 flex flex-col items-center">
+                      {c.result !== "PENDING" && (
+                        <span className={`text-[9px] font-bold uppercase ${catResultColor(c.result)}`}>
+                          {c.result}
+                        </span>
+                      )}
+                      {pct !== null && daysLeft > 0 && (
+                        <span className={`text-[8px] font-bold ${lockColor(pct)}`}>
+                          {pct}%
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
           </div>
         ))}
       </div>
