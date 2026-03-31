@@ -254,12 +254,12 @@ export default function TodayPage() {
             <div className="text-2xl font-bold tabular-nums text-slate-400">{off.length + spsNotStarting.length}</div>
             <div className="text-[9px] text-slate-500">OFF</div>
           </div>
-          {benchWithGames.length > 0 && (
-            <div className="text-center">
-              <div className="text-2xl font-bold tabular-nums text-orange-600">{benchWithGames.length}</div>
-              <div className="text-[9px] text-orange-600">BENCHED W/ GAME</div>
+          <div className="text-center">
+            <div className="text-2xl font-bold tabular-nums text-slate-400">
+              {off.length + spsNotStarting.length + benchWithGames.length}
             </div>
-          )}
+            <div className="text-[9px] text-slate-500">NOT IN LINEUP</div>
+          </div>
         </div>
       </div>
 
@@ -311,25 +311,15 @@ export default function TodayPage() {
           </div>
         )}
 
-        {/* Bench alert: players on bench who have games */}
-        {benchWithGames.length > 0 && (
-          <div className="rounded-lg border border-orange-300 bg-surface">
-            <div className="border-b border-orange-300 px-4 py-2 flex items-center justify-between bg-orange-50">
-              <span className="text-[10px] font-semibold uppercase tracking-wider text-orange-600">
-                Benched — Has Game Today
-              </span>
-              <span className="text-[10px] tabular-nums text-orange-600">{benchWithGames.length}</span>
-            </div>
-            {benchWithGames.map((p, i) => <GamePlayerRow key={i} player={p} showBenchAlert />)}
-          </div>
-        )}
-
-        {/* Off today (includes SPs not starting) */}
-        {(off.length + spsNotStarting.length) > 0 && (
+        {/* Not in lineup: benched with games + SPs not starting + off today */}
+        {(benchWithGames.length + spsNotStarting.length + off.length) > 0 && (
           <div className="rounded-lg border border-border bg-surface">
             <div className="border-b border-border px-4 py-2">
-              <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-500">Off Today ({off.length + spsNotStarting.length})</span>
+              <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-500">
+                Not In Lineup ({benchWithGames.length + spsNotStarting.length + off.length})
+              </span>
             </div>
+            {benchWithGames.map((p, i) => <GamePlayerRow key={`bn-${i}`} player={p} showBenchAlert />)}
             {spsNotStarting.map((p, i) => <GamePlayerRow key={`sp-${i}`} player={p} />)}
             {off.map((p, i) => <GamePlayerRow key={`off-${i}`} player={p} />)}
           </div>
