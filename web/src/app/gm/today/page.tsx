@@ -67,18 +67,23 @@ export default function TodayPage() {
 
   useEffect(() => {
     const today = new Date().toISOString().slice(0, 10);
-    const endOfWeek = new Date();
-    endOfWeek.setDate(endOfWeek.getDate() + 6);
 
     Promise.all([
       fetch("/api/espn/roster").then((r) => r.json()),
       fetch("/api/espn/matchup").then((r) => r.json()).catch(() => ({})),
-      fetch(`/api/mlb/schedule?startDate=${today}&endDate=${endOfWeek.toISOString().slice(0, 10)}`).then((r) => r.json()).catch(() => ({})),
-    ]).then(([rosterData, matchupData, schedData]) => {
-      if (rosterData.error) { setError(rosterData.error); return; }
+    ]).then(([rosterData, matchupData]) => {
+      if (rosterData.error) { setError(rosterData.error); setLoading(false); return; }
       setTeams(rosterData);
       if (matchupData.myTeamId) setMyTeamId(matchupData.myTeamId);
-      if (!schedData.error) setSchedule(schedData);
+
+      // Use matchup end date for "games remaining" count, fallback to today+6
+      const endDate = matchupData.matchupEndDate ?? (() => {
+        const d = new Date(); d.setDate(d.getDate() + 6); return d.toISOString().slice(0, 10);
+      })();
+
+      return fetch(`/api/mlb/schedule?startDate=${today}&endDate=${endDate}`)
+        .then((r) => r.json())
+        .then((schedData) => { if (!schedData.error) setSchedule(schedData); });
     })
     .catch(() => setError("FETCH_FAILED"))
     .finally(() => setLoading(false));
@@ -236,7 +241,7 @@ export default function TodayPage() {
             <span className="w-[65px] shrink-0">Time</span>
             <span className="flex-1">vs Pitcher</span>
           </div>
-          <span className="shrink-0">Wk</span>
+          <span className="shrink-0">Left</span>
         </div>
       )}
 
