@@ -1,4 +1,4 @@
-import { espnFetch, hasEspnCreds, POS_MAP, SLOT_MAP, INJURY_MAP, STAT_ID_MAP, getProTeam } from "@/lib/espn";
+import { espnFetch, hasEspnCreds, POS_MAP, SLOT_MAP, INJURY_MAP, STAT_ID_MAP, getProTeam, getMatchupDates, getCurrentMatchupPeriod } from "@/lib/espn";
 
 export interface MatchupCatResult {
   cat: string;
@@ -97,47 +97,9 @@ function parsePlayers(entries: any[], scoringPeriodId: number): MatchupPlayer[] 
   });
 }
 
-/**
- * Derive matchup start/end dates from the season start and matchup period day mapping.
- * ESPN's scheduleSettings.matchupPeriods maps matchup period → array of scoring period day numbers.
- * Each scoring period = 1 day. We calculate dates by adding (day - 1) to the season start date.
- */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function getMatchupDates(data: any, matchupPeriod: number): { start: string | null; end: string | null } {
-  const matchupPeriods: any = data.settings?.scheduleSettings?.matchupPeriods ?? {};
-  const periodDays: number[] = matchupPeriods[String(matchupPeriod)] ?? [];
-  if (periodDays.length === 0) return { start: null, end: null };
-
-  // ESPN season start: derive from the league's first scoring period
-  // The activatedDate is when the league was activated, but the actual season start
-  // is better derived from the schedule. MLB 2026 season starts ~March 25.
-  // We use a known reference: scoring period 1 = first day of the MLB season.
-  // ESPN's seasonId=2026 with firstScoringPeriod=1 starts on Opening Day.
-  // We can calculate from status.activatedDate or use a hardcoded season start.
-
-  // Try to get season start from the first matchup's scheduled date
-  // Fallback: use a known 2026 season start date
-  const SEASON_START = new Date("2026-03-25T00:00:00");
-
-  const firstDay = Math.min(...periodDays);
-  const lastDay = Math.max(...periodDays);
-
-  const startDate = new Date(SEASON_START);
-  startDate.setDate(startDate.getDate() + firstDay - 1);
-
-  const endDate = new Date(SEASON_START);
-  endDate.setDate(endDate.getDate() + lastDay - 1);
-
-  return {
-    start: startDate.toISOString().slice(0, 10),
-    end: endDate.toISOString().slice(0, 10),
-  };
-}
-
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function parseMatchup(data: any, myTeamId: number): MatchupData | null {
-  // Get current matchup period (week number) from league status
-  const currentMatchupPeriod: number = data.status?.currentMatchupPeriod ?? 1;
+  const currentMatchupPeriod = getCurrentMatchupPeriod(data);
 
   // Build team name lookup
   const teamNames: Record<number, string> = {};
@@ -211,8 +173,8 @@ function parseMatchup(data: any, myTeamId: number): MatchupData | null {
 
   return {
     scoringPeriodId: currentMatchupPeriod,
-    matchupStartDate: dates.start,
-    matchupEndDate: dates.end,
+    matchupStartDate: dates?.start ?? null,
+    matchupEndDate: dates?.end ?? null,
     myTeamId,
     myTeamName: teamNames[myTeamId] ?? `Team ${myTeamId}`,
     oppTeamId,

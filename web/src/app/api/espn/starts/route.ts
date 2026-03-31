@@ -1,4 +1,4 @@
-import { espnFetch, hasEspnCreds, POS_MAP, getProTeam } from "@/lib/espn";
+import { espnFetch, hasEspnCreds, POS_MAP, getProTeam, getMatchupDates, getCurrentMatchupPeriod } from "@/lib/espn";
 
 // Returns matchup period dates and roster data for current + next week
 // so the frontend can cross-reference with probable pitchers
@@ -20,24 +20,6 @@ export interface StartsData {
 }
 
 const MY_TEAM_ID = parseInt(process.env.MY_ESPN_TEAM_ID ?? "0");
-const SEASON_START = new Date("2026-03-25T00:00:00");
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function getMatchupDates(data: any, period: number): { start: string; end: string } | null {
-  const matchupPeriods: any = data.settings?.scheduleSettings?.matchupPeriods ?? {};
-  const days: number[] = matchupPeriods[String(period)] ?? [];
-  if (days.length === 0) return null;
-
-  const firstDay = Math.min(...days);
-  const lastDay = Math.max(...days);
-
-  const start = new Date(SEASON_START);
-  start.setDate(start.getDate() + firstDay - 1);
-  const end = new Date(SEASON_START);
-  end.setDate(end.getDate() + lastDay - 1);
-
-  return { start: start.toISOString().slice(0, 10), end: end.toISOString().slice(0, 10) };
-}
 
 export async function GET() {
   if (!hasEspnCreds()) {
@@ -50,7 +32,7 @@ export async function GET() {
   try {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const data: any = await espnFetch(["mRoster", "mTeam", "mStatus", "mSettings"]);
-    const currentMatchupPeriod: number = data.status?.currentMatchupPeriod ?? 1;
+    const currentMatchupPeriod = getCurrentMatchupPeriod(data);
 
     const currentDates = getMatchupDates(data, currentMatchupPeriod);
     const nextDates = getMatchupDates(data, currentMatchupPeriod + 1);

@@ -44,7 +44,7 @@ export async function GET() {
 
     // Determine current matchup period (week number)
     // scoringPeriodId is DAILY, matchupPeriodId is WEEKLY in ESPN baseball
-    const currentMatchupPeriod: number = data.status?.currentMatchupPeriod ?? 1;
+    const currentMatchupPeriod = (data as any).status?.currentMatchupPeriod ?? 1;
 
     // Build team name lookup
     const teamNames: Record<number, string> = {};

@@ -36,7 +36,7 @@ export async function GET() {
   try {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const data: any = await espnFetch(["mTeam", "mStatus", "mSettings", "mMatchup", "mMatchupScore"]);
-    const currentMatchupPeriod: number = data.status?.currentMatchupPeriod ?? 1;
+    const currentMatchupPeriod = (data as any).status?.currentMatchupPeriod ?? 1;
     const totalMatchupPeriods: number = data.settings?.scheduleSettings?.matchupPeriodCount ?? 21;
 
     // Build standings from team records

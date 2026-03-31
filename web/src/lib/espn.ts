@@ -83,6 +83,37 @@ export function isOnIL(injuryStatus: string): boolean {
   return IL_STATUSES.has(injuryStatus);
 }
 
+// --- Schedule / Date utilities ---
+
+// MLB 2026 season start (scoring period 1 = this date)
+export const SEASON_START = new Date("2026-03-25T00:00:00");
+
+/** Convert a scoring period day number to an ISO date string */
+export function dayToDate(dayNum: number): string {
+  const d = new Date(SEASON_START);
+  d.setDate(d.getDate() + dayNum - 1);
+  return d.toISOString().slice(0, 10);
+}
+
+/** Get start/end dates for a matchup period from ESPN settings data */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function getMatchupDates(data: any, matchupPeriod: number): { start: string; end: string } | null {
+  const matchupPeriods: Record<string, number[]> = data.settings?.scheduleSettings?.matchupPeriods ?? {};
+  const days: number[] = matchupPeriods[String(matchupPeriod)] ?? [];
+  if (days.length === 0) return null;
+
+  return {
+    start: dayToDate(Math.min(...days)),
+    end: dayToDate(Math.max(...days)),
+  };
+}
+
+/** Get the current matchup period number from ESPN data */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function getCurrentMatchupPeriod(data: any): number {
+  return data.status?.currentMatchupPeriod ?? 1;
+}
+
 // Injury status labels
 export const INJURY_MAP: Record<string, { label: string; color: string }> = {
   ACTIVE:          { label: "Active",       color: "text-emerald-600" },

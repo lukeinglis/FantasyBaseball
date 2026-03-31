@@ -1,4 +1,4 @@
-import { espnFetch, hasEspnCreds } from "@/lib/espn";
+import { espnFetch, hasEspnCreds, getCurrentMatchupPeriod, dayToDate, SEASON_START } from "@/lib/espn";
 
 // Returns the full season schedule with matchup periods, dates, and opponents
 
@@ -31,26 +31,13 @@ export async function GET() {
   try {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const data: any = await espnFetch(["mSettings", "mStatus", "mMatchup", "mTeam"]);
-    const currentMatchupPeriod: number = data.status?.currentMatchupPeriod ?? 1;
+    const currentMatchupPeriod = getCurrentMatchupPeriod(data);
     const matchupPeriods: Record<string, number[]> = data.settings?.scheduleSettings?.matchupPeriods ?? {};
 
     // Build team name lookup
     const teamNames: Record<number, string> = {};
     for (const t of data.teams ?? []) {
       teamNames[t.id] = `${t.location ?? ""} ${t.nickname ?? ""}`.trim() || t.abbrev;
-    }
-
-    // Determine season start date
-    // Use the first scoring period's day number (1) mapped to a real date
-    // ESPN's activatedDate is the league activation, not necessarily season start
-    // We derive from the schedule: find the earliest game date
-    // For now, use the known 2026 MLB season start
-    const SEASON_START = new Date("2026-03-25T00:00:00");
-
-    function dayToDate(dayNum: number): string {
-      const d = new Date(SEASON_START);
-      d.setDate(d.getDate() + dayNum - 1);
-      return d.toISOString().slice(0, 10);
     }
 
     // Build schedule for my team
