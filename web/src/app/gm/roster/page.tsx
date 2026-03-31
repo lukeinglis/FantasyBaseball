@@ -277,21 +277,21 @@ export default function RosterPage() {
         </div>
       </div>
 
-      {/* IL details */}
-      {il.length > 0 && (
+      {/* IL details — only show players with actual injuries */}
+      {il.filter((p) => p.injuryStatus !== "ACTIVE").length > 0 && (
         <div className="mt-4 rounded-lg border border-red-300 bg-surface">
           <div className="border-b border-red-300 px-3 py-2 text-[10px] font-semibold uppercase tracking-wider text-red-600/70">
             Injury Details
           </div>
-          <div className="divide-y divide-border/30">
-            {il.map((p, i) => (
+          <div className="divide-y divide-border">
+            {il.filter((p) => p.injuryStatus !== "ACTIVE").map((p, i) => (
               <div key={i} className="flex items-start gap-3 px-3 py-2">
                 <span className={`shrink-0 text-[11px] font-bold ${p.injuryColor}`}>{p.injuryLabel}</span>
                 <div className="min-w-0 flex-1">
-                  <div className="text-[12px] text-slate-400">{p.name}</div>
+                  <div className="text-[12px] text-slate-700">{p.name}</div>
                   {p.injuryNote && <div className="mt-0.5 text-[11px] text-slate-500">{p.injuryNote}</div>}
                 </div>
-                <span className="shrink-0 text-[10px] text-slate-600">{p.proTeam}</span>
+                <span className="shrink-0 text-[10px] text-slate-500">{p.proTeam}</span>
               </div>
             ))}
           </div>
