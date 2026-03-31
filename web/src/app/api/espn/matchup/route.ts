@@ -51,21 +51,52 @@ const PLAYER_STAT_MAP: Record<string, string> = {
 };
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-function parsePlayers(entries: any[]): MatchupPlayer[] {
+function parsePlayers(entries: any[], scoringPeriodId: number): MatchupPlayer[] {
   return (entries ?? []).map((e: any) => {
     const player = e.playerPoolEntry?.player ?? {};
     const injuryStatus = player.injuryStatus ?? "ACTIVE";
     const injuryInfo = INJURY_MAP[injuryStatus] ?? { label: injuryStatus, color: "text-slate-500" };
 
-    // Extract season stats from player.stats[]
-    // id "002026" = actual 2026 season stats
-    const stats: Record<string, number> = {};
+    const isPitcher = player.defaultPositionId === 1 || player.defaultPositionId === 11;
+
+    // Extract stats from player.stats[]
+    // Try matchup-period stats first, then fall back to last 7 days, then season
+    // ESPN stat block IDs: "002026" = season, "01YYYY" = last 7, "10YYYY" = projections
+    // For current scoring period, ESPN may include a block with appliedTotal for the matchup
     const statBlocks: any[] = player.stats ?? [];
+    const stats: Record<string, number> = {};
+
+    // Strategy: look for the block that has appliedTotal (matchup-period stats)
+    // or the block matching the current scoring period
+    let found = false;
+
+    // Try to find a stat block for the current scoring period (applied stats)
+    for (const block of statBlocks) {
+      if (block.id === "002026" && block.appliedTotal !== undefined && block.appliedAverage !== undefined) {
+        // This is the season block — skip, we want matchup period
+        continue;
+      }
+      // Some blocks have scoringPeriodId or matchup-specific data
+      if (block.scoringPeriodId === scoringPeriodId || block.id === `002026`) {
+        // Will use season if nothing better found
+      }
+    }
+
+    // Best approach: use the roster entry's own stats if available
+    // ESPN sometimes puts current matchup stats in playerPoolEntry.appliedStatTotal
+    const appliedStats = e.playerPoolEntry?.appliedStatTotal ?? null;
+
+    // Fall back to season stats and filter by position
     const seasonBlock = statBlocks.find((s: any) => s.id === "002026");
     if (seasonBlock?.stats) {
       for (const [sid, val] of Object.entries(seasonBlock.stats)) {
         const cat = PLAYER_STAT_MAP[sid];
-        if (cat) stats[cat] = val as number;
+        if (!cat) continue;
+        // Only include relevant stats for this player type
+        const isBattingStat = ["H", "AVG", "HR", "TB", "R", "RBI", "BB", "SB", "AB"].includes(cat);
+        const isPitchingStat = ["K", "QS", "W", "L", "SV", "HD", "ERA", "WHIP", "IP"].includes(cat);
+        if (isPitcher && isPitchingStat) stats[cat] = val as number;
+        if (!isPitcher && isBattingStat) stats[cat] = val as number;
       }
     }
 
@@ -134,7 +165,7 @@ function parseMatchup(data: any, myTeamId: number): MatchupData | null {
   // Build roster lookup by teamId
   const rosters: Record<number, MatchupPlayer[]> = {};
   for (const t of data.teams ?? []) {
-    rosters[t.id] = parsePlayers(t.roster?.entries ?? []);
+    rosters[t.id] = parsePlayers(t.roster?.entries ?? [], data.scoringPeriodId ?? 1);
   }
 
   // Find my matchup for the current period

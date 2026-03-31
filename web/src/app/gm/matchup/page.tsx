@@ -172,7 +172,7 @@ function PlayerRow({
   starts: number;
 }) {
   const hasGame = !!schedule?.todayOpponent;
-  const isPitcher = PITCHER_SLOT_IDS.has(player.slotId);
+  const isPitcher = player.pos === "SP" || player.pos === "RP";
   const s = player.stats ?? {};
   const hasStats = Object.keys(s).length > 0;
 
