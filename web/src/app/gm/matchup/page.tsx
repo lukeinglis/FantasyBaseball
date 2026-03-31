@@ -188,19 +188,14 @@ function PlayerRow({
         {/* Pro team */}
         <span className="w-7 shrink-0 text-[10px] text-slate-500">{player.proTeam}</span>
 
-        {/* Today's game */}
-        <div className="w-[70px] shrink-0">
-          {hasGame ? (
+        {/* Today's game — only show if playing */}
+        {hasGame && (
+          <div className="shrink-0">
             <span className="text-[10px] text-slate-600 whitespace-nowrap">
               {schedule!.todayOpponent}
-              {schedule!.todayTime && (
-                <span className="ml-1 text-slate-500">{schedule!.todayTime}</span>
-              )}
             </span>
-          ) : (
-            <span className="text-[10px] text-slate-400">Off</span>
-          )}
-        </div>
+          </div>
+        )}
 
         {/* Season stats (compact) */}
         {hasStats && !isPitcher && (
