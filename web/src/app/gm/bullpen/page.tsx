@@ -69,10 +69,27 @@ function EspnSetupCard() {
   );
 }
 
+interface NextWeekData {
+  nextDates: { start: string; end: string } | null;
+  rosteredPitchers: string[];
+}
+
+function fmtDateLabel(d: string): string {
+  return new Date(d + "T12:00:00").toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" });
+}
+
+function fmtDateRange(start: string, end: string): string {
+  const s = new Date(start + "T12:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric" });
+  const e = new Date(end + "T12:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric" });
+  return `${s} – ${e}`;
+}
+
 export default function BullpenPage() {
   const [teams, setTeams] = useState<EspnTeam[]>([]);
   const [schedule, setSchedule] = useState<Record<string, TeamSchedule>>({});
   const [probables, setProbables] = useState<ProbablePitchersData | null>(null);
+  const [nextProbables, setNextProbables] = useState<ProbablePitchersData | null>(null);
+  const [nextWeekData, setNextWeekData] = useState<NextWeekData | null>(null);
   const [myTeamId, setMyTeamId] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -89,12 +106,22 @@ export default function BullpenPage() {
       fetch("/api/espn/matchup").then((r) => r.json()).catch(() => ({})),
       fetch(`/api/mlb/schedule?startDate=${today}&endDate=${endDate}`).then((r) => r.json()).catch(() => ({})),
       fetch(`/api/mlb/probable-pitchers?startDate=${today}&endDate=${endDate}`).then((r) => r.json()).catch(() => null),
-    ]).then(([rosterData, matchupData, scheduleData, probableData]) => {
+      fetch("/api/espn/starts").then((r) => r.json()).catch(() => null),
+    ]).then(([rosterData, matchupData, scheduleData, probableData, startsData]) => {
       if (rosterData.error) { setError(rosterData.error); setLoading(false); return; }
       setTeams(rosterData);
       if (matchupData.myTeamId) setMyTeamId(matchupData.myTeamId);
       if (!scheduleData.error) setSchedule(scheduleData);
       if (probableData && !probableData.error) setProbables(probableData);
+
+      // Fetch next week's probable pitchers
+      if (startsData && startsData.nextDates) {
+        setNextWeekData({ nextDates: startsData.nextDates, rosteredPitchers: startsData.rosteredPitchers });
+        fetch(`/api/mlb/probable-pitchers?startDate=${startsData.nextDates.start}&endDate=${startsData.nextDates.end}`)
+          .then((r) => r.json())
+          .then((np) => { if (np && !np.error) setNextProbables(np); })
+          .catch(() => {});
+      }
     })
     .catch(() => setError("FETCH_FAILED"))
     .finally(() => setLoading(false));
@@ -404,12 +431,12 @@ export default function BullpenPage() {
           <div className="border-b border-red-300 px-3 py-2 text-[10px] font-semibold uppercase tracking-wider text-red-600/70">
             Injury Notes
           </div>
-          <div className="divide-y divide-border/30">
+          <div className="divide-y divide-border">
             {injured.map((p, i) => (
               <div key={i} className="flex items-start gap-3 px-3 py-2">
                 <span className={`shrink-0 text-[11px] font-bold ${p.injuryColor}`}>{p.injuryLabel}</span>
                 <div className="min-w-0 flex-1">
-                  <div className="text-[12px] text-slate-400">{p.name}</div>
+                  <div className="text-[12px] text-slate-700">{p.name}</div>
                   {p.injuryNote && <div className="mt-0.5 text-[11px] text-slate-500">{p.injuryNote}</div>}
                 </div>
               </div>
@@ -417,6 +444,159 @@ export default function BullpenPage() {
           </div>
         </div>
       )}
+
+      {/* Next Week Starts — streaming targets */}
+      <NextWeekStarts
+        nextProbables={nextProbables}
+        nextWeekData={nextWeekData}
+        myPitchers={starters}
+        pitcherStarts={pitcherStarts}
+      />
     </div>
   );
+}
+
+// --- Next Week Starts Section ---
+
+function NextWeekStarts({
+  nextProbables,
+  nextWeekData,
+  myPitchers,
+  pitcherStarts,
+}: {
+  nextProbables: ProbablePitchersData | null;
+  nextWeekData: NextWeekData | null;
+  myPitchers: RosterPlayer[];
+  pitcherStarts: Map<string, ProbableStart[]>;
+}) {
+  // Find next-week starts for my SPs
+  const myNextStarts = useMemo(() => {
+    if (!nextProbables) return [];
+    return myPitchers
+      .filter((p) => p.pos === "SP")
+      .map((p) => {
+        const starts = findPitcherStarts(p.name, p.proTeam, nextProbables);
+        return { name: p.name, proTeam: p.proTeam, starts, count: starts.length };
+      })
+      .sort((a, b) => b.count - a.count);
+  }, [nextProbables, myPitchers]);
+
+  // Free agent double starters
+  const rosteredSet = useMemo(() => new Set(nextWeekData?.rosteredPitchers ?? []), [nextWeekData]);
+  const faDoubleStarters = useMemo(() => {
+    if (!nextProbables) return [];
+    return Object.entries(nextProbables.byPitcher)
+      .filter(([, starts]) => starts.length >= 2)
+      .filter(([name]) => !rosteredSet.has(name))
+      .map(([name, starts]) => ({ name, starts, team: starts[0]?.team ?? "" }))
+      .sort((a, b) => b.starts.length - a.starts.length);
+  }, [nextProbables, rosteredSet]);
+
+  const myNextTotal = myNextStarts.reduce((s, p) => s + p.count, 0);
+  const nextDates = nextWeekData?.nextDates;
+
+  return (
+    <div className="mt-6">
+      <div className="mb-3 flex items-center justify-between">
+        <div>
+          <h2 className="text-[14px] font-bold text-gray-900">Next Week Starts</h2>
+          {nextDates && (
+            <span className="text-[11px] text-slate-500">{fmtDateRange(nextDates.start, nextDates.end)}</span>
+          )}
+        </div>
+        {myNextTotal > 0 && (
+          <span className="text-[14px] font-bold tabular-nums text-slate-700">{myNextTotal} starts</span>
+        )}
+      </div>
+
+      {/* My SPs next week */}
+      {myNextStarts.length > 0 && (
+        <div className="mb-4 rounded-lg border border-border bg-surface">
+          <div className="border-b border-border px-3 py-2">
+            <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-500">My Starters</span>
+          </div>
+          {myNextStarts.map((p, i) => (
+            <div key={i} className="border-b border-border px-3 py-2">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className={`text-[12px] font-medium ${p.count >= 2 ? "text-emerald-700" : "text-slate-700"}`}>
+                    {p.name}
+                  </span>
+                  <span className="text-[10px] text-slate-500">{p.proTeam}</span>
+                </div>
+                <span className={`text-[13px] font-bold tabular-nums ${
+                  p.count >= 2 ? "text-emerald-600" : p.count === 1 ? "text-slate-600" : "text-slate-400"
+                }`}>{p.count}</span>
+              </div>
+              {p.starts.length > 0 && (
+                <div className="mt-1 flex flex-wrap gap-1">
+                  {p.starts.map((s, j) => (
+                    <span key={j} className="text-[9px] rounded px-1.5 py-0.5 bg-surface border border-border text-slate-600">
+                      {fmtDateLabel(s.date)} {s.opponent}
+                    </span>
+                  ))}
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Free Agent Double Starters */}
+      <div className="rounded-lg border border-emerald-300 bg-surface">
+        <div className="border-b border-emerald-300 px-3 py-2 flex items-center justify-between">
+          <div>
+            <span className="text-[10px] font-semibold uppercase tracking-wider text-emerald-600">
+              Streaming Targets
+            </span>
+            <span className="ml-2 text-[10px] text-slate-500">Free agent SPs with 2+ starts next week</span>
+          </div>
+          <span className="text-[13px] font-bold tabular-nums text-emerald-600">{faDoubleStarters.length}</span>
+        </div>
+        {faDoubleStarters.length > 0 ? (
+          faDoubleStarters.map((fa, i) => (
+            <div key={i} className="border-b border-border px-3 py-2">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className="text-[12px] font-semibold text-emerald-700">{fa.name}</span>
+                  <span className="text-[10px] text-slate-500">{fa.team}</span>
+                </div>
+                <span className="text-[13px] font-bold tabular-nums text-emerald-600">{fa.starts.length}</span>
+              </div>
+              <div className="mt-1 flex flex-wrap gap-1">
+                {fa.starts.map((s, j) => (
+                  <span key={j} className="text-[9px] rounded px-1.5 py-0.5 bg-emerald-50 border border-emerald-200 text-emerald-700">
+                    {fmtDateLabel(s.date)} {s.opponent}
+                  </span>
+                ))}
+              </div>
+            </div>
+          ))
+        ) : (
+          <div className="px-3 py-4 text-[11px] text-slate-500 text-center">
+            {!nextProbables
+              ? "Next week's probable pitchers not yet announced."
+              : "No unrostered double starters found."}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// Name matching helper for probable pitchers
+function findPitcherStarts(name: string, proTeam: string, probables: ProbablePitchersData): ProbableStart[] {
+  if (probables.byPitcher[name]) return probables.byPitcher[name];
+  const lower = name.toLowerCase();
+  for (const [pName, starts] of Object.entries(probables.byPitcher)) {
+    if (pName.toLowerCase() === lower) return starts;
+  }
+  const lastName = name.split(" ").pop()?.replace(/[.,]|Jr|Sr|III|II$/g, "").trim().toLowerCase();
+  if (lastName) {
+    for (const [pName, starts] of Object.entries(probables.byPitcher)) {
+      const pLast = pName.split(" ").pop()?.replace(/[.,]|Jr|Sr|III|II$/g, "").trim().toLowerCase();
+      if (pLast === lastName && starts.some((s) => s.team === proTeam)) return starts;
+    }
+  }
+  return [];
 }
