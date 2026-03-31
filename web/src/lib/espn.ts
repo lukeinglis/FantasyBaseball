@@ -55,6 +55,23 @@ export const STAT_ID_MAP: Record<number, string> = {
   57: "SV", 60: "HD", 47: "ERA", 41: "WHIP",
 };
 
+// ESPN proTeamId → team abbreviation
+export const PRO_TEAM_MAP: Record<number, string> = {
+  0: "FA", 1: "ATL", 2: "BAL", 3: "BOS", 4: "CHC", 5: "CWS",
+  6: "CIN", 7: "CLE", 8: "COL", 9: "DET", 10: "HOU",
+  11: "KC", 12: "LAA", 13: "LAD", 14: "MIA", 15: "MIL",
+  16: "MIN", 17: "NYM", 18: "NYY", 19: "OAK", 20: "PHI",
+  21: "PIT", 22: "SD", 23: "SEA", 24: "SF", 25: "STL",
+  26: "TB", 27: "TEX", 28: "TOR", 29: "WSH", 30: "ARI",
+};
+
+export function getProTeam(player: any): string {
+  if (player.proTeamId && PRO_TEAM_MAP[player.proTeamId]) {
+    return PRO_TEAM_MAP[player.proTeamId];
+  }
+  return player.proTeamAbbrev ?? "";
+}
+
 // Injury status labels
 export const INJURY_MAP: Record<string, { label: string; color: string }> = {
   ACTIVE:          { label: "Active",       color: "text-emerald-600" },

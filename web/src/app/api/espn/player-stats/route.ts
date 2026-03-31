@@ -1,4 +1,4 @@
-import { hasEspnCreds, STAT_ID_MAP } from "@/lib/espn";
+import { hasEspnCreds, STAT_ID_MAP, getProTeam } from "@/lib/espn";
 
 // Fetch current season stats for all rostered players
 // Uses ESPN's kona_player_info view with season stats
@@ -128,7 +128,7 @@ export async function GET(req: Request) {
         name,
         playerId: player.id ?? 0,
         pos: posMap[player.defaultPositionId] ?? "?",
-        proTeam: player.proTeamId ? (proTeamMap[player.proTeamId] ?? "") : (player.proTeamAbbrev ?? ""),
+        proTeam: getProTeam(player),
         seasonStats,
         last7Stats,
         last15Stats,

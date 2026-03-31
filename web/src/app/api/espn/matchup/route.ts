@@ -1,4 +1,4 @@
-import { espnFetch, hasEspnCreds, POS_MAP, SLOT_MAP, INJURY_MAP, STAT_ID_MAP } from "@/lib/espn";
+import { espnFetch, hasEspnCreds, POS_MAP, SLOT_MAP, INJURY_MAP, STAT_ID_MAP, getProTeam } from "@/lib/espn";
 
 export interface MatchupCatResult {
   cat: string;
@@ -77,7 +77,7 @@ function parsePlayers(entries: any[]): MatchupPlayer[] {
       injuryStatus,
       injuryLabel: injuryInfo.label,
       injuryColor: injuryInfo.color,
-      proTeam: player.proTeamAbbrev ?? "",
+      proTeam: getProTeam(player),
       stats,
     };
   });

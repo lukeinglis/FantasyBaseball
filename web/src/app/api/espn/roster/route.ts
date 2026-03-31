@@ -1,4 +1,4 @@
-import { espnFetch, hasEspnCreds, SLOT_MAP, POS_MAP, INJURY_MAP } from "@/lib/espn";
+import { espnFetch, hasEspnCreds, SLOT_MAP, POS_MAP, INJURY_MAP, getProTeam } from "@/lib/espn";
 
 export interface RosterPlayer {
   name: string;
@@ -44,7 +44,7 @@ function parseTeams(data: any): EspnTeam[] {
         injuryLabel: injuryInfo.label,
         injuryColor: injuryInfo.color,
         injuryNote: player.injuryStatusNote ?? undefined,
-        proTeam: player.proTeamAbbrev ?? "",
+        proTeam: getProTeam(player),
         acquisitionType: ppe.acquisitionType ?? "",
       };
     });

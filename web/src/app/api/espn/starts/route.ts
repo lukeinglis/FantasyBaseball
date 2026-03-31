@@ -1,4 +1,4 @@
-import { espnFetch, hasEspnCreds, POS_MAP } from "@/lib/espn";
+import { espnFetch, hasEspnCreds, POS_MAP, getProTeam } from "@/lib/espn";
 
 // Returns matchup period dates and roster data for current + next week
 // so the frontend can cross-reference with probable pitchers
@@ -73,7 +73,7 @@ export async function GET() {
         pitchers.push({
           name: pName,
           pos: POS_MAP[posId] ?? "?",
-          proTeam: player.proTeamAbbrev ?? "",
+          proTeam: getProTeam(player),
           onIL: isIL,
         });
         allRosteredPitchers.push(pName);
