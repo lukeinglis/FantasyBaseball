@@ -87,10 +87,8 @@ function fmtDateRange(start: string, end: string): string {
   return `${s} – ${e}`;
 }
 
-// Per-day schedule for the grid
-interface DaySchedule {
-  [team: string]: { opponent: string; time: string };
-}
+// Per-day schedule grid: date → team → opponent
+type ScheduleGrid = Record<string, Record<string, string>>;
 
 export default function BullpenPage() {
   const [teams, setTeams] = useState<EspnTeam[]>([]);
@@ -100,6 +98,7 @@ export default function BullpenPage() {
   const [nextProbables, setNextProbables] = useState<ProbablePitchersData | null>(null);
   const [nextWeekData, setNextWeekData] = useState<NextWeekData | null>(null);
   const [matchupDates, setMatchupDates] = useState<{ start: string; end: string } | null>(null);
+  const [scheduleGrid, setScheduleGrid] = useState<ScheduleGrid>({});
   const [myTeamId, setMyTeamId] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -124,15 +123,27 @@ export default function BullpenPage() {
       if (!scheduleData.error) setSchedule(scheduleData);
       if (probableData && !probableData.error) setProbables(probableData);
 
-      // Fetch probable pitchers for the full matchup period
+      // Fetch probable pitchers and full schedule grid for the matchup period + next week
       const mStart = matchupData.matchupStartDate;
       const mEnd = matchupData.matchupEndDate;
       if (mStart && mEnd) {
         setMatchupDates({ start: mStart, end: mEnd });
-        fetch(`/api/mlb/probable-pitchers?startDate=${mStart}&endDate=${mEnd}`)
-          .then((r) => r.json())
-          .then((mp) => { if (mp && !mp.error) setMatchupProbables(mp); })
-          .catch(() => {});
+
+        // Extend end date to include next week for the grid
+        const gridEnd = (() => {
+          const d = new Date(mEnd + "T12:00:00");
+          d.setDate(d.getDate() + 7);
+          return d.toISOString().slice(0, 10);
+        })();
+
+        // Fetch probables and full schedule in parallel
+        Promise.all([
+          fetch(`/api/mlb/probable-pitchers?startDate=${mStart}&endDate=${gridEnd}`).then((r) => r.json()).catch(() => null),
+          fetch(`/api/mlb/schedule-grid?startDate=${mStart}&endDate=${gridEnd}`).then((r) => r.json()).catch(() => ({})),
+        ]).then(([mp, grid]) => {
+          if (mp && !mp.error) setMatchupProbables(mp);
+          if (grid && !grid.error) setScheduleGrid(grid);
+        });
       }
 
       // Fetch next week's probable pitchers
@@ -473,6 +484,7 @@ export default function BullpenPage() {
         nextProbables={nextProbables}
         matchupDates={matchupDates}
         nextDates={nextWeekData?.nextDates ?? null}
+        scheduleGrid={scheduleGrid}
       />
 
       {/* Next Week Starts — streaming targets */}
@@ -494,12 +506,14 @@ function PitcherScheduleGrid({
   nextProbables,
   matchupDates,
   nextDates,
+  scheduleGrid,
 }: {
   pitchers: RosterPlayer[];
   matchupProbables: ProbablePitchersData | null;
   nextProbables: ProbablePitchersData | null;
   matchupDates: { start: string; end: string } | null;
   nextDates: { start: string; end: string } | null;
+  scheduleGrid: ScheduleGrid;
 }) {
   // Generate dates for both periods
   function getDates(range: { start: string; end: string } | null): string[] {
@@ -552,15 +566,7 @@ function PitcherScheduleGrid({
     return result;
   }, [pitchers, allProbables]);
 
-  // Team games per day
-  const teamGames = useMemo(() => {
-    const result = new Map<string, Map<string, string>>();
-    for (const start of allProbables.allStarts) {
-      if (!result.has(start.team)) result.set(start.team, new Map());
-      result.get(start.team)!.set(start.date, start.opponent);
-    }
-    return result;
-  }, [allProbables]);
+  // No longer need teamGames from probables — use scheduleGrid instead
 
   const today = new Date().toISOString().slice(0, 10);
   const allDates = [...currentDates, ...nextWeekDates];
@@ -621,7 +627,6 @@ function PitcherScheduleGrid({
               const startDates = pitcherSchedule.get(pitcher.name);
               const thisWeekStarts = currentDates.filter((d) => startDates?.has(d)).length;
               const nextWeekStartCount = nextWeekDates.filter((d) => startDates?.has(d)).length;
-              const teamDays = teamGames.get(pitcher.proTeam);
 
               return (
                 <tr key={i} className={`border-b border-border last:border-b-0 ${i % 2 === 0 ? "" : "bg-surface/50"}`}>
@@ -634,7 +639,9 @@ function PitcherScheduleGrid({
                     const isNextWeekBorder = d === nextWeekStart;
                     const isNextWeek = nextWeekDates.includes(d);
                     const start = startDates?.get(d);
-                    const opponent = start?.opponent ?? teamDays?.get(d);
+                    // Get opponent from full MLB schedule grid (not just probables)
+                    const scheduleOpp = scheduleGrid[d]?.[pitcher.proTeam];
+                    const opponent = start?.opponent ?? scheduleOpp;
                     const isPast = d < today;
 
                     return (
