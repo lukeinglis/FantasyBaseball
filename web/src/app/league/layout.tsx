@@ -7,6 +7,7 @@ const SUB_LINKS = [
   { href: "/league/scoreboard", label: "Scoreboard" },
   { href: "/league/vs-league", label: "vs League" },
   { href: "/league/category-rank", label: "Category Rank" },
+  { href: "/league/schedule", label: "Schedule" },
   { href: "/league/history", label: "History" },
   { href: "/league/owners", label: "Owners" },
   { href: "/league/scouting", label: "Scouting" },
