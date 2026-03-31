@@ -25,6 +25,7 @@ const TEAM_MAP: Record<string, string> = {
   LAD: "LAD",
   NYY: "NYY",
   NYM: "NYM",
+  ATH: "OAK", OAK: "OAK",  // Athletics rebranded
 };
 
 function normalize(abbrev: string): string {

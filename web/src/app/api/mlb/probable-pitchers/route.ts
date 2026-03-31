@@ -36,6 +36,7 @@ const MLB_TO_ESPN_TEAM: Record<string, string> = {
   LAD: "LAD",
   NYY: "NYY",
   NYM: "NYM",
+  ATH: "OAK", OAK: "OAK",
 };
 
 function normalizeTeam(abbrev: string): string {
