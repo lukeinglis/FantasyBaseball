@@ -434,79 +434,96 @@ export default function MatchupPage() {
         </div>
       </div>
 
-      {/* Category scoreboard */}
-      <div className="mb-6 space-y-3">
+      {/* Category scoreboard — compact two-column layout */}
+      <div className="mb-6 grid gap-4 lg:grid-cols-2">
         {[
           { label: "Batting", cats: batCats },
           { label: "Pitching", cats: pitCats },
         ].map(({ label, cats }) => (
-          <div key={label}>
-            <div className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-slate-400">{label}</div>
-            <div className="space-y-1">
-              {cats.map((c) => {
-                const pct = lockPct(c.cat, c.myValue, c.oppValue, daysLeft);
-                const myVal = c.myValue ?? 0;
-                const oppVal = c.oppValue ?? 0;
-                const lower = LOWER_IS_BETTER.has(c.cat);
-                // For bar width: normalize to percentage of the larger value
-                const maxVal = Math.max(Math.abs(myVal), Math.abs(oppVal), 0.001);
-                const myBarPct = (Math.abs(myVal) / maxVal) * 100;
-                const oppBarPct = (Math.abs(oppVal) / maxVal) * 100;
+          <div key={label} className="rounded-lg border border-border bg-surface overflow-hidden">
+            <div className="px-3 py-1.5 border-b border-border bg-black/[0.02]">
+              <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">{label}</span>
+            </div>
+            <table className="w-full text-[12px]">
+              <thead>
+                <tr className="text-[9px] uppercase tracking-wider text-slate-400">
+                  <th className="px-3 py-1 text-left w-10">Cat</th>
+                  <th className="px-1 py-1 text-right w-12">You</th>
+                  <th className="px-2 py-1"><span className="sr-only">Bar</span></th>
+                  <th className="px-1 py-1 text-left w-12">Opp</th>
+                  <th className="px-2 py-1 text-right w-16">Lock</th>
+                </tr>
+              </thead>
+              <tbody>
+                {cats.map((c) => {
+                  const pct = lockPct(c.cat, c.myValue, c.oppValue, daysLeft);
+                  const myVal = c.myValue ?? 0;
+                  const oppVal = c.oppValue ?? 0;
+                  const maxVal = Math.max(Math.abs(myVal), Math.abs(oppVal), 0.001);
+                  const myPct = (Math.abs(myVal) / maxVal) * 50;
+                  const oppPct = (Math.abs(oppVal) / maxVal) * 50;
 
-                return (
-                  <div key={c.cat} className="rounded-lg border border-border bg-surface px-3 py-2">
-                    <div className="flex items-center justify-between mb-1">
-                      <div className="flex items-center gap-2">
-                        <span className="text-[11px] font-bold text-slate-500 w-10">{c.cat}</span>
-                        {c.result !== "PENDING" && (
-                          <span className={`text-[9px] font-bold uppercase px-1.5 py-0.5 rounded ${
-                            c.result === "WIN" ? "bg-emerald-100 text-emerald-700" :
-                            c.result === "LOSS" ? "bg-red-100 text-red-700" :
-                            "bg-orange-100 text-orange-700"
-                          }`}>{c.result}</span>
-                        )}
-                        {pct !== null && daysLeft > 0 && (
-                          <span className={`text-[9px] font-bold ${lockColor(pct)}`}>
+                  return (
+                    <tr key={c.cat} className={`border-b border-border last:border-b-0 ${
+                      c.result === "WIN" ? "bg-emerald-50/50" :
+                      c.result === "LOSS" ? "bg-red-50/50" : ""
+                    }`}>
+                      <td className="px-3 py-1.5">
+                        <span className="font-bold text-slate-600">{c.cat}</span>
+                      </td>
+                      <td className={`px-1 py-1.5 text-right font-mono font-bold tabular-nums ${
+                        c.result === "WIN" ? "text-emerald-700" :
+                        c.result === "LOSS" ? "text-slate-500" : "text-slate-600"
+                      }`}>
+                        {fmtCat(c.cat, c.myValue)}
+                      </td>
+                      <td className="px-2 py-1.5">
+                        {/* Tug-of-war bar */}
+                        <div className="flex items-center h-4">
+                          {/* My side (grows right) */}
+                          <div className="flex-1 flex justify-end">
+                            <div
+                              className={`h-3 rounded-l transition-all ${
+                                c.result === "WIN" ? "bg-emerald-500" :
+                                c.result === "TIE" ? "bg-orange-400" : "bg-slate-200"
+                              }`}
+                              style={{ width: `${myPct}%` }}
+                            />
+                          </div>
+                          <div className="w-px h-4 bg-slate-300 shrink-0" />
+                          {/* Opponent side (grows left) */}
+                          <div className="flex-1">
+                            <div
+                              className={`h-3 rounded-r transition-all ${
+                                c.result === "LOSS" ? "bg-red-400" :
+                                c.result === "TIE" ? "bg-orange-400" : "bg-slate-200"
+                              }`}
+                              style={{ width: `${oppPct}%` }}
+                            />
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-1 py-1.5 font-mono tabular-nums text-slate-500">
+                        {fmtCat(c.cat, c.oppValue)}
+                      </td>
+                      <td className="px-2 py-1.5 text-right">
+                        {pct !== null && daysLeft > 0 ? (
+                          <span className={`text-[10px] font-bold ${lockColor(pct)}`}>
                             {pct}%
                           </span>
+                        ) : (
+                          c.result !== "PENDING" && (
+                            <span className={`text-[9px] font-bold uppercase ${catResultColor(c.result)}`}>
+                              {c.result}
+                            </span>
+                          )
                         )}
-                      </div>
-                    </div>
-                    {/* Comparison bars */}
-                    <div className="space-y-0.5">
-                      {/* My bar */}
-                      <div className="flex items-center gap-2">
-                        <span className={`text-[11px] font-mono font-bold tabular-nums w-14 text-right ${
-                          c.result === "WIN" ? "text-emerald-700" : c.result === "LOSS" ? "text-slate-500" : "text-slate-600"
-                        }`}>{fmtCat(c.cat, c.myValue)}</span>
-                        <div className="flex-1 h-3 bg-slate-100 rounded-full overflow-hidden">
-                          <div
-                            className={`h-full rounded-full transition-all ${
-                              c.result === "WIN" ? "bg-emerald-500" : c.result === "TIE" ? "bg-orange-400" : "bg-slate-300"
-                            }`}
-                            style={{ width: `${myBarPct}%` }}
-                          />
-                        </div>
-                      </div>
-                      {/* Opponent bar */}
-                      <div className="flex items-center gap-2">
-                        <span className="text-[11px] font-mono tabular-nums w-14 text-right text-slate-500">
-                          {fmtCat(c.cat, c.oppValue)}
-                        </span>
-                        <div className="flex-1 h-3 bg-slate-100 rounded-full overflow-hidden">
-                          <div
-                            className={`h-full rounded-full transition-all ${
-                              c.result === "LOSS" ? "bg-red-400" : c.result === "TIE" ? "bg-orange-400" : "bg-slate-300"
-                            }`}
-                            style={{ width: `${oppBarPct}%` }}
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
           </div>
         ))}
       </div>
