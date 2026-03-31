@@ -1,4 +1,4 @@
-import { espnFetch, hasEspnCreds, getCurrentMatchupPeriod, dayToDate, SEASON_START } from "@/lib/espn";
+import { espnFetch, hasEspnCreds, getCurrentMatchupPeriod, buildMatchupSchedule, SEASON_START } from "@/lib/espn";
 
 // Returns the full season schedule with matchup periods, dates, and opponents
 
@@ -32,7 +32,7 @@ export async function GET() {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const data: any = await espnFetch(["mSettings", "mStatus", "mMatchup", "mTeam"]);
     const currentMatchupPeriod = getCurrentMatchupPeriod(data);
-    const matchupPeriods: Record<string, number[]> = data.settings?.scheduleSettings?.matchupPeriods ?? {};
+    const matchupCount: number = data.settings?.scheduleSettings?.matchupPeriodCount ?? 21;
 
     // Build team name lookup
     const teamNames: Record<number, string> = {};
@@ -40,7 +40,7 @@ export async function GET() {
       teamNames[t.id] = `${t.location ?? ""} ${t.nickname ?? ""}`.trim() || t.abbrev;
     }
 
-    // Build schedule for my team
+    // Build schedule for my team — opponent per matchup period
     const schedule: any[] = data.schedule ?? [];
     const myMatchups: Record<number, { oppId: number }> = {};
     for (const m of schedule) {
@@ -51,31 +51,20 @@ export async function GET() {
       myMatchups[m.matchupPeriodId] = { oppId };
     }
 
-    // Build weeks array
-    const weeks: MatchupWeek[] = [];
-    const periodKeys = Object.keys(matchupPeriods)
-      .map(Number)
-      .sort((a, b) => a - b);
-
-    for (const period of periodKeys) {
-      const days = matchupPeriods[String(period)] ?? [];
-      if (days.length === 0) continue;
-
-      const firstDay = Math.min(...days);
-      const lastDay = Math.max(...days);
-      const startDate = dayToDate(firstDay);
-      const endDate = dayToDate(lastDay);
+    // Build weeks with correct date ranges
+    const dateSchedule = buildMatchupSchedule(matchupCount);
+    const weeks: MatchupWeek[] = dateSchedule.map((dates, i) => {
+      const period = i + 1;
       const matchup = myMatchups[period];
-
-      weeks.push({
+      return {
         period,
-        startDate,
-        endDate,
+        startDate: dates.start,
+        endDate: dates.end,
         isCurrent: period === currentMatchupPeriod,
         myOpponentId: matchup?.oppId ?? null,
         myOpponentName: matchup?.oppId ? (teamNames[matchup.oppId] ?? null) : null,
-      });
-    }
+      };
+    });
 
     return Response.json({
       myTeamId: MY_TEAM_ID,

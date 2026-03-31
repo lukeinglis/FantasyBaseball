@@ -95,34 +95,51 @@ export function dayToDate(dayNum: number): string {
   return d.toISOString().slice(0, 10);
 }
 
-/** Get start/end dates for a matchup period from ESPN settings data.
- * ESPN's matchupPeriods maps period → [firstScoringPeriodDay].
- * End date = day before the next period starts (or finalScoringPeriod for last). */
+/**
+ * Build matchup period date ranges.
+ * ESPN H2H baseball: first matchup runs from season start through first Sunday,
+ * then weekly Monday-Sunday after that.
+ */
+export function buildMatchupSchedule(matchupCount: number): { start: string; end: string }[] {
+  const schedule: { start: string; end: string }[] = [];
+
+  // First matchup: season start → first Sunday (or next if < 3 days)
+  const firstStart = new Date(SEASON_START);
+  const firstEnd = new Date(SEASON_START);
+  const dow = firstStart.getDay(); // 0=Sun, 1=Mon, ..., 6=Sat
+  const daysToSunday = dow === 0 ? 7 : (7 - dow);
+  firstEnd.setDate(firstEnd.getDate() + (daysToSunday < 3 ? daysToSunday + 7 : daysToSunday));
+
+  schedule.push({
+    start: firstStart.toISOString().slice(0, 10),
+    end: firstEnd.toISOString().slice(0, 10),
+  });
+
+  // Subsequent matchups: Monday-Sunday (7 days each)
+  let nextStart = new Date(firstEnd);
+  nextStart.setDate(nextStart.getDate() + 1);
+
+  for (let i = 1; i < matchupCount; i++) {
+    const weekEnd = new Date(nextStart);
+    weekEnd.setDate(weekEnd.getDate() + 6);
+    schedule.push({
+      start: nextStart.toISOString().slice(0, 10),
+      end: weekEnd.toISOString().slice(0, 10),
+    });
+    nextStart = new Date(weekEnd);
+    nextStart.setDate(nextStart.getDate() + 1);
+  }
+
+  return schedule;
+}
+
+/** Get start/end dates for a specific matchup period */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function getMatchupDates(data: any, matchupPeriod: number): { start: string; end: string } | null {
-  const matchupPeriods: Record<string, number[]> = data.settings?.scheduleSettings?.matchupPeriods ?? {};
-  const days: number[] = matchupPeriods[String(matchupPeriod)] ?? [];
-  if (days.length === 0) return null;
-
-  const startDay = Math.min(...days);
-
-  // If the array has multiple days, use min/max
-  if (days.length > 1) {
-    return { start: dayToDate(startDay), end: dayToDate(Math.max(...days)) };
-  }
-
-  // Single-entry array: find end date from next period's start or final scoring period
-  const nextDays: number[] = matchupPeriods[String(matchupPeriod + 1)] ?? [];
-  let endDay: number;
-
-  if (nextDays.length > 0) {
-    endDay = Math.min(...nextDays) - 1; // day before next period starts
-  } else {
-    // Last matchup period — use finalScoringPeriod from status
-    endDay = data.status?.finalScoringPeriod ?? (startDay + 6);
-  }
-
-  return { start: dayToDate(startDay), end: dayToDate(endDay) };
+  const count: number = data.settings?.scheduleSettings?.matchupPeriodCount ?? 21;
+  const schedule = buildMatchupSchedule(count);
+  const idx = matchupPeriod - 1;
+  return idx >= 0 && idx < schedule.length ? schedule[idx] : null;
 }
 
 /** Get the current matchup period number from ESPN data */
