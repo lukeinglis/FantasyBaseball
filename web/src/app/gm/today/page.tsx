@@ -68,31 +68,26 @@ export default function TodayPage() {
 
   useEffect(() => {
     const today = new Date().toISOString().slice(0, 10);
+    const weekEnd = new Date();
+    weekEnd.setDate(weekEnd.getDate() + 7);
+    const endDate = weekEnd.toISOString().slice(0, 10);
 
-    // Fetch matchup first to get the end date, then everything else in parallel
-    fetch("/api/espn/matchup").then((r) => r.json()).catch(() => ({}))
-      .then((matchupData) => {
-        if (matchupData.myTeamId) setMyTeamId(matchupData.myTeamId);
-        const endDate = matchupData.matchupEndDate ?? (() => {
-          const d = new Date(); d.setDate(d.getDate() + 6); return d.toISOString().slice(0, 10);
-        })();
-
-        return Promise.all([
-          fetch("/api/espn/roster").then((r) => r.json()),
-          fetch(`/api/mlb/schedule?startDate=${today}&endDate=${endDate}`).then((r) => r.json()).catch(() => ({})),
-          fetch(`/api/mlb/probable-pitchers?startDate=${today}&endDate=${today}`).then((r) => r.json()).catch(() => null),
-        ]);
-      })
-      .then(([rosterData, schedData, probableData]) => {
-        if (rosterData.error) { setError(rosterData.error); return; }
-        setTeams(rosterData);
-        if (!schedData.error) setSchedule(schedData);
-        if (probableData?.allStarts) {
-          setProbableNames(new Set(probableData.allStarts.map((s: any) => s.pitcherName)));
-        }
-      })
-      .catch(() => setError("FETCH_FAILED"))
-      .finally(() => setLoading(false));
+    Promise.all([
+      fetch("/api/espn/roster").then((r) => r.json()),
+      fetch("/api/espn/matchup").then((r) => r.json()).catch(() => ({})),
+      fetch(`/api/mlb/schedule?startDate=${today}&endDate=${endDate}`).then((r) => r.json()).catch(() => ({})),
+      fetch(`/api/mlb/probable-pitchers?startDate=${today}&endDate=${today}`).then((r) => r.json()).catch(() => null),
+    ]).then(([rosterData, matchupData, schedData, probableData]) => {
+      if (rosterData.error) { setError(rosterData.error); return; }
+      setTeams(rosterData);
+      if (matchupData.myTeamId) setMyTeamId(matchupData.myTeamId);
+      if (!schedData.error) setSchedule(schedData);
+      if (probableData?.allStarts) {
+        setProbableNames(new Set(probableData.allStarts.map((s: any) => s.pitcherName)));
+      }
+    })
+    .catch(() => setError("FETCH_FAILED"))
+    .finally(() => setLoading(false));
   }, []);
 
   const myTeam = useMemo(() => {
