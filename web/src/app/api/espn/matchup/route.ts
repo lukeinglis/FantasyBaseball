@@ -60,36 +60,19 @@ function parsePlayers(entries: any[], scoringPeriodId: number): MatchupPlayer[] 
     const isPitcher = player.defaultPositionId === 1 || player.defaultPositionId === 11;
 
     // Extract stats from player.stats[]
-    // Try matchup-period stats first, then fall back to last 7 days, then season
-    // ESPN stat block IDs: "002026" = season, "01YYYY" = last 7, "10YYYY" = projections
-    // For current scoring period, ESPN may include a block with appliedTotal for the matchup
+    // statSplitTypeId: 0=season, 1=last7, 2=last15, 3=last30, 5=current matchup period
     const statBlocks: any[] = player.stats ?? [];
     const stats: Record<string, number> = {};
 
-    // Strategy: look for the block that has appliedTotal (matchup-period stats)
-    // or the block matching the current scoring period
-    let found = false;
-
-    // Try to find a stat block for the current scoring period (applied stats)
-    for (const block of statBlocks) {
-      if (block.id === "002026" && block.appliedTotal !== undefined && block.appliedAverage !== undefined) {
-        // This is the season block — skip, we want matchup period
-        continue;
-      }
-      // Some blocks have scoringPeriodId or matchup-specific data
-      if (block.scoringPeriodId === scoringPeriodId || block.id === `002026`) {
-        // Will use season if nothing better found
-      }
-    }
-
-    // Best approach: use the roster entry's own stats if available
-    // ESPN sometimes puts current matchup stats in playerPoolEntry.appliedStatTotal
-    const appliedStats = e.playerPoolEntry?.appliedStatTotal ?? null;
-
-    // Fall back to season stats and filter by position
+    // Use matchup period stats (splitType 5) first, fall back to season (splitType 0)
+    const matchupBlock = statBlocks.find((s: any) =>
+      s.statSplitTypeId === 5 && s.statSourceId === 0 && s.seasonId === 2026
+    );
     const seasonBlock = statBlocks.find((s: any) => s.id === "002026");
-    if (seasonBlock?.stats) {
-      for (const [sid, val] of Object.entries(seasonBlock.stats)) {
+    const sourceBlock = matchupBlock ?? seasonBlock;
+
+    if (sourceBlock?.stats) {
+      for (const [sid, val] of Object.entries(sourceBlock.stats)) {
         const cat = PLAYER_STAT_MAP[sid];
         if (!cat) continue;
         // Only include relevant stats for this player type
