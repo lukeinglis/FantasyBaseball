@@ -87,12 +87,19 @@ function fmtDateRange(start: string, end: string): string {
   return `${s} – ${e}`;
 }
 
+// Per-day schedule for the grid
+interface DaySchedule {
+  [team: string]: { opponent: string; time: string };
+}
+
 export default function BullpenPage() {
   const [teams, setTeams] = useState<EspnTeam[]>([]);
   const [schedule, setSchedule] = useState<Record<string, TeamSchedule>>({});
   const [probables, setProbables] = useState<ProbablePitchersData | null>(null);
+  const [matchupProbables, setMatchupProbables] = useState<ProbablePitchersData | null>(null);
   const [nextProbables, setNextProbables] = useState<ProbablePitchersData | null>(null);
   const [nextWeekData, setNextWeekData] = useState<NextWeekData | null>(null);
+  const [matchupDates, setMatchupDates] = useState<{ start: string; end: string } | null>(null);
   const [myTeamId, setMyTeamId] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -116,6 +123,17 @@ export default function BullpenPage() {
       if (matchupData.myTeamId) setMyTeamId(matchupData.myTeamId);
       if (!scheduleData.error) setSchedule(scheduleData);
       if (probableData && !probableData.error) setProbables(probableData);
+
+      // Fetch probable pitchers for the full matchup period
+      const mStart = matchupData.matchupStartDate;
+      const mEnd = matchupData.matchupEndDate;
+      if (mStart && mEnd) {
+        setMatchupDates({ start: mStart, end: mEnd });
+        fetch(`/api/mlb/probable-pitchers?startDate=${mStart}&endDate=${mEnd}`)
+          .then((r) => r.json())
+          .then((mp) => { if (mp && !mp.error) setMatchupProbables(mp); })
+          .catch(() => {});
+      }
 
       // Fetch next week's probable pitchers
       if (startsData && startsData.nextDates) {
@@ -448,6 +466,13 @@ export default function BullpenPage() {
         </div>
       )}
 
+      {/* Pitcher Schedule Grid */}
+      <PitcherScheduleGrid
+        pitchers={starters}
+        matchupProbables={matchupProbables}
+        matchupDates={matchupDates}
+      />
+
       {/* Next Week Starts — streaming targets */}
       <NextWeekStarts
         nextProbables={nextProbables}
@@ -455,6 +480,158 @@ export default function BullpenPage() {
         myPitchers={starters}
         pitcherStarts={pitcherStarts}
       />
+    </div>
+  );
+}
+
+// --- Pitcher Schedule Grid ---
+
+function PitcherScheduleGrid({
+  pitchers,
+  matchupProbables,
+  matchupDates,
+}: {
+  pitchers: RosterPlayer[];
+  matchupProbables: ProbablePitchersData | null;
+  matchupDates: { start: string; end: string } | null;
+}) {
+  // Generate array of dates for the matchup period
+  const dates = useMemo(() => {
+    if (!matchupDates) return [];
+    const result: string[] = [];
+    const current = new Date(matchupDates.start + "T12:00:00");
+    const end = new Date(matchupDates.end + "T12:00:00");
+    while (current <= end) {
+      result.push(current.toISOString().slice(0, 10));
+      current.setDate(current.getDate() + 1);
+    }
+    return result;
+  }, [matchupDates]);
+
+  // Build pitcher schedule: for each pitcher, which dates they have starts
+  const pitcherSchedule = useMemo(() => {
+    if (!matchupProbables) return new Map<string, Map<string, ProbableStart>>();
+    const result = new Map<string, Map<string, ProbableStart>>();
+
+    for (const pitcher of pitchers) {
+      const starts = findPitcherStarts(pitcher.name, pitcher.proTeam, matchupProbables);
+      if (starts.length > 0) {
+        const dateMap = new Map<string, ProbableStart>();
+        for (const s of starts) {
+          dateMap.set(s.date, s);
+        }
+        result.set(pitcher.name, dateMap);
+      }
+    }
+    return result;
+  }, [pitchers, matchupProbables]);
+
+  // Also check all probable starters to show opponents for each team/day
+  const teamGames = useMemo(() => {
+    if (!matchupProbables) return new Map<string, Map<string, string>>();
+    const result = new Map<string, Map<string, string>>();
+    for (const start of matchupProbables.allStarts) {
+      if (!result.has(start.team)) result.set(start.team, new Map());
+      // Store opponent for this team on this date (from any starter)
+      result.get(start.team)!.set(start.date, start.opponent);
+    }
+    return result;
+  }, [matchupProbables]);
+
+  const today = new Date().toISOString().slice(0, 10);
+
+  if (dates.length === 0 || pitchers.length === 0) return null;
+
+  const activeSPs = pitchers.filter((p) => p.pos === "SP" && !isOnIL(p.injuryStatus));
+
+  return (
+    <div className="mt-6">
+      <div className="mb-2">
+        <h2 className="text-[14px] font-bold text-gray-900">Pitching Schedule</h2>
+        {matchupDates && (
+          <span className="text-[11px] text-slate-500">{fmtDateRange(matchupDates.start, matchupDates.end)}</span>
+        )}
+      </div>
+
+      <div className="rounded-lg border border-border overflow-x-auto">
+        <table className="w-full text-[11px]">
+          <thead>
+            <tr className="border-b border-border bg-surface">
+              <th className="px-2 py-1.5 text-left text-[10px] font-semibold text-slate-500 sticky left-0 bg-surface min-w-[130px]">
+                Pitcher
+              </th>
+              {dates.map((d) => {
+                const isToday = d === today;
+                const dayLabel = new Date(d + "T12:00:00").toLocaleDateString("en-US", { weekday: "short" });
+                const dateLabel = new Date(d + "T12:00:00").toLocaleDateString("en-US", { month: "numeric", day: "numeric" });
+                return (
+                  <th key={d} className={`px-1 py-1.5 text-center min-w-[48px] ${isToday ? "bg-orange-50" : ""}`}>
+                    <div className={`text-[9px] font-bold ${isToday ? "text-orange-600" : "text-slate-400"}`}>{dayLabel}</div>
+                    <div className={`text-[8px] ${isToday ? "text-orange-500" : "text-slate-400"}`}>{dateLabel}</div>
+                  </th>
+                );
+              })}
+              <th className="px-2 py-1.5 text-center text-[10px] font-semibold text-slate-500 min-w-[30px]">
+                Tot
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {activeSPs.map((pitcher, i) => {
+              const startDates = pitcherSchedule.get(pitcher.name);
+              const totalStarts = startDates?.size ?? 0;
+              const teamDays = teamGames.get(pitcher.proTeam);
+
+              return (
+                <tr key={i} className={`border-b border-border last:border-b-0 ${i % 2 === 0 ? "" : "bg-surface/50"}`}>
+                  <td className="px-2 py-1.5 sticky left-0 bg-inherit">
+                    <div className="text-[11px] font-medium text-slate-700">{pitcher.name}</div>
+                    <div className="text-[9px] text-slate-400">{pitcher.proTeam}</div>
+                  </td>
+                  {dates.map((d) => {
+                    const isToday = d === today;
+                    const start = startDates?.get(d);
+                    const hasGame = teamDays?.has(d);
+                    const opponent = start?.opponent ?? teamDays?.get(d);
+                    const isPast = d < today;
+
+                    return (
+                      <td key={d} className={`px-1 py-1.5 text-center ${isToday ? "bg-orange-50" : ""} ${isPast ? "opacity-50" : ""}`}>
+                        {start ? (
+                          // Probable pitcher start
+                          <div>
+                            <span className="inline-block text-[9px] font-bold text-white bg-emerald-600 rounded px-1 py-0.5">
+                              PP
+                            </span>
+                            <div className="text-[8px] text-slate-500 mt-0.5">{start.opponent}</div>
+                          </div>
+                        ) : opponent ? (
+                          // Team has game but pitcher isn't starting
+                          <span className="text-[9px] text-slate-400">{opponent}</span>
+                        ) : (
+                          // Off day
+                          <span className="text-[9px] text-slate-300">-</span>
+                        )}
+                      </td>
+                    );
+                  })}
+                  <td className={`px-2 py-1.5 text-center font-bold tabular-nums ${
+                    totalStarts >= 2 ? "text-emerald-600" : totalStarts === 1 ? "text-slate-600" : "text-slate-400"
+                  }`}>
+                    {totalStarts}
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+
+      {!matchupProbables && (
+        <div className="mt-1 text-[10px] text-slate-400">
+          Probable pitcher data updates as teams announce starters (typically 1-5 days ahead).
+        </div>
+      )}
     </div>
   );
 }
