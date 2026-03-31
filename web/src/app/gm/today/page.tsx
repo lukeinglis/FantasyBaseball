@@ -1,5 +1,8 @@
 "use client";
 
+const IL_INJURY_STATUSES = new Set(["SEVEN_DAY_DL", "TEN_DAY_DL", "FIFTEEN_DAY_DL", "SIXTY_DAY_DL", "OUT"]);
+function isOnIL(status: string): boolean { return IL_INJURY_STATUSES.has(status); }
+
 import { useState, useEffect, useMemo } from "react";
 
 interface RosterPlayer {
@@ -35,10 +38,10 @@ interface WeatherData {
   icon: string;
 }
 
-const BATTER_SLOTS = new Set([0, 1, 2, 3, 4, 5, 6, 7, 8]);
-const PITCHER_SLOTS = new Set([14, 15, 17]);
+const BATTER_SLOTS = new Set([0, 1, 2, 3, 4, 5, 6, 7, 8, 12]);
+const PITCHER_SLOTS = new Set([13, 14, 15]);
 const BENCH_SLOT = 16;
-const IL_SLOT = 12;
+
 
 function weatherIcon(condition: string | null, rainChance: number | null): { icon: string; color: string; label: string } {
   if (rainChance !== null && rainChance >= 60) return { icon: "!", color: "text-red-600 bg-red-50 border-red-200", label: `${rainChance}% rain` };
@@ -94,7 +97,7 @@ export default function TodayPage() {
   const activeBatters = useMemo(() => roster.filter((p) => BATTER_SLOTS.has(p.slotId)), [roster]);
   const activePitchers = useMemo(() => roster.filter((p) => PITCHER_SLOTS.has(p.slotId)), [roster]);
   const benchPlayers = useMemo(() => roster.filter((p) => p.slotId === BENCH_SLOT), [roster]);
-  const ilPlayers = useMemo(() => roster.filter((p) => p.slotId === IL_SLOT), [roster]);
+  const ilPlayers = useMemo(() => roster.filter((p) => isOnIL(p.injuryStatus)), [roster]);
 
   // Split by game status
   const allActive = useMemo(() => [...activeBatters, ...activePitchers], [activeBatters, activePitchers]);

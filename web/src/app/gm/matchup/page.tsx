@@ -1,5 +1,8 @@
 "use client";
 
+const IL_INJURY_STATUSES = new Set(["SEVEN_DAY_DL", "TEN_DAY_DL", "FIFTEEN_DAY_DL", "SIXTY_DAY_DL", "OUT"]);
+function isOnIL(status: string): boolean { return IL_INJURY_STATUSES.has(status); }
+
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { DataFreshness } from "@/components/DataFreshness";
 
@@ -58,10 +61,10 @@ interface ProbablePitchersData {
 }
 
 // Slot IDs
-const BATTER_SLOT_IDS = new Set([0, 1, 2, 3, 4, 5, 6, 7, 8]);   // C,1B,2B,3B,SS,OF×3,UTIL
-const PITCHER_SLOT_IDS = new Set([14, 15, 17]);                    // SP, RP, P
+const BATTER_SLOT_IDS = new Set([0, 1, 2, 3, 4, 5, 6, 7, 8, 12]);  // C,1B,2B,3B,SS,OF×3,UTIL
+const PITCHER_SLOT_IDS = new Set([13, 14, 15]);                     // P, SP, RP
 const BENCH_SLOT_ID = 16;
-const IL_SLOT_ID = 12;
+
 
 const BAT_CATS = ["H", "R", "HR", "TB", "RBI", "BB", "SB", "AVG"];
 const PIT_CATS = ["K", "QS", "W", "L", "SV", "HD", "ERA", "WHIP"];
@@ -206,7 +209,7 @@ function RosterPanel({
   const batters = roster.filter((p) => BATTER_SLOT_IDS.has(p.slotId)).sort((a, b) => a.slotId - b.slotId);
   const pitchers = roster.filter((p) => PITCHER_SLOT_IDS.has(p.slotId)).sort((a, b) => a.slotId - b.slotId);
   const bench = roster.filter((p) => p.slotId === BENCH_SLOT_ID);
-  const il = roster.filter((p) => p.slotId === IL_SLOT_ID);
+  const il = roster.filter((p) => isOnIL(p.injuryStatus));
 
   const borderColor = isMine ? "border-orange-300" : "border-border";
   const headerColor = isMine ? "text-orange-600 border-orange-300" : "text-slate-600 border-border";

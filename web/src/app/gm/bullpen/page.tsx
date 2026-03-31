@@ -1,5 +1,8 @@
 "use client";
 
+const IL_INJURY_STATUSES = new Set(["SEVEN_DAY_DL", "TEN_DAY_DL", "FIFTEEN_DAY_DL", "SIXTY_DAY_DL", "OUT"]);
+function isOnIL(status: string): boolean { return IL_INJURY_STATUSES.has(status); }
+
 import { useState, useEffect, useMemo } from "react";
 
 interface RosterPlayer {
@@ -45,9 +48,9 @@ interface ProbablePitchersData {
 
 const SP_SLOT_ID = 14;
 const RP_SLOT_ID = 15;
-const P_SLOT_ID = 17;
+const P_SLOT_ID = 13;
 const BENCH_SLOT_ID = 16;
-const IL_SLOT_ID = 12;
+
 
 function fmtDate(d: string): string {
   return new Date(d + "T12:00:00").toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" });
@@ -138,7 +141,7 @@ export default function BullpenPage() {
     return myTeam.roster.filter((p) =>
       [SP_SLOT_ID, RP_SLOT_ID, P_SLOT_ID].includes(p.slotId) ||
       (p.slotId === BENCH_SLOT_ID && (p.pos === "SP" || p.pos === "RP")) ||
-      (p.slotId === IL_SLOT_ID && (p.pos === "SP" || p.pos === "RP"))
+      (isOnIL(p.injuryStatus) && (p.pos === "SP" || p.pos === "RP"))
     );
   }, [myTeam]);
 
@@ -183,18 +186,18 @@ export default function BullpenPage() {
   }, [probables, pitchers]);
 
   // Group by status
-  const active = useMemo(() => shown.filter((p) => p.slotId !== IL_SLOT_ID && p.slotId !== BENCH_SLOT_ID && p.injuryStatus === "ACTIVE"), [shown]);
-  const dtd = useMemo(() => shown.filter((p) => p.injuryStatus === "DAY_TO_DAY" && p.slotId !== IL_SLOT_ID), [shown]);
+  const active = useMemo(() => shown.filter((p) => !isOnIL(p.injuryStatus) && p.slotId !== BENCH_SLOT_ID && p.injuryStatus === "ACTIVE"), [shown]);
+  const dtd = useMemo(() => shown.filter((p) => p.injuryStatus === "DAY_TO_DAY" && !isOnIL(p.injuryStatus)), [shown]);
   const benched = useMemo(() => shown.filter((p) => p.slotId === BENCH_SLOT_ID && p.injuryStatus === "ACTIVE"), [shown]);
   const injured = useMemo(() => shown.filter((p) =>
-    p.slotId === IL_SLOT_ID || ["SEVEN_DAY_DL", "FIFTEEN_DAY_DL", "SIXTY_DAY_DL", "OUT"].includes(p.injuryStatus)
+    isOnIL(p.injuryStatus) || ["SEVEN_DAY_DL", "FIFTEEN_DAY_DL", "SIXTY_DAY_DL", "OUT"].includes(p.injuryStatus)
   ), [shown]);
 
   // Starts summary
   const totalStarts = useMemo(() => {
     let count = 0;
     for (const p of starters) {
-      if (p.slotId === IL_SLOT_ID) continue;
+      if (isOnIL(p.injuryStatus)) continue;
       count += pitcherStarts.get(p.name)?.length ?? 0;
     }
     return count;
@@ -203,7 +206,7 @@ export default function BullpenPage() {
   const todayStarters = useMemo(() => {
     const today = new Date().toISOString().slice(0, 10);
     return starters.filter((p) => {
-      if (p.slotId === IL_SLOT_ID) return false;
+      if (isOnIL(p.injuryStatus)) return false;
       const starts = pitcherStarts.get(p.name);
       return starts?.some((s) => s.date === today);
     });
@@ -226,7 +229,7 @@ export default function BullpenPage() {
     const sched = schedule[player.proTeam];
     const starts = pitcherStarts.get(player.name) ?? [];
     const hasGame = !!sched?.todayOpponent;
-    const isActive = player.slotId !== IL_SLOT_ID && player.slotId !== BENCH_SLOT_ID;
+    const isActive = !isOnIL(player.injuryStatus) && player.slotId !== BENCH_SLOT_ID;
     const isInjured = player.injuryStatus !== "ACTIVE";
     const today = new Date().toISOString().slice(0, 10);
     const isStartingToday = starts.some((s) => s.date === today);
@@ -337,7 +340,7 @@ export default function BullpenPage() {
 
   // Count pitchers with games today
   const pitchersWithGames = shown.filter((p) =>
-    p.slotId !== IL_SLOT_ID && schedule[p.proTeam]?.todayOpponent
+    !isOnIL(p.injuryStatus) && schedule[p.proTeam]?.todayOpponent
   ).length;
 
   return (

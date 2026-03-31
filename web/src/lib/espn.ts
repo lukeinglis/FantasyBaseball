@@ -31,11 +31,13 @@ export async function espnFetch(views: string[], extra: string = ""): Promise<un
 }
 
 // Lineup slot ID → label
+// Verified from league settings lineupSlotCounts (debug endpoint 2026-03-31)
 export const SLOT_MAP: Record<number, string> = {
   0: "C", 1: "1B", 2: "2B", 3: "3B", 4: "SS",
-  5: "OF", 6: "OF", 7: "OF", 8: "UTIL",
-  14: "SP", 15: "RP", 17: "P",
-  16: "BN", 12: "IL",
+  5: "OF", 6: "OF", 7: "OF",
+  8: "UTIL", 12: "UTIL",      // slot 12 = UTIL in this league
+  13: "P", 14: "SP", 15: "RP",
+  16: "BN", 17: "IL",          // slot 17 = IL (not 12)
 };
 
 // ESPN default position ID → position label
@@ -70,6 +72,15 @@ export function getProTeam(player: any): string {
     return PRO_TEAM_MAP[player.proTeamId];
   }
   return player.proTeamAbbrev ?? "";
+}
+
+// IL-eligible injury statuses (player is on injured list)
+export const IL_STATUSES = new Set([
+  "SEVEN_DAY_DL", "TEN_DAY_DL", "FIFTEEN_DAY_DL", "SIXTY_DAY_DL", "OUT",
+]);
+
+export function isOnIL(injuryStatus: string): boolean {
+  return IL_STATUSES.has(injuryStatus);
 }
 
 // Injury status labels

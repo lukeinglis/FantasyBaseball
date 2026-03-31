@@ -1,5 +1,8 @@
 "use client";
 
+const IL_INJURY_STATUSES = new Set(["SEVEN_DAY_DL", "TEN_DAY_DL", "FIFTEEN_DAY_DL", "SIXTY_DAY_DL", "OUT"]);
+function isOnIL(status: string): boolean { return IL_INJURY_STATUSES.has(status); }
+
 import { useState, useEffect, useMemo } from "react";
 
 interface RosterPlayer {
@@ -34,10 +37,10 @@ interface TeamSchedule {
 const MY_TEAM_ID_KEY = "espnMyTeamId";
 
 // Slot IDs
-const BATTER_SLOT_IDS = new Set([0, 1, 2, 3, 4, 5, 6, 7, 8]);
-const PITCHER_SLOT_IDS = new Set([14, 15, 17]);
+const BATTER_SLOT_IDS = new Set([0, 1, 2, 3, 4, 5, 6, 7, 8, 12]);
+const PITCHER_SLOT_IDS = new Set([13, 14, 15]);
 const BENCH_SLOT_ID = 16;
-const IL_SLOT_ID = 12;
+
 
 function PlayerRow({
   player,
@@ -192,7 +195,7 @@ export default function RosterPage() {
   const batters = useMemo(() => roster.filter((p) => BATTER_SLOT_IDS.has(p.slotId)).sort((a, b) => a.slotId - b.slotId), [roster]);
   const pitchers = useMemo(() => roster.filter((p) => PITCHER_SLOT_IDS.has(p.slotId)).sort((a, b) => a.slotId - b.slotId), [roster]);
   const bench = useMemo(() => roster.filter((p) => p.slotId === BENCH_SLOT_ID), [roster]);
-  const il = useMemo(() => roster.filter((p) => p.slotId === IL_SLOT_ID), [roster]);
+  const il = useMemo(() => roster.filter((p) => isOnIL(p.injuryStatus)), [roster]);
 
   if (loading) return <div className="flex h-64 items-center justify-center text-slate-500">Loading roster...</div>;
   if (error === "ESPN_CREDS_MISSING") {
