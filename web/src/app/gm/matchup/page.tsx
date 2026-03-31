@@ -90,16 +90,14 @@ function fmtCat(cat: string, val: number | null): string {
   return String(Math.round(val));
 }
 
-// Average daily production per team (approximate MLB averages)
-const DAILY_AVG: Record<string, number> = {
-  H: 8.5, R: 4.5, HR: 1.2, TB: 14, RBI: 4.3, BB: 3.5, SB: 0.5, AVG: 0.005,
-  K: 8, QS: 0.5, W: 0.5, L: 0.5, SV: 0.3, HD: 0.3, ERA: 0.15, WHIP: 0.01,
-};
-
-// Standard deviation per day (rough estimates for variance)
+// Standard deviation per day (rough estimates for daily variance per team)
 const DAILY_SD: Record<string, number> = {
-  H: 3, R: 2.5, HR: 1.1, TB: 5, RBI: 2.5, BB: 2, SB: 0.7, AVG: 0.008,
-  K: 3, QS: 0.5, W: 0.5, L: 0.5, SV: 0.5, HD: 0.5, ERA: 0.3, WHIP: 0.02,
+  H: 3, R: 2.5, HR: 1.1, TB: 5, RBI: 2.5, BB: 2, SB: 0.7,
+  K: 3, QS: 0.5, W: 0.5, L: 0.5, SV: 0.5, HD: 0.5,
+  // Rate stats: daily swing in team rate stats
+  AVG: 0.012,   // team AVG can swing ~.012/day
+  ERA: 0.6,     // team ERA can swing ~0.6/day
+  WHIP: 0.06,   // team WHIP can swing ~0.06/day
 };
 
 /**
@@ -112,16 +110,20 @@ function lockPct(cat: string, myVal: number | null, oppVal: number | null, daysL
   const lower = LOWER_IS_BETTER.has(cat);
   const gap = lower ? oppVal - myVal : myVal - oppVal; // positive = I'm winning
 
-  // Rate stats are harder to project — skip for now
-  if (cat === "AVG" || cat === "ERA" || cat === "WHIP") return null;
+  // For rate stats, both teams' rates can move, so variance is higher
+  const isRate = cat === "AVG" || cat === "ERA" || cat === "WHIP";
+  const dailySd = DAILY_SD[cat] ?? 1;
 
-  const sd = (DAILY_SD[cat] ?? 1) * Math.sqrt(daysLeft);
+  // Combined variance: both teams can swing independently
+  // Rate stats swing less as the matchup progresses (more IP/AB stabilizes)
+  // but we use a simplified model
+  const sd = dailySd * Math.sqrt(daysLeft) * (isRate ? 1.4 : 1);
   if (sd === 0) return gap > 0 ? 99 : gap < 0 ? 1 : 50;
 
   // Simple normal approximation: how many SDs is the gap?
   const zScore = gap / sd;
 
-  // Convert z-score to rough percentage (sigmoid-like)
+  // Convert z-score to rough percentage
   const pct = Math.round(50 + zScore * 20);
   return Math.max(1, Math.min(99, pct));
 }
