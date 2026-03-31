@@ -23,7 +23,7 @@ export async function espnFetch(views: string[], extra: string = ""): Promise<un
       Accept: "application/json",
       "User-Agent": "Mozilla/5.0",
     },
-    next: { revalidate: 60 },
+    cache: "no-store",
   });
 
   if (!res.ok) throw new Error(`ESPN API ${res.status}`);
