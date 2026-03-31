@@ -18,6 +18,7 @@ interface MatchupPlayer {
   injuryLabel: string;
   injuryColor: string;
   proTeam: string;
+  stats: Record<string, number>;
 }
 
 interface MatchupData {
@@ -91,6 +92,14 @@ function fmtDateRange(start: string | null, end: string | null): string {
   return `${fmt(start)} – ${fmt(end)}`;
 }
 
+function fmtPlayerStat(cat: string, val: number | undefined): string {
+  if (val === undefined || val === null) return "-";
+  if (cat === "AVG") return val.toFixed(3);
+  if (cat === "ERA" || cat === "WHIP") return val.toFixed(2);
+  if (cat === "IP") return val.toFixed(1);
+  return String(Math.round(val));
+}
+
 function PlayerRow({
   player,
   schedule,
@@ -104,54 +113,78 @@ function PlayerRow({
 }) {
   const hasGame = !!schedule?.todayOpponent;
   const isPitcher = PITCHER_SLOT_IDS.has(player.slotId);
+  const s = player.stats ?? {};
+  const hasStats = Object.keys(s).length > 0;
+
   return (
-    <div className={`flex items-center gap-2 border-b border-border px-2 py-1.5 ${
-      isMine ? "" : "opacity-90"
-    }`}>
-      {/* Slot */}
-      <span className="w-7 shrink-0 text-[10px] font-bold text-slate-600">{player.slotLabel}</span>
+    <div className={`border-b border-border px-2 py-1.5 ${isMine ? "" : "opacity-90"}`}>
+      <div className="flex items-center gap-2">
+        {/* Slot */}
+        <span className="w-7 shrink-0 text-[10px] font-bold text-slate-600">{player.slotLabel}</span>
 
-      {/* Name */}
-      <span className="min-w-0 w-[130px] truncate text-[12px] text-slate-400">{player.name}</span>
+        {/* Name */}
+        <span className="min-w-0 w-[120px] truncate text-[12px] text-slate-700">{player.name}</span>
 
-      {/* Pro team */}
-      <span className="w-7 shrink-0 text-[10px] text-slate-600">{player.proTeam}</span>
+        {/* Pro team */}
+        <span className="w-7 shrink-0 text-[10px] text-slate-500">{player.proTeam}</span>
 
-      {/* Today's game */}
-      <div className="flex-1 min-w-0">
-        {hasGame ? (
-          <span className="text-[10px] text-slate-500 whitespace-nowrap">
-            {schedule!.todayOpponent}
-            {schedule!.todayTime && (
-              <span className="ml-1 text-slate-600">{schedule!.todayTime}</span>
-            )}
+        {/* Today's game */}
+        <div className="w-[70px] shrink-0">
+          {hasGame ? (
+            <span className="text-[10px] text-slate-600 whitespace-nowrap">
+              {schedule!.todayOpponent}
+              {schedule!.todayTime && (
+                <span className="ml-1 text-slate-500">{schedule!.todayTime}</span>
+              )}
+            </span>
+          ) : (
+            <span className="text-[10px] text-slate-400">Off</span>
+          )}
+        </div>
+
+        {/* Season stats (compact) */}
+        {hasStats && !isPitcher && (
+          <div className="flex-1 flex items-center gap-2 justify-end text-[9px] font-mono text-slate-500 tabular-nums">
+            <span>{fmtPlayerStat("AVG", s.AVG)}</span>
+            <span>{fmtPlayerStat("HR", s.HR)} <span className="text-slate-400">HR</span></span>
+            <span>{fmtPlayerStat("RBI", s.RBI)} <span className="text-slate-400">RBI</span></span>
+            <span>{fmtPlayerStat("R", s.R)} <span className="text-slate-400">R</span></span>
+            <span>{fmtPlayerStat("SB", s.SB)} <span className="text-slate-400">SB</span></span>
+          </div>
+        )}
+        {hasStats && isPitcher && (
+          <div className="flex-1 flex items-center gap-2 justify-end text-[9px] font-mono text-slate-500 tabular-nums">
+            <span>{fmtPlayerStat("ERA", s.ERA)}</span>
+            <span>{fmtPlayerStat("WHIP", s.WHIP)} <span className="text-slate-400">WHIP</span></span>
+            <span>{fmtPlayerStat("K", s.K)} <span className="text-slate-400">K</span></span>
+            <span>{fmtPlayerStat("W", s.W)} <span className="text-slate-400">W</span></span>
+            {(s.SV ?? 0) > 0 && <span>{fmtPlayerStat("SV", s.SV)} <span className="text-slate-400">SV</span></span>}
+          </div>
+        )}
+        {!hasStats && <div className="flex-1" />}
+
+        {/* Starts this matchup (SP only) */}
+        {isPitcher && player.pos === "SP" && starts > 0 && (
+          <span className={`shrink-0 text-[10px] tabular-nums font-bold ${
+            starts >= 2 ? "text-emerald-600" : "text-orange-600"
+          }`}>{starts}S</span>
+        )}
+
+        {/* Games this week */}
+        {schedule && (
+          <span className={`shrink-0 text-[10px] tabular-nums font-semibold ${
+            schedule.weekGames >= 5 ? "text-emerald-600" :
+            schedule.weekGames >= 3 ? "text-orange-600" : "text-slate-600"
+          }`}>{schedule.weekGames}G</span>
+        )}
+
+        {/* Injury */}
+        {player.injuryStatus !== "ACTIVE" && (
+          <span className={`shrink-0 text-[10px] font-bold ${player.injuryColor}`}>
+            {player.injuryLabel}
           </span>
-        ) : (
-          <span className="text-[10px] text-slate-400">Off</span>
         )}
       </div>
-
-      {/* Starts this matchup (SP only) */}
-      {isPitcher && player.pos === "SP" && starts > 0 && (
-        <span className={`shrink-0 text-[10px] tabular-nums font-bold ${
-          starts >= 2 ? "text-emerald-600" : "text-orange-600"
-        }`}>{starts}S</span>
-      )}
-
-      {/* Games this week */}
-      {schedule && (
-        <span className={`shrink-0 text-[10px] tabular-nums font-semibold ${
-          schedule.weekGames >= 5 ? "text-emerald-600" :
-          schedule.weekGames >= 3 ? "text-orange-600" : "text-slate-600"
-        }`}>{schedule.weekGames}G</span>
-      )}
-
-      {/* Injury */}
-      {player.injuryStatus !== "ACTIVE" && (
-        <span className={`shrink-0 text-[10px] font-bold ${player.injuryColor}`}>
-          {player.injuryLabel}
-        </span>
-      )}
     </div>
   );
 }

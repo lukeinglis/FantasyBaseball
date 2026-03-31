@@ -16,6 +16,7 @@ export interface MatchupPlayer {
   injuryLabel: string;
   injuryColor: string;
   proTeam: string;
+  stats: Record<string, number>;  // season stats: AVG, HR, RBI, etc.
 }
 
 export interface MatchupData {
@@ -40,12 +41,34 @@ export interface MatchupData {
 const MY_TEAM_ID = parseInt(process.env.MY_ESPN_TEAM_ID ?? "0");
 const CATS_ORDER = ["H", "R", "HR", "TB", "RBI", "BB", "SB", "AVG", "K", "QS", "W", "L", "SV", "HD", "ERA", "WHIP"];
 
+// Player stat IDs (raw player context — different from scoring stat IDs)
+const PLAYER_STAT_MAP: Record<string, string> = {
+  "1": "H", "2": "AVG", "5": "HR", "8": "TB", "20": "R",
+  "21": "RBI", "10": "BB", "23": "SB", "0": "AB",
+  "48": "K", "63": "QS", "53": "W", "54": "L",
+  "50": "SV", "57": "HD", "47": "ERA", "41": "WHIP",
+  "34": "IP",
+};
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function parsePlayers(entries: any[]): MatchupPlayer[] {
   return (entries ?? []).map((e: any) => {
     const player = e.playerPoolEntry?.player ?? {};
     const injuryStatus = player.injuryStatus ?? "ACTIVE";
     const injuryInfo = INJURY_MAP[injuryStatus] ?? { label: injuryStatus, color: "text-slate-500" };
+
+    // Extract season stats from player.stats[]
+    // id "002026" = actual 2026 season stats
+    const stats: Record<string, number> = {};
+    const statBlocks: any[] = player.stats ?? [];
+    const seasonBlock = statBlocks.find((s: any) => s.id === "002026");
+    if (seasonBlock?.stats) {
+      for (const [sid, val] of Object.entries(seasonBlock.stats)) {
+        const cat = PLAYER_STAT_MAP[sid];
+        if (cat) stats[cat] = val as number;
+      }
+    }
+
     return {
       name: player.fullName ?? "Unknown",
       pos: POS_MAP[player.defaultPositionId] ?? "?",
@@ -55,6 +78,7 @@ function parsePlayers(entries: any[]): MatchupPlayer[] {
       injuryLabel: injuryInfo.label,
       injuryColor: injuryInfo.color,
       proTeam: player.proTeamAbbrev ?? "",
+      stats,
     };
   });
 }
