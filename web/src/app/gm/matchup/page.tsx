@@ -165,11 +165,13 @@ function PlayerRow({
   schedule,
   isMine,
   starts,
+  selectedCat,
 }: {
   player: MatchupPlayer;
   schedule: TeamSchedule | null;
   isMine: boolean;
   starts: number;
+  selectedCat: string | null;
 }) {
   const hasGame = !!schedule?.todayOpponent;
   const isPitcher = player.pos === "SP" || player.pos === "RP";
@@ -197,8 +199,21 @@ function PlayerRow({
           </div>
         )}
 
-        {/* Season stats (compact) */}
-        {hasStats && !isPitcher && (
+        {/* Player stats — filtered to selected category or show all */}
+        {selectedCat && s[selectedCat] !== undefined ? (
+          <div className="flex-1 flex items-center justify-end">
+            <span className={`text-[14px] font-mono font-bold tabular-nums ${
+              (s[selectedCat] ?? 0) > 0 ? "text-slate-700" : "text-slate-400"
+            }`}>
+              {fmtPlayerStat(selectedCat, s[selectedCat])}
+            </span>
+            <span className="ml-1 text-[10px] text-slate-400">{selectedCat}</span>
+          </div>
+        ) : selectedCat ? (
+          <div className="flex-1 flex items-center justify-end">
+            <span className="text-[11px] text-slate-300">-</span>
+          </div>
+        ) : hasStats && !isPitcher ? (
           <div className="flex-1 flex items-center gap-2 justify-end text-[9px] font-mono text-slate-500 tabular-nums">
             <span>{fmtPlayerStat("AVG", s.AVG)}</span>
             <span>{fmtPlayerStat("HR", s.HR)} <span className="text-slate-400">HR</span></span>
@@ -206,8 +221,7 @@ function PlayerRow({
             <span>{fmtPlayerStat("R", s.R)} <span className="text-slate-400">R</span></span>
             <span>{fmtPlayerStat("SB", s.SB)} <span className="text-slate-400">SB</span></span>
           </div>
-        )}
-        {hasStats && isPitcher && (
+        ) : hasStats && isPitcher ? (
           <div className="flex-1 flex items-center gap-2 justify-end text-[9px] font-mono text-slate-500 tabular-nums">
             <span>{fmtPlayerStat("ERA", s.ERA)}</span>
             <span>{fmtPlayerStat("WHIP", s.WHIP)} <span className="text-slate-400">WHIP</span></span>
@@ -215,8 +229,9 @@ function PlayerRow({
             <span>{fmtPlayerStat("W", s.W)} <span className="text-slate-400">W</span></span>
             {(s.SV ?? 0) > 0 && <span>{fmtPlayerStat("SV", s.SV)} <span className="text-slate-400">SV</span></span>}
           </div>
+        ) : (
+          <div className="flex-1" />
         )}
-        {!hasStats && <div className="flex-1" />}
 
         {/* Starts this matchup (SP only) */}
         {isPitcher && player.pos === "SP" && starts > 0 && (
@@ -250,12 +265,14 @@ function RosterPanel({
   schedule,
   isMine,
   probables,
+  selectedCat,
 }: {
   teamName: string;
   roster: MatchupPlayer[];
   schedule: Record<string, TeamSchedule>;
   isMine: boolean;
   probables: ProbablePitchersData | null;
+  selectedCat: string | null;
 }) {
   const batters = roster.filter((p) => BATTER_SLOT_IDS.has(p.slotId)).sort((a, b) => a.slotId - b.slotId);
   const pitchers = roster.filter((p) => PITCHER_SLOT_IDS.has(p.slotId)).sort((a, b) => a.slotId - b.slotId);
@@ -284,7 +301,7 @@ function RosterPanel({
         )}
       </div>
       {players.map((p, i) => (
-        <PlayerRow key={i} player={p} schedule={schedule[p.proTeam] ?? null} isMine={isMine} starts={getStarts(p.name)} />
+        <PlayerRow key={i} player={p} schedule={schedule[p.proTeam] ?? null} isMine={isMine} starts={getStarts(p.name)} selectedCat={selectedCat} />
       ))}
     </>
   );
@@ -330,6 +347,7 @@ export default function MatchupPage() {
   const [probables, setProbables] = useState<ProbablePitchersData | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [selectedCat, setSelectedCat] = useState<string | null>(null);
 
   const fetchData = useCallback(() => {
     setLoading(true);
@@ -460,7 +478,12 @@ export default function MatchupPage() {
                 const oppColor = c.result === "LOSS" ? "#dc2626" : c.result === "TIE" ? "#ea580c" : "#cbd5e1";
 
                 return (
-                  <div key={c.cat} className="flex flex-col items-center">
+                  <div key={c.cat}
+                    className={`flex flex-col items-center cursor-pointer rounded-lg px-1 py-1 transition-all ${
+                      selectedCat === c.cat ? "ring-2 ring-orange-400 bg-orange-50" :
+                      "hover:bg-black/[0.03]"
+                    }`}
+                    onClick={() => setSelectedCat(selectedCat === c.cat ? null : c.cat)}>
                     {/* Category label */}
                     <span className="text-[10px] font-bold text-slate-500 mb-1">{c.cat}</span>
 
@@ -522,16 +545,20 @@ export default function MatchupPage() {
 
       {/* Column legend */}
       <div className="mb-2 flex items-center justify-between">
-        <div className="text-[11px] font-semibold uppercase tracking-wider text-slate-600">Rosters</div>
-        <div className="text-[10px] text-slate-400">
-          <span className="mr-3">Slot · Name · Team · Today&apos;s game</span>
-          <span className="text-emerald-600">5G+</span>
-          <span className="mx-1 text-slate-400">/</span>
-          <span className="text-orange-600">3–4G</span>
-          <span className="mx-1 text-slate-400">/</span>
-          <span className="text-slate-600">≤2G</span>
-          <span className="ml-1 text-slate-400">this matchup</span>
+        <div className="flex items-center gap-2">
+          <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-600">Rosters</span>
+          {selectedCat && (
+            <span className="flex items-center gap-1 text-[10px] font-bold text-orange-600 bg-orange-50 border border-orange-200 rounded px-2 py-0.5">
+              Showing: {selectedCat}
+              <button onClick={() => setSelectedCat(null)} className="ml-1 text-slate-400 hover:text-slate-700">✕</button>
+            </span>
+          )}
         </div>
+        {!selectedCat && (
+          <div className="text-[10px] text-slate-400">
+            Click a category donut to filter player stats
+          </div>
+        )}
       </div>
 
       {/* Side-by-side rosters */}
@@ -542,6 +569,7 @@ export default function MatchupPage() {
           schedule={schedule}
           isMine={true}
           probables={probables}
+          selectedCat={selectedCat}
         />
         <RosterPanel
           teamName={data.oppTeamName}
@@ -549,6 +577,7 @@ export default function MatchupPage() {
           schedule={schedule}
           isMine={false}
           probables={probables}
+          selectedCat={selectedCat}
         />
       </div>
     </div>
