@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
+import { DataFreshness } from "@/components/DataFreshness";
 
 interface MatchupCat {
   cat: string;
@@ -276,7 +277,8 @@ export default function MatchupPage() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
+  const fetchData = useCallback(() => {
+    setLoading(true);
     fetch("/api/espn/matchup")
       .then((r) => r.json())
       .then((d: MatchupData & { error?: string }) => {
@@ -303,6 +305,8 @@ export default function MatchupPage() {
       .finally(() => setLoading(false));
   }, []);
 
+  useEffect(() => { fetchData(); }, [fetchData]);
+
   const batCats = useMemo(() => data?.categories.filter((c) => BAT_CATS.includes(c.cat)) ?? [], [data]);
   const pitCats = useMemo(() => data?.categories.filter((c) => PIT_CATS.includes(c.cat)) ?? [], [data]);
   const myWinCount = useMemo(() => data?.categories.filter((c) => c.result === "WIN").length ?? 0, [data]);
@@ -328,10 +332,11 @@ export default function MatchupPage() {
       {/* Header */}
       <div className="mb-5 flex flex-wrap items-start justify-between gap-4">
         <div>
-          <div className="flex items-baseline gap-2">
+          <div className="flex items-center gap-3">
             <span className="text-[11px] font-semibold uppercase tracking-widest text-slate-600">
               Week {data.scoringPeriodId}
             </span>
+            <DataFreshness onRefresh={fetchData} loading={loading} />
             {data.matchupStartDate && (
               <span className="text-[11px] text-slate-400">
                 {fmtDateRange(data.matchupStartDate, data.matchupEndDate)}
