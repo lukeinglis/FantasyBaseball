@@ -90,6 +90,60 @@ function fmtCat(cat: string, val: number | null): string {
   return String(Math.round(val));
 }
 
+// Average daily production per team (approximate MLB averages)
+const DAILY_AVG: Record<string, number> = {
+  H: 8.5, R: 4.5, HR: 1.2, TB: 14, RBI: 4.3, BB: 3.5, SB: 0.5, AVG: 0.005,
+  K: 8, QS: 0.5, W: 0.5, L: 0.5, SV: 0.3, HD: 0.3, ERA: 0.15, WHIP: 0.01,
+};
+
+// Standard deviation per day (rough estimates for variance)
+const DAILY_SD: Record<string, number> = {
+  H: 3, R: 2.5, HR: 1.1, TB: 5, RBI: 2.5, BB: 2, SB: 0.7, AVG: 0.008,
+  K: 3, QS: 0.5, W: 0.5, L: 0.5, SV: 0.5, HD: 0.5, ERA: 0.3, WHIP: 0.02,
+};
+
+/**
+ * Estimate how "locked" a category is based on current gap and days remaining.
+ * Returns 0-100 representing confidence the current result holds.
+ */
+function lockPct(cat: string, myVal: number | null, oppVal: number | null, daysLeft: number): number | null {
+  if (myVal === null || oppVal === null || daysLeft <= 0) return null;
+
+  const lower = LOWER_IS_BETTER.has(cat);
+  const gap = lower ? oppVal - myVal : myVal - oppVal; // positive = I'm winning
+
+  // Rate stats are harder to project — skip for now
+  if (cat === "AVG" || cat === "ERA" || cat === "WHIP") return null;
+
+  const sd = (DAILY_SD[cat] ?? 1) * Math.sqrt(daysLeft);
+  if (sd === 0) return gap > 0 ? 99 : gap < 0 ? 1 : 50;
+
+  // Simple normal approximation: how many SDs is the gap?
+  const zScore = gap / sd;
+
+  // Convert z-score to rough percentage (sigmoid-like)
+  const pct = Math.round(50 + zScore * 20);
+  return Math.max(1, Math.min(99, pct));
+}
+
+function lockLabel(pct: number): string {
+  if (pct >= 90) return "Locked";
+  if (pct >= 75) return "Likely";
+  if (pct >= 55) return "Lean";
+  if (pct >= 45) return "Toss-up";
+  if (pct >= 25) return "Behind";
+  if (pct >= 10) return "Unlikely";
+  return "Lost";
+}
+
+function lockColor(pct: number): string {
+  if (pct >= 75) return "text-emerald-600";
+  if (pct >= 55) return "text-emerald-600/60";
+  if (pct >= 45) return "text-orange-600";
+  if (pct >= 25) return "text-red-600/60";
+  return "text-red-600";
+}
+
 function fmtDateRange(start: string | null, end: string | null): string {
   if (!start || !end) return "";
   const fmt = (d: string) => new Date(d + "T12:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric" });
@@ -310,6 +364,14 @@ export default function MatchupPage() {
 
   useEffect(() => { fetchData(); }, [fetchData]);
 
+  // Calculate days remaining in matchup
+  const daysLeft = useMemo(() => {
+    if (!data?.matchupEndDate) return 7; // fallback
+    const end = new Date(data.matchupEndDate + "T23:59:59");
+    const now = new Date();
+    return Math.max(0, Math.ceil((end.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)));
+  }, [data]);
+
   const batCats = useMemo(() => data?.categories.filter((c) => BAT_CATS.includes(c.cat)) ?? [], [data]);
   const pitCats = useMemo(() => data?.categories.filter((c) => PIT_CATS.includes(c.cat)) ?? [], [data]);
   const myWinCount = useMemo(() => data?.categories.filter((c) => c.result === "WIN").length ?? 0, [data]);
@@ -343,6 +405,7 @@ export default function MatchupPage() {
             {data.matchupStartDate && (
               <span className="text-[11px] text-slate-400">
                 {fmtDateRange(data.matchupStartDate, data.matchupEndDate)}
+                {daysLeft > 0 && <span className="ml-1">({daysLeft}d left)</span>}
               </span>
             )}
           </div>
@@ -383,22 +446,30 @@ export default function MatchupPage() {
           <div key={label}>
             <div className="mb-1.5 text-[10px] font-semibold uppercase tracking-wider text-slate-400">{label}</div>
             <div className="grid grid-cols-4 gap-1.5 sm:grid-cols-8">
-              {cats.map((c) => (
-                <div key={c.cat} className={`rounded-lg border px-2 py-2 text-center ${catBg(c.result)}`}>
-                  <div className="text-[10px] font-bold text-slate-500">{c.cat}</div>
-                  <div className={`mt-0.5 font-mono text-[14px] font-bold ${catResultColor(c.result)}`}>
-                    {fmtCat(c.cat, c.myValue)}
-                  </div>
-                  <div className="text-[11px] font-mono text-slate-600">
-                    {fmtCat(c.cat, c.oppValue)}
-                  </div>
-                  {c.result !== "PENDING" && (
-                    <div className={`mt-0.5 text-[9px] font-bold uppercase ${catResultColor(c.result)}`}>
-                      {c.result}
+              {cats.map((c) => {
+                const pct = lockPct(c.cat, c.myValue, c.oppValue, daysLeft);
+                return (
+                  <div key={c.cat} className={`rounded-lg border px-2 py-2 text-center ${catBg(c.result)}`}>
+                    <div className="text-[10px] font-bold text-slate-500">{c.cat}</div>
+                    <div className={`mt-0.5 font-mono text-[14px] font-bold ${catResultColor(c.result)}`}>
+                      {fmtCat(c.cat, c.myValue)}
                     </div>
-                  )}
-                </div>
-              ))}
+                    <div className="text-[11px] font-mono text-slate-600">
+                      {fmtCat(c.cat, c.oppValue)}
+                    </div>
+                    {c.result !== "PENDING" && (
+                      <div className={`mt-0.5 text-[9px] font-bold uppercase ${catResultColor(c.result)}`}>
+                        {c.result}
+                      </div>
+                    )}
+                    {pct !== null && daysLeft > 0 && (
+                      <div className={`mt-0.5 text-[8px] font-bold ${lockColor(pct)}`}>
+                        {pct}% {lockLabel(pct)}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
             </div>
           </div>
         ))}
