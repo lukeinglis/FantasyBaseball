@@ -11,6 +11,7 @@ const SUB_LINKS = [
   { href: "/gm/bullpen", label: "Bullpen" },
   { href: "/gm/category-rank", label: "Category Rank" },
   { href: "/gm/category-breakdown", label: "Category Breakdown" },
+  { href: "/gm/vs-league", label: "vs League" },
   { href: "/gm/h2h", label: "Team H2H" },
   { href: "/gm/free-agents", label: "Free Agents" },
   { href: "/gm/trade", label: "Trade Room" },
