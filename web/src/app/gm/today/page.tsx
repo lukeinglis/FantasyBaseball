@@ -66,29 +66,41 @@ export default function TodayPage() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
+  const [matchupEndDate, setMatchupEndDate] = useState<string | null>(null);
+
+  // Phase 1: fetch roster, matchup, probables
   useEffect(() => {
     const today = new Date().toISOString().slice(0, 10);
-    const weekEnd = new Date();
-    weekEnd.setDate(weekEnd.getDate() + 7);
-    const endDate = weekEnd.toISOString().slice(0, 10);
 
     Promise.all([
       fetch("/api/espn/roster").then((r) => r.json()),
       fetch("/api/espn/matchup").then((r) => r.json()).catch(() => ({})),
-      fetch(`/api/mlb/schedule?startDate=${today}&endDate=${endDate}`).then((r) => r.json()).catch(() => ({})),
       fetch(`/api/mlb/probable-pitchers?startDate=${today}&endDate=${today}`).then((r) => r.json()).catch(() => null),
-    ]).then(([rosterData, matchupData, schedData, probableData]) => {
-      if (rosterData.error) { setError(rosterData.error); return; }
+    ]).then(([rosterData, matchupData, probableData]) => {
+      if (rosterData.error) { setError(rosterData.error); setLoading(false); return; }
       setTeams(rosterData);
       if (matchupData.myTeamId) setMyTeamId(matchupData.myTeamId);
-      if (!schedData.error) setSchedule(schedData);
+      if (matchupData.matchupEndDate) setMatchupEndDate(matchupData.matchupEndDate);
       if (probableData?.allStarts) {
         setProbableNames(new Set(probableData.allStarts.map((s: any) => s.pitcherName)));
       }
     })
-    .catch(() => setError("FETCH_FAILED"))
-    .finally(() => setLoading(false));
+    .catch(() => setError("FETCH_FAILED"));
   }, []);
+
+  // Phase 2: once we know the matchup end date, fetch schedule with correct range
+  useEffect(() => {
+    const today = new Date().toISOString().slice(0, 10);
+    const endDate = matchupEndDate ?? (() => {
+      const d = new Date(); d.setDate(d.getDate() + 6); return d.toISOString().slice(0, 10);
+    })();
+
+    fetch(`/api/mlb/schedule?startDate=${today}&endDate=${endDate}`)
+      .then((r) => r.json())
+      .then((schedData) => { if (!schedData.error) setSchedule(schedData); })
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, [matchupEndDate]);
 
   const myTeam = useMemo(() => {
     if (!teams.length) return null;
@@ -215,9 +227,13 @@ export default function TodayPage() {
   const playingBatters = playing.filter((p) => BATTER_SLOTS.has(p.slotId)).sort((a, b) => a.slotId - b.slotId);
   const playingPitchers = playing.filter((p) => PITCHER_SLOTS.has(p.slotId)).sort((a, b) => a.slotId - b.slotId);
 
-  // Split pitchers into starters (probable today) and relievers
+  // Split pitchers:
+  // - "Starting Today" = SPs who are the probable starter today
+  // - "Relief Pitchers" = actual RPs (pos=RP) with games
+  // - SPs who have a game but aren't starting → they go to "Off" (they won't pitch)
   const startingToday = playingPitchers.filter((p) => isProbableStarter(p.name));
-  const relieversToday = playingPitchers.filter((p) => !isProbableStarter(p.name));
+  const relieversToday = playingPitchers.filter((p) => p.pos === "RP" && !isProbableStarter(p.name));
+  const spsNotStarting = playingPitchers.filter((p) => p.pos === "SP" && !isProbableStarter(p.name));
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-6">
@@ -229,13 +245,13 @@ export default function TodayPage() {
         </div>
         <div className="flex items-center gap-4">
           <div className="text-center">
-            <div className={`text-2xl font-bold tabular-nums ${playing.length > 0 ? "text-emerald-600" : "text-slate-400"}`}>
-              {playing.length}
+            <div className={`text-2xl font-bold tabular-nums ${(playing.length - spsNotStarting.length) > 0 ? "text-emerald-600" : "text-slate-400"}`}>
+              {playing.length - spsNotStarting.length}
             </div>
             <div className="text-[9px] text-slate-500">PLAYING</div>
           </div>
           <div className="text-center">
-            <div className="text-2xl font-bold tabular-nums text-slate-400">{off.length}</div>
+            <div className="text-2xl font-bold tabular-nums text-slate-400">{off.length + spsNotStarting.length}</div>
             <div className="text-[9px] text-slate-500">OFF</div>
           </div>
           {benchWithGames.length > 0 && (
@@ -308,13 +324,14 @@ export default function TodayPage() {
           </div>
         )}
 
-        {/* Off today */}
-        {off.length > 0 && (
+        {/* Off today (includes SPs not starting) */}
+        {(off.length + spsNotStarting.length) > 0 && (
           <div className="rounded-lg border border-border bg-surface">
             <div className="border-b border-border px-4 py-2">
-              <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-500">Off Today ({off.length})</span>
+              <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-500">Off Today ({off.length + spsNotStarting.length})</span>
             </div>
-            {off.map((p, i) => <GamePlayerRow key={i} player={p} />)}
+            {spsNotStarting.map((p, i) => <GamePlayerRow key={`sp-${i}`} player={p} />)}
+            {off.map((p, i) => <GamePlayerRow key={`off-${i}`} player={p} />)}
           </div>
         )}
 
