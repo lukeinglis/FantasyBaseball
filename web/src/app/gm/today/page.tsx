@@ -58,10 +58,19 @@ function EspnSetupCard() {
   );
 }
 
+interface BvpStats {
+  summary: string;
+  atBats: number;
+  hits: number;
+  homeRuns: number;
+  avg: string;
+}
+
 export default function TodayPage() {
   const [teams, setTeams] = useState<EspnTeam[]>([]);
   const [schedule, setSchedule] = useState<Record<string, TeamSchedule>>({});
   const [probableNames, setProbableNames] = useState<Set<string>>(new Set());
+  const [bvpData, setBvpData] = useState<Record<string, BvpStats | null>>({});
   const [myTeamId, setMyTeamId] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -110,6 +119,28 @@ export default function TodayPage() {
 
   const roster = myTeam?.roster ?? [];
   const getGame = (p: RosterPlayer) => schedule[p.proTeam] ?? null;
+
+  // Fetch batter vs pitcher career stats once we have roster + schedule
+  useEffect(() => {
+    if (!myTeam || Object.keys(schedule).length === 0) return;
+
+    const batters = myTeam.roster.filter((p) => BATTER_SLOTS.has(p.slotId) || p.slotId === BENCH_SLOT);
+    const matchups: { batter: string; pitcher: string }[] = [];
+
+    for (const b of batters) {
+      const game = schedule[b.proTeam];
+      if (game?.todayProbable) {
+        matchups.push({ batter: b.name, pitcher: game.todayProbable });
+      }
+    }
+
+    if (matchups.length === 0) return;
+
+    fetch(`/api/mlb/bvp?matchups=${encodeURIComponent(JSON.stringify(matchups))}`)
+      .then((r) => r.json())
+      .then((data) => { if (!data.error) setBvpData(data); })
+      .catch(() => {});
+  }, [myTeam, schedule]);
 
   // Categorize all players
   const activeBatters = useMemo(() => roster.filter((p) => BATTER_SLOTS.has(p.slotId)), [roster]);
@@ -169,11 +200,26 @@ export default function TodayPage() {
                 <span className="text-[12px] text-slate-600">{game!.todayTime}</span>
               </div>
 
-              {/* Probable starter (opponent) — relevant for batters */}
+              {/* Probable starter + BvP career stats */}
               {isBatter && game!.todayProbable && (
                 <div className="flex-1 min-w-0">
-                  <span className="text-[10px] text-slate-400">vs </span>
-                  <span className="text-[11px] text-slate-600">{game!.todayProbable}</span>
+                  <div>
+                    <span className="text-[10px] text-slate-400">vs </span>
+                    <span className="text-[11px] text-slate-600">{game!.todayProbable}</span>
+                  </div>
+                  {(() => {
+                    const key = `${player.name}__${game!.todayProbable}`;
+                    const bvp = bvpData[key];
+                    if (!bvp) return null;
+                    return (
+                      <div className={`text-[10px] font-mono tabular-nums ${
+                        parseFloat(bvp.avg) >= .300 ? "text-emerald-600" :
+                        parseFloat(bvp.avg) >= .200 ? "text-slate-600" : "text-red-600"
+                      }`}>
+                        {bvp.summary}
+                      </div>
+                    );
+                  })()}
                 </div>
               )}
 
