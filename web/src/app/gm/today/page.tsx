@@ -61,6 +61,7 @@ function EspnSetupCard() {
 export default function TodayPage() {
   const [teams, setTeams] = useState<EspnTeam[]>([]);
   const [schedule, setSchedule] = useState<Record<string, TeamSchedule>>({});
+  const [probableNames, setProbableNames] = useState<Set<string>>(new Set());
   const [myTeamId, setMyTeamId] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -71,12 +72,18 @@ export default function TodayPage() {
     Promise.all([
       fetch("/api/espn/roster").then((r) => r.json()),
       fetch("/api/espn/matchup").then((r) => r.json()).catch(() => ({})),
-    ]).then(([rosterData, matchupData]) => {
+      fetch(`/api/mlb/probable-pitchers?startDate=${today}&endDate=${today}`).then((r) => r.json()).catch(() => null),
+    ]).then(([rosterData, matchupData, probableData]) => {
       if (rosterData.error) { setError(rosterData.error); setLoading(false); return; }
       setTeams(rosterData);
       if (matchupData.myTeamId) setMyTeamId(matchupData.myTeamId);
 
-      // Use matchup end date for "games remaining" count, fallback to today+6
+      // Build set of today's probable starter names
+      if (probableData?.allStarts) {
+        setProbableNames(new Set(probableData.allStarts.map((s: any) => s.pitcherName)));
+      }
+
+      // Use matchup end date for "games remaining" count
       const endDate = matchupData.matchupEndDate ?? (() => {
         const d = new Date(); d.setDate(d.getDate() + 6); return d.toISOString().slice(0, 10);
       })();
@@ -199,9 +206,24 @@ export default function TodayPage() {
     );
   };
 
+  // Check if a pitcher is a probable starter today (by name match)
+  const isProbableStarter = (name: string): boolean => {
+    if (probableNames.has(name)) return true;
+    // Case-insensitive fallback
+    const lower = name.toLowerCase();
+    for (const pn of probableNames) {
+      if (pn.toLowerCase() === lower) return true;
+    }
+    return false;
+  };
+
   // Sort playing players: batters first (by slot), then pitchers
   const playingBatters = playing.filter((p) => BATTER_SLOTS.has(p.slotId)).sort((a, b) => a.slotId - b.slotId);
   const playingPitchers = playing.filter((p) => PITCHER_SLOTS.has(p.slotId)).sort((a, b) => a.slotId - b.slotId);
+
+  // Split pitchers into starters (probable today) and relievers
+  const startingToday = playingPitchers.filter((p) => isProbableStarter(p.name));
+  const relieversToday = playingPitchers.filter((p) => !isProbableStarter(p.name));
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-6">
@@ -257,14 +279,25 @@ export default function TodayPage() {
           </div>
         )}
 
-        {/* Pitchers playing */}
-        {playingPitchers.length > 0 && (
+        {/* Starting pitchers today */}
+        {startingToday.length > 0 && (
           <div className="rounded-lg border border-emerald-300 bg-surface">
             <div className="border-b border-emerald-300 px-4 py-2 flex items-center justify-between">
-              <span className="text-[10px] font-semibold uppercase tracking-wider text-emerald-600">Pitchers Playing</span>
-              <span className="text-[10px] tabular-nums text-emerald-600">{playingPitchers.length}</span>
+              <span className="text-[10px] font-semibold uppercase tracking-wider text-emerald-600">Starting Today</span>
+              <span className="text-[10px] tabular-nums text-emerald-600">{startingToday.length}</span>
             </div>
-            {playingPitchers.map((p, i) => <GamePlayerRow key={i} player={p} />)}
+            {startingToday.map((p, i) => <GamePlayerRow key={i} player={p} />)}
+          </div>
+        )}
+
+        {/* Relief pitchers with games */}
+        {relieversToday.length > 0 && (
+          <div className="rounded-lg border border-border bg-surface">
+            <div className="border-b border-border px-4 py-2 flex items-center justify-between">
+              <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-500">Relief Pitchers</span>
+              <span className="text-[10px] tabular-nums text-slate-500">{relieversToday.length}</span>
+            </div>
+            {relieversToday.map((p, i) => <GamePlayerRow key={i} player={p} />)}
           </div>
         )}
 
