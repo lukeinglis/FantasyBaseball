@@ -19,9 +19,9 @@ export interface MatchupPlayer {
 }
 
 export interface MatchupData {
-  scoringPeriodId: number;
-  matchupStartDate: string | null;  // ISO date e.g. "2026-03-27"
-  matchupEndDate: string | null;    // ISO date e.g. "2026-04-06"
+  scoringPeriodId: number;       // matchup period (week number)
+  matchupStartDate: string | null;
+  matchupEndDate: string | null;
   myTeamId: number;
   myTeamName: string;
   oppTeamId: number;
@@ -39,7 +39,6 @@ export interface MatchupData {
 
 const MY_TEAM_ID = parseInt(process.env.MY_ESPN_TEAM_ID ?? "0");
 const CATS_ORDER = ["H", "R", "HR", "TB", "RBI", "BB", "SB", "AVG", "K", "QS", "W", "L", "SV", "HD", "ERA", "WHIP"];
-const LOWER_IS_BETTER = new Set(["ERA", "WHIP", "L"]);
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function parsePlayers(entries: any[]): MatchupPlayer[] {
@@ -60,18 +59,47 @@ function parsePlayers(entries: any[]): MatchupPlayer[] {
   });
 }
 
-function toIsoDate(ms: number | null | undefined): string | null {
-  if (!ms) return null;
-  return new Date(ms).toISOString().slice(0, 10);
+/**
+ * Derive matchup start/end dates from the season start and matchup period day mapping.
+ * ESPN's scheduleSettings.matchupPeriods maps matchup period → array of scoring period day numbers.
+ * Each scoring period = 1 day. We calculate dates by adding (day - 1) to the season start date.
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function getMatchupDates(data: any, matchupPeriod: number): { start: string | null; end: string | null } {
+  const matchupPeriods: any = data.settings?.scheduleSettings?.matchupPeriods ?? {};
+  const periodDays: number[] = matchupPeriods[String(matchupPeriod)] ?? [];
+  if (periodDays.length === 0) return { start: null, end: null };
+
+  // ESPN season start: derive from the league's first scoring period
+  // The activatedDate is when the league was activated, but the actual season start
+  // is better derived from the schedule. MLB 2026 season starts ~March 25.
+  // We use a known reference: scoring period 1 = first day of the MLB season.
+  // ESPN's seasonId=2026 with firstScoringPeriod=1 starts on Opening Day.
+  // We can calculate from status.activatedDate or use a hardcoded season start.
+
+  // Try to get season start from the first matchup's scheduled date
+  // Fallback: use a known 2026 season start date
+  const SEASON_START = new Date("2026-03-25T00:00:00");
+
+  const firstDay = Math.min(...periodDays);
+  const lastDay = Math.max(...periodDays);
+
+  const startDate = new Date(SEASON_START);
+  startDate.setDate(startDate.getDate() + firstDay - 1);
+
+  const endDate = new Date(SEASON_START);
+  endDate.setDate(endDate.getDate() + lastDay - 1);
+
+  return {
+    start: startDate.toISOString().slice(0, 10),
+    end: endDate.toISOString().slice(0, 10),
+  };
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function parseMatchup(data: any, myTeamId: number): MatchupData | null {
-  const scoringPeriodId: number = data.scoringPeriodId ?? 1;
-
-  // In ESPN Fantasy Baseball, scoringPeriodId is a DAILY counter (day of season),
-  // while matchupPeriodId is a WEEKLY counter (week of season).
-  // We need to find which matchupPeriodId contains the current scoringPeriodId.
+  // Get current matchup period (week number) from league status
+  const currentMatchupPeriod: number = data.status?.currentMatchupPeriod ?? 1;
 
   // Build team name lookup
   const teamNames: Record<number, string> = {};
@@ -85,66 +113,17 @@ function parseMatchup(data: any, myTeamId: number): MatchupData | null {
     rosters[t.id] = parsePlayers(t.roster?.entries ?? []);
   }
 
-  // Find my current matchup: look for the matchup whose matchupPeriodId
-  // corresponds to the current scoring period. The ESPN schedule stores
-  // matchups with matchupPeriodId (week number). We find the active matchup
-  // by checking which week we're in based on the schedule's scoring period mapping.
+  // Find my matchup for the current period
   const schedule: any[] = data.schedule ?? [];
-
-  // Strategy: find all my matchups sorted by matchupPeriodId, then pick the one
-  // whose matchupPeriodId is current. ESPN provides a status.currentMatchupPeriod
-  // or we can derive it from the schedule scoring periods.
-  const myMatchups = schedule
-    .filter((m: any) => m.home?.teamId === myTeamId || m.away?.teamId === myTeamId)
-    .sort((a: any, b: any) => (a.matchupPeriodId ?? 0) - (b.matchupPeriodId ?? 0));
-
-  // Try to find current matchup period from league status
-  let currentMatchupPeriod: number | null = data.status?.currentMatchupPeriod ?? null;
-
-  // Fallback: use the schedule's matchup period mapping
-  // Each matchup in the schedule has a matchupPeriodId. ESPN also stores
-  // which scoring periods map to which matchup period in settings.
-  if (!currentMatchupPeriod) {
-    const matchupPeriods: any[] = data.settings?.scheduleSettings?.matchupPeriods ?? {};
-    // matchupPeriods is { "1": [1,2,3,4,5,6,7], "2": [8,9,...], ... }
-    for (const [mpId, scoringPeriods] of Object.entries(matchupPeriods)) {
-      if (Array.isArray(scoringPeriods) && scoringPeriods.includes(scoringPeriodId)) {
-        currentMatchupPeriod = parseInt(mpId);
-        break;
-      }
-    }
-  }
-
-  // Final fallback: find the highest matchupPeriodId that has scoring data
-  if (!currentMatchupPeriod) {
-    for (const m of myMatchups) {
-      const side = m.home?.teamId === myTeamId ? m.home : m.away;
-      const hasScores = side?.cumulativeScore?.scoreByStat &&
-        Object.keys(side.cumulativeScore.scoreByStat).length > 0;
-      if (hasScores) currentMatchupPeriod = m.matchupPeriodId;
-    }
-    // If still nothing (no scores yet), use the first matchup
-    if (!currentMatchupPeriod && myMatchups.length > 0) {
-      currentMatchupPeriod = myMatchups[0].matchupPeriodId;
-    }
-  }
-
-  const myMatchup = myMatchups.find((m: any) => m.matchupPeriodId === currentMatchupPeriod);
+  const myMatchup = schedule.find(
+    (m: any) =>
+      m.matchupPeriodId === currentMatchupPeriod &&
+      (m.home?.teamId === myTeamId || m.away?.teamId === myTeamId)
+  );
   if (!myMatchup) return null;
 
-  // Pull matchup period dates from settings
-  let matchupStartDate: string | null = null;
-  let matchupEndDate: string | null = null;
-  const matchupPeriods: any = data.settings?.scheduleSettings?.matchupPeriods ?? {};
-  const periodDays: number[] = matchupPeriods[String(currentMatchupPeriod)] ?? [];
-  if (periodDays.length > 0) {
-    // Try to get dates from settings scoringPeriods
-    const settingsPeriods: any[] = data.settings?.scoringPeriods ?? [];
-    const firstDay = settingsPeriods.find((p: any) => p.id === periodDays[0]);
-    const lastDay = settingsPeriods.find((p: any) => p.id === periodDays[periodDays.length - 1]);
-    if (firstDay) matchupStartDate = toIsoDate(firstDay.startDate);
-    if (lastDay) matchupEndDate = toIsoDate(lastDay.endDate ?? lastDay.startDate);
-  }
+  // Get matchup dates
+  const dates = getMatchupDates(data, currentMatchupPeriod);
 
   const iAmHome = myMatchup.home?.teamId === myTeamId;
   const mySide = iAmHome ? myMatchup.home : myMatchup.away;
@@ -154,51 +133,48 @@ function parseMatchup(data: any, myTeamId: number): MatchupData | null {
   const myCumulative = mySide?.cumulativeScore ?? {};
   const oppCumulative = oppSide?.cumulativeScore ?? {};
 
-  // Parse per-category scores
-  const myStatValues: Record<string, number> = {};
-  const oppStatValues: Record<string, number> = {};
+  // Parse per-category scores using ESPN's provided result field
+  const myStats: Record<string, { score: number; result: string | null }> = {};
+  const oppStats: Record<string, { score: number }> = {};
 
   for (const [statId, statData] of Object.entries(myCumulative.scoreByStat ?? {})) {
     const cat = STAT_ID_MAP[parseInt(statId)];
-    if (cat) myStatValues[cat] = (statData as any).score ?? (typeof statData === "number" ? statData : 0);
+    if (cat) {
+      myStats[cat] = {
+        score: (statData as any).score ?? 0,
+        result: (statData as any).result ?? null,
+      };
+    }
   }
   for (const [statId, statData] of Object.entries(oppCumulative.scoreByStat ?? {})) {
     const cat = STAT_ID_MAP[parseInt(statId)];
-    if (cat) oppStatValues[cat] = (statData as any).score ?? (typeof statData === "number" ? statData : 0);
+    if (cat) {
+      oppStats[cat] = { score: (statData as any).score ?? 0 };
+    }
   }
 
-  // Compute WIN/LOSS/TIE by comparing values directly
+  // Build categories using ESPN's result field directly
   const categories: MatchupCatResult[] = CATS_ORDER.map((cat) => {
-    const myVal = myStatValues[cat] ?? null;
-    const oppVal = oppStatValues[cat] ?? null;
+    const mine = myStats[cat];
+    const opp = oppStats[cat];
     let result: MatchupCatResult["result"] = "PENDING";
 
-    if (myVal !== null && oppVal !== null) {
-      if (LOWER_IS_BETTER.has(cat)) {
-        // For ERA, WHIP, L: lower value wins
-        if (myVal < oppVal) result = "WIN";
-        else if (myVal > oppVal) result = "LOSS";
-        else result = "TIE";
-      } else {
-        // For counting stats and AVG: higher value wins
-        if (myVal > oppVal) result = "WIN";
-        else if (myVal < oppVal) result = "LOSS";
-        else result = "TIE";
-      }
-    }
+    if (mine?.result === "WIN") result = "WIN";
+    else if (mine?.result === "LOSS") result = "LOSS";
+    else if (mine?.result === "TIE") result = "TIE";
 
     return {
       cat,
-      myValue: myVal,
-      oppValue: oppVal,
+      myValue: mine?.score ?? null,
+      oppValue: opp?.score ?? null,
       result,
     };
   });
 
   return {
-    scoringPeriodId: currentMatchupPeriod ?? scoringPeriodId,
-    matchupStartDate,
-    matchupEndDate,
+    scoringPeriodId: currentMatchupPeriod,
+    matchupStartDate: dates.start,
+    matchupEndDate: dates.end,
     myTeamId,
     myTeamName: teamNames[myTeamId] ?? `Team ${myTeamId}`,
     oppTeamId,

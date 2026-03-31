@@ -44,13 +44,15 @@ export const POS_MAP: Record<number, string> = {
   6: "SS", 7: "OF", 8: "OF", 9: "OF", 10: "DH", 11: "RP",
 };
 
-// ESPN stat ID → our category name
-// Verified from ESPN projected data (fetch_espn_projections.py)
+// ESPN scoring stat ID → our category name
+// Verified from raw ESPN matchup API scoreByStat (debug endpoint 2026-03-30)
 export const STAT_ID_MAP: Record<number, string> = {
+  // Batting
   1: "H", 20: "R", 5: "HR", 8: "TB",
   21: "RBI", 10: "BB", 23: "SB", 2: "AVG",
+  // Pitching
   48: "K", 63: "QS", 53: "W", 54: "L",
-  50: "SV", 57: "HD", 47: "ERA", 41: "WHIP",
+  57: "SV", 60: "HD", 47: "ERA", 41: "WHIP",
 };
 
 // Injury status labels

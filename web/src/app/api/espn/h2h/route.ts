@@ -29,7 +29,6 @@ export interface H2HData {
 
 const MY_TEAM_ID = parseInt(process.env.MY_ESPN_TEAM_ID ?? "0");
 const CATS_ORDER = ["H", "R", "HR", "TB", "RBI", "BB", "SB", "AVG", "K", "QS", "W", "L", "SV", "HD", "ERA", "WHIP"];
-const LOWER_IS_BETTER = new Set(["ERA", "WHIP", "L"]);
 
 export async function GET() {
   if (!hasEspnCreds()) {
@@ -79,32 +78,27 @@ export async function GET() {
       const categories: H2HMatchup["categories"] = {};
       let myWins = 0, myLosses = 0, myTies = 0;
 
-      // Build value lookups
-      const myStatValues: Record<string, number> = {};
-      const oppStatValues: Record<string, number> = {};
+      // Build value lookups with ESPN's result field
+      const myStatData: Record<string, { score: number; result: string | null }> = {};
+      const oppStatData: Record<string, { score: number }> = {};
       for (const [statId, statData] of Object.entries(myCumulative.scoreByStat ?? {})) {
         const cat = STAT_ID_MAP[parseInt(statId)];
-        if (cat) myStatValues[cat] = (statData as any).score ?? (typeof statData === "number" ? statData : 0);
+        if (cat) myStatData[cat] = { score: (statData as any).score ?? 0, result: (statData as any).result ?? null };
       }
       for (const [statId, statData] of Object.entries(oppCumulative.scoreByStat ?? {})) {
         const cat = STAT_ID_MAP[parseInt(statId)];
-        if (cat) oppStatValues[cat] = (statData as any).score ?? (typeof statData === "number" ? statData : 0);
+        if (cat) oppStatData[cat] = { score: (statData as any).score ?? 0 };
       }
 
       for (const cat of CATS_ORDER) {
-        const myVal = myStatValues[cat] ?? 0;
-        const oppVal = oppStatValues[cat] ?? 0;
+        const mine = myStatData[cat];
+        const opp = oppStatData[cat];
         let result: "WIN" | "LOSS" | "TIE" = "TIE";
 
-        if (LOWER_IS_BETTER.has(cat)) {
-          if (myVal < oppVal) result = "WIN";
-          else if (myVal > oppVal) result = "LOSS";
-        } else {
-          if (myVal > oppVal) result = "WIN";
-          else if (myVal < oppVal) result = "LOSS";
-        }
+        if (mine?.result === "WIN") result = "WIN";
+        else if (mine?.result === "LOSS") result = "LOSS";
 
-        categories[cat] = { myValue: myVal, oppValue: oppVal, result };
+        categories[cat] = { myValue: mine?.score ?? 0, oppValue: opp?.score ?? 0, result };
         if (result === "WIN") myWins++;
         else if (result === "LOSS") myLosses++;
         else myTies++;

@@ -273,6 +273,7 @@ export default function MatchupPage() {
   const batCats = useMemo(() => data?.categories.filter((c) => BAT_CATS.includes(c.cat)) ?? [], [data]);
   const pitCats = useMemo(() => data?.categories.filter((c) => PIT_CATS.includes(c.cat)) ?? [], [data]);
   const myWinCount = useMemo(() => data?.categories.filter((c) => c.result === "WIN").length ?? 0, [data]);
+  const myTieCount = useMemo(() => data?.categories.filter((c) => c.result === "TIE").length ?? 0, [data]);
   const oppWinCount = useMemo(() => data?.categories.filter((c) => c.result === "LOSS").length ?? 0, [data]);
 
   if (loading) return <div className="flex h-64 items-center justify-center text-slate-500">Loading matchup...</div>;
@@ -310,16 +311,25 @@ export default function MatchupPage() {
             <span className="text-xl font-bold text-slate-400">{data.oppTeamName}</span>
           </div>
         </div>
-        <div className="flex items-center gap-6">
+        <div className="flex items-center gap-4">
           <div className="text-center">
             <div className="text-2xl font-bold tabular-nums text-emerald-600">{myWinCount}</div>
-            <div className="text-[10px] text-slate-600">CATS WON</div>
+            <div className="text-[10px] text-slate-600">WON</div>
           </div>
-          <div className="text-slate-400">—</div>
+          <div className="text-slate-400">-</div>
           <div className="text-center">
             <div className="text-2xl font-bold tabular-nums text-red-600">{oppWinCount}</div>
-            <div className="text-[10px] text-slate-600">CATS LOST</div>
+            <div className="text-[10px] text-slate-600">LOST</div>
           </div>
+          {myTieCount > 0 && (
+            <>
+              <div className="text-slate-400">-</div>
+              <div className="text-center">
+                <div className="text-2xl font-bold tabular-nums text-orange-600">{myTieCount}</div>
+                <div className="text-[10px] text-slate-600">TIED</div>
+              </div>
+            </>
+          )}
         </div>
       </div>
 

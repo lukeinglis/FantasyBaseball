@@ -4,6 +4,7 @@ import { SectionNav } from "@/components/SectionNav";
 
 const SUB_LINKS = [
   { href: "/gm/matchup", label: "Matchup" },
+  { href: "/gm/scoreboard", label: "Scoreboard" },
   { href: "/gm/roster", label: "My Roster" },
   { href: "/gm/bullpen", label: "Bullpen" },
   { href: "/gm/category-rank", label: "Category Rank" },

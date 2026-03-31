@@ -50,48 +50,54 @@ function PlayerRow({
   const isInjured = player.injuryStatus !== "ACTIVE";
 
   return (
-    <div className="flex items-center gap-2 border-b border-border px-2 py-1.5">
-      <span className="w-7 shrink-0 text-[10px] font-bold text-slate-600">{player.slotLabel}</span>
-      <span className={`min-w-0 w-[140px] truncate text-[12px] ${isInjured ? "text-slate-500" : "text-slate-400"}`}>
-        {player.name}
-      </span>
-      <span className="w-6 shrink-0 text-[10px] text-slate-600">{player.pos}</span>
-      <span className="w-7 shrink-0 text-[10px] text-slate-600">{player.proTeam}</span>
+    <div className="border-b border-border px-2 py-1.5">
+      <div className="flex items-center gap-2">
+        <span className="w-7 shrink-0 text-[10px] font-bold text-slate-600">{player.slotLabel}</span>
+        <span className={`min-w-0 w-[140px] truncate text-[12px] ${isInjured ? "text-slate-500" : "text-slate-700"}`}>
+          {player.name}
+        </span>
+        <span className="w-6 shrink-0 text-[10px] text-slate-500">{player.pos}</span>
+        <span className="w-7 shrink-0 text-[10px] text-slate-500">{player.proTeam}</span>
 
-      {/* Today's game */}
-      <div className="flex-1 min-w-0">
-        {hasGame ? (
-          <span className="text-[10px] text-slate-500 whitespace-nowrap">
-            {schedule!.todayOpponent}
-            {schedule!.todayTime && (
-              <span className="ml-1 text-slate-600">{schedule!.todayTime}</span>
-            )}
+        {/* Today's game */}
+        <div className="flex-1 min-w-0">
+          {hasGame ? (
+            <span className="text-[10px] text-slate-600 whitespace-nowrap">
+              {schedule!.todayOpponent}
+              {schedule!.todayTime && (
+                <span className="ml-1 text-slate-500">{schedule!.todayTime}</span>
+              )}
+            </span>
+          ) : (
+            <span className="text-[10px] text-slate-400">Off</span>
+          )}
+        </div>
+
+        {/* Games this week */}
+        {schedule && (
+          <span className={`shrink-0 text-[10px] tabular-nums font-semibold ${
+            schedule.weekGames >= 5 ? "text-emerald-600" :
+            schedule.weekGames >= 3 ? "text-orange-600" : "text-slate-600"
+          }`}>{schedule.weekGames}G</span>
+        )}
+
+        {/* Acquisition badge */}
+        {player.acquisitionType && player.acquisitionType !== "DRAFT" && (
+          <span className="shrink-0 text-[9px] font-bold text-violet-600/60">
+            {player.acquisitionType === "ADD" ? "FA" : player.acquisitionType}
           </span>
-        ) : (
-          <span className="text-[10px] text-slate-400">Off</span>
+        )}
+
+        {/* Injury */}
+        {isInjured && (
+          <span className={`shrink-0 text-[10px] font-bold ${player.injuryColor}`}>
+            {player.injuryLabel}
+          </span>
         )}
       </div>
-
-      {/* Games this week */}
-      {schedule && (
-        <span className={`shrink-0 text-[10px] tabular-nums font-semibold ${
-          schedule.weekGames >= 5 ? "text-emerald-600" :
-          schedule.weekGames >= 3 ? "text-orange-600" : "text-slate-600"
-        }`}>{schedule.weekGames}G</span>
-      )}
-
-      {/* Acquisition badge */}
-      {player.acquisitionType && player.acquisitionType !== "DRAFT" && (
-        <span className="shrink-0 text-[9px] font-bold text-violet-600/60">
-          {player.acquisitionType === "ADD" ? "FA" : player.acquisitionType}
-        </span>
-      )}
-
-      {/* Injury */}
-      {isInjured && (
-        <span className={`shrink-0 text-[10px] font-bold ${player.injuryColor}`}>
-          {player.injuryLabel}
-        </span>
+      {/* Injury note */}
+      {isInjured && player.injuryNote && (
+        <div className="ml-9 mt-0.5 text-[10px] text-slate-500">{player.injuryNote}</div>
       )}
     </div>
   );
@@ -219,20 +225,43 @@ export default function RosterPage() {
   return (
     <div className="mx-auto max-w-6xl px-4 py-6">
       {/* Header */}
-      <div className="mb-5 flex items-baseline justify-between">
+      <div className="mb-5 flex flex-wrap items-start justify-between gap-3">
         <div>
           <h1 className="text-lg font-bold text-gray-900">{resolvedTeam.name}</h1>
           <span className="text-[12px] tabular-nums text-slate-500">
             {resolvedTeam.wins}-{resolvedTeam.losses}{resolvedTeam.ties > 0 ? `-${resolvedTeam.ties}` : ""}
           </span>
         </div>
-        <div className="text-[10px] text-slate-400">
-          <span className="text-emerald-600">5G+</span>
-          <span className="mx-1">/</span>
-          <span className="text-orange-600">3-4G</span>
-          <span className="mx-1">/</span>
-          <span className="text-slate-600">&le;2G</span>
-          <span className="ml-1">this week</span>
+        <div className="flex items-center gap-4">
+          {/* Roster counts */}
+          <div className="flex gap-2 text-[10px]">
+            <span className="rounded bg-surface px-2 py-1 border border-border">
+              <span className="text-slate-500">BAT</span>{" "}
+              <span className="font-bold text-slate-700">{batters.length}</span>
+            </span>
+            <span className="rounded bg-surface px-2 py-1 border border-border">
+              <span className="text-slate-500">PIT</span>{" "}
+              <span className="font-bold text-slate-700">{pitchers.length}</span>
+            </span>
+            <span className="rounded bg-surface px-2 py-1 border border-border">
+              <span className="text-slate-500">BN</span>{" "}
+              <span className="font-bold text-slate-700">{bench.length}</span>
+            </span>
+            {il.length > 0 && (
+              <span className="rounded bg-red-50 px-2 py-1 border border-red-200">
+                <span className="text-red-600">IL</span>{" "}
+                <span className="font-bold text-red-600">{il.length}</span>
+              </span>
+            )}
+          </div>
+          {/* Legend */}
+          <div className="text-[10px] text-slate-400">
+            <span className="text-emerald-600">5G+</span>
+            <span className="mx-1">/</span>
+            <span className="text-orange-600">3-4G</span>
+            <span className="mx-1">/</span>
+            <span className="text-slate-600">&le;2G</span>
+          </div>
         </div>
       </div>
 
