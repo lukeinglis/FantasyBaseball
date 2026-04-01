@@ -29,6 +29,36 @@ interface PlayerStats {
   last30Stats: Record<string, number>;
 }
 
+interface ZScorePlayer {
+  name: string;
+  playerId: number;
+  pos: string;
+  proTeam: string;
+  isPitcher: boolean;
+  onTeamId: number;
+  seasonStats: Record<string, number>;
+  zScores: Record<string, number>;
+  zTotal: number;
+  far: number;
+}
+
+interface StandingsTeam {
+  teamId: number;
+  teamName: string;
+  wins: number;
+  losses: number;
+  ties: number;
+  rank: number;
+}
+
+interface TradeTarget {
+  player: ZScorePlayer;
+  teamName: string;
+  teamRecord: string;
+  reason: string;
+  tag: "category-fit" | "undervalued";
+}
+
 const BAT_CATS = ["H", "R", "HR", "TB", "RBI", "BB", "SB", "AVG"];
 const PIT_CATS = ["K", "QS", "W", "L", "SV", "HD", "ERA", "WHIP"];
 const ALL_CATS = [...BAT_CATS, ...PIT_CATS];
@@ -38,6 +68,13 @@ function fmtStat(cat: string, val: number | undefined): string {
   if (cat === "AVG") return val.toFixed(3);
   if (cat === "ERA" || cat === "WHIP") return val.toFixed(2);
   return String(Math.round(val));
+}
+
+function zColorClass(z: number): string {
+  if (z >= 1.5) return "text-emerald-700 font-bold";
+  if (z >= 0.5) return "text-emerald-600";
+  if (z >= 0) return "text-slate-600";
+  return "text-red-600";
 }
 
 function EspnSetupCard() {
@@ -55,6 +92,8 @@ function EspnSetupCard() {
 export default function TradeRoomPage() {
   const [teams, setTeams] = useState<EspnTeam[]>([]);
   const [playerStats, setPlayerStats] = useState<PlayerStats[]>([]);
+  const [zScorePlayers, setZScorePlayers] = useState<ZScorePlayer[]>([]);
+  const [standings, setStandings] = useState<StandingsTeam[]>([]);
   const [myTeamId, setMyTeamId] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -72,11 +111,15 @@ export default function TradeRoomPage() {
       fetch("/api/espn/roster").then((r) => r.json()),
       fetch("/api/espn/player-stats").then((r) => r.json()).catch(() => ({ players: [] })),
       fetch("/api/espn/matchup").then((r) => r.json()).catch(() => ({})),
-    ]).then(([rosterData, statsData, matchupData]) => {
+      fetch("/api/analysis/z-scores").then((r) => r.json()).catch(() => ({ players: [] })),
+      fetch("/api/espn/standings").then((r) => r.json()).catch(() => ({ teams: [] })),
+    ]).then(([rosterData, statsData, matchupData, zData, standingsData]) => {
       if (rosterData.error) { setError(rosterData.error); return; }
       setTeams(rosterData);
       if (statsData.players) setPlayerStats(statsData.players);
       if (matchupData.myTeamId) setMyTeamId(matchupData.myTeamId);
+      setZScorePlayers(zData.players ?? []);
+      setStandings(standingsData.teams ?? []);
     })
     .catch(() => setError("FETCH_FAILED"))
     .finally(() => setLoading(false));
@@ -87,6 +130,25 @@ export default function TradeRoomPage() {
     playerStats.forEach((p) => m.set(p.name, p));
     return m;
   }, [playerStats]);
+
+  const zScoreByName = useMemo(() => {
+    const m = new Map<string, ZScorePlayer>();
+    zScorePlayers.forEach((p) => m.set(p.name, p));
+    return m;
+  }, [zScorePlayers]);
+
+  const standingsMap = useMemo(() => {
+    const m = new Map<number, StandingsTeam>();
+    standings.forEach((t) => m.set(t.teamId, t));
+    return m;
+  }, [standings]);
+
+  // Build team name lookup
+  const teamNameMap = useMemo(() => {
+    const m = new Map<number, string>();
+    teams.forEach((t) => m.set(t.id, t.name));
+    return m;
+  }, [teams]);
 
   const myTeam = useMemo(() => {
     if (!teams.length) return null;
@@ -109,6 +171,91 @@ export default function TradeRoomPage() {
     if (statPeriod === "last30") return ps.last30Stats;
     return ps.seasonStats;
   }
+
+  // Identify my team's weak categories (bottom-half z-scores)
+  const myWeakCats = useMemo(() => {
+    if (!myTeam || !zScorePlayers.length) return new Set<string>();
+    const myPlayers = zScorePlayers.filter((p) => p.onTeamId === myTeam.id);
+    if (myPlayers.length === 0) return new Set<string>();
+
+    // Average z-score per category across my roster
+    const catAvg: Record<string, number> = {};
+    const allCats = [...BAT_CATS, ...PIT_CATS];
+    for (const cat of allCats) {
+      const vals = myPlayers
+        .filter((p) => p.zScores[cat] !== undefined)
+        .map((p) => p.zScores[cat]);
+      if (vals.length > 0) {
+        catAvg[cat] = vals.reduce((s, v) => s + v, 0) / vals.length;
+      }
+    }
+
+    // Weak = categories where our average z is below 0
+    const weak = new Set<string>();
+    for (const [cat, avg] of Object.entries(catAvg)) {
+      if (avg < 0) weak.add(cat);
+    }
+    return weak;
+  }, [myTeam, zScorePlayers]);
+
+  // Generate trade targets
+  const tradeTargets = useMemo((): TradeTarget[] => {
+    if (!myTeam || !zScorePlayers.length) return [];
+    const targets: TradeTarget[] = [];
+    const myPlayerNames = new Set(myTeam.roster.map((p) => p.name));
+
+    // Determine losing teams (bottom half of standings)
+    const totalTeams = standings.length;
+    const losingThreshold = Math.ceil(totalTeams / 2);
+    const losingTeamIds = new Set(
+      standings
+        .filter((t) => t.rank > losingThreshold)
+        .map((t) => t.teamId)
+    );
+
+    for (const zp of zScorePlayers) {
+      if (zp.onTeamId === 0) continue; // free agent
+      if (zp.onTeamId === myTeam.id) continue; // my player
+      if (myPlayerNames.has(zp.name)) continue;
+
+      const team = standingsMap.get(zp.onTeamId);
+      const tName = teamNameMap.get(zp.onTeamId) ?? `Team ${zp.onTeamId}`;
+      const record = team ? `${team.wins}-${team.losses}${team.ties > 0 ? `-${team.ties}` : ""}` : "";
+
+      // Category Fit: player has high z in our weak categories
+      const strongInWeakCats: string[] = [];
+      for (const cat of myWeakCats) {
+        if ((zp.zScores[cat] ?? 0) >= 1.0) {
+          strongInWeakCats.push(cat);
+        }
+      }
+      if (strongInWeakCats.length >= 2) {
+        targets.push({
+          player: zp,
+          teamName: tName,
+          teamRecord: record,
+          reason: `Elite in your weak cats: ${strongInWeakCats.join(", ")}`,
+          tag: "category-fit",
+        });
+        continue; // don't double-count
+      }
+
+      // Undervalued: high FAR on losing teams
+      if (losingTeamIds.has(zp.onTeamId) && zp.far >= 3.0) {
+        targets.push({
+          player: zp,
+          teamName: tName,
+          teamRecord: record,
+          reason: `FAR ${zp.far.toFixed(1)} on struggling team (${record})`,
+          tag: "undervalued",
+        });
+      }
+    }
+
+    // Sort by FAR descending, limit to top 12
+    targets.sort((a, b) => b.player.far - a.player.far);
+    return targets.slice(0, 12);
+  }, [myTeam, zScorePlayers, standings, standingsMap, teamNameMap, myWeakCats]);
 
   // Filter rosters for search
   const myRosterFiltered = useMemo(() => {
@@ -139,6 +286,13 @@ export default function TradeRoomPage() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sending, receiving, statsMap, statPeriod]);
 
+  // Z-score trade impact
+  const zTradeImpact = useMemo(() => {
+    const sendFar = sending.reduce((sum, name) => sum + (zScoreByName.get(name)?.far ?? 0), 0);
+    const recvFar = receiving.reduce((sum, name) => sum + (zScoreByName.get(name)?.far ?? 0), 0);
+    return { sendFar, recvFar, netFar: recvFar - sendFar };
+  }, [sending, receiving, zScoreByName]);
+
   const hasTrade = sending.length > 0 || receiving.length > 0;
 
   if (loading) return <div className="flex h-64 items-center justify-center text-slate-500">Loading trade room...</div>;
@@ -156,6 +310,7 @@ export default function TradeRoomPage() {
 
   const PlayerChip = ({ name, onRemove, side }: { name: string; onRemove: () => void; side: "send" | "recv" }) => {
     const ps = statsMap.get(name);
+    const zp = zScoreByName.get(name);
     const stats = getStats(name);
     const mainStat = ps?.pos === "SP" || ps?.pos === "RP"
       ? `${fmtStat("ERA", stats.ERA)} ERA`
@@ -166,7 +321,10 @@ export default function TradeRoomPage() {
       }`}>
         <div className="min-w-0">
           <div className="text-[12px] font-medium text-slate-700">{name}</div>
-          <div className="text-[10px] text-slate-500">{ps?.pos} · {mainStat}</div>
+          <div className="text-[10px] text-slate-500">
+            {ps?.pos} · {mainStat}
+            {zp ? <span className={`ml-1 ${zColorClass(zp.zTotal)}`}>FAR {zp.far.toFixed(1)}</span> : null}
+          </div>
         </div>
         <button onClick={onRemove} className="ml-1 text-slate-400 hover:text-red-600 text-[10px] font-bold">x</button>
       </div>
@@ -175,6 +333,7 @@ export default function TradeRoomPage() {
 
   const PlayerOption = ({ player, onClick }: { player: RosterPlayer; onClick: () => void }) => {
     const stats = getStats(player.name);
+    const zp = zScoreByName.get(player.name);
     const isPitcher = player.pos === "SP" || player.pos === "RP";
     const headline = isPitcher
       ? `${fmtStat("ERA", stats.ERA)} ERA · ${fmtStat("K", stats.K)} K · ${fmtStat("W", stats.W)} W`
@@ -189,6 +348,11 @@ export default function TradeRoomPage() {
         </div>
         <div className="text-right shrink-0">
           <div className="text-[10px] font-mono text-slate-600">{headline}</div>
+          {zp && (
+            <div className={`text-[10px] font-mono ${zColorClass(zp.zTotal)}`}>
+              Z {zp.zTotal.toFixed(2)} · FAR {zp.far.toFixed(1)}
+            </div>
+          )}
         </div>
       </button>
     );
@@ -199,7 +363,7 @@ export default function TradeRoomPage() {
       <div className="mb-5 flex flex-wrap items-start justify-between gap-3">
         <div>
           <h1 className="text-lg font-bold text-gray-900">Trade Room</h1>
-          <span className="text-[12px] text-slate-500">Evaluate trades using current season stats</span>
+          <span className="text-[12px] text-slate-500">Evaluate trades using z-scores and category analysis</span>
         </div>
         {/* Stat period toggle */}
         <div className="flex gap-0.5 rounded bg-surface border border-border p-0.5">
@@ -219,6 +383,44 @@ export default function TradeRoomPage() {
         </div>
       </div>
 
+      {/* Trade Targets Section */}
+      {tradeTargets.length > 0 && (
+        <div className="mb-6 rounded-lg border border-amber-300 bg-amber-50/50">
+          <div className="border-b border-amber-300 px-4 py-3">
+            <span className="text-[11px] font-semibold uppercase tracking-wider text-amber-700">Trade Targets</span>
+            <span className="ml-2 text-[10px] text-amber-600">
+              {myWeakCats.size > 0 && `Weak categories: ${[...myWeakCats].join(", ")}`}
+            </span>
+          </div>
+          <div className="grid gap-0 sm:grid-cols-2 lg:grid-cols-3">
+            {tradeTargets.map((target, i) => (
+              <div key={i} className="border-b border-r border-amber-200 px-3 py-2.5 last:border-r-0">
+                <div className="flex items-start justify-between gap-1">
+                  <div className="min-w-0">
+                    <div className="text-[12px] font-medium text-slate-700">{target.player.name}</div>
+                    <div className="text-[10px] text-slate-500">{target.player.pos} · {target.teamName}</div>
+                  </div>
+                  <div className="shrink-0 text-right">
+                    <span className={`text-[11px] font-mono font-bold ${zColorClass(target.player.zTotal)}`}>
+                      {target.player.far.toFixed(1)}
+                    </span>
+                    <div className={`text-[9px] font-bold uppercase tracking-wider ${
+                      target.tag === "category-fit" ? "text-blue-600" : "text-amber-600"
+                    }`}>
+                      {target.tag === "category-fit" ? "CAT FIT" : "UNDERVALUED"}
+                    </div>
+                  </div>
+                </div>
+                <div className="mt-1 text-[10px] text-amber-700">{target.reason}</div>
+                {target.teamRecord && (
+                  <div className="mt-0.5 text-[9px] text-slate-400">Record: {target.teamRecord}</div>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Trade partner selector */}
       <div className="mb-5">
         <label className="text-[10px] font-semibold uppercase tracking-wider text-slate-500 block mb-1.5">
@@ -234,9 +436,13 @@ export default function TradeRoomPage() {
           className="rounded border border-border bg-surface px-3 py-1.5 text-[13px] text-slate-700 outline-none"
         >
           <option value="">Select a team...</option>
-          {otherTeams.map((t) => (
-            <option key={t.id} value={t.id}>{t.name}</option>
-          ))}
+          {otherTeams.map((t) => {
+            const st = standingsMap.get(t.id);
+            const record = st ? ` (${st.wins}-${st.losses})` : "";
+            return (
+              <option key={t.id} value={t.id}>{t.name}{record}</option>
+            );
+          })}
         </select>
       </div>
 
@@ -309,6 +515,20 @@ export default function TradeRoomPage() {
                 ({statPeriod === "season" ? "Season" : statPeriod === "last7" ? "Last 7 days" : statPeriod === "last15" ? "Last 15 days" : "Last 30 days"})
               </span>
             </div>
+            {/* FAR summary */}
+            <div className="text-right">
+              <div className="text-[10px] text-slate-500">FAR Impact</div>
+              <div className={`text-[14px] font-bold font-mono tabular-nums ${
+                zTradeImpact.netFar > 0 ? "text-emerald-600" : zTradeImpact.netFar < 0 ? "text-red-600" : "text-slate-500"
+              }`}>
+                {zTradeImpact.netFar > 0 ? "+" : ""}{zTradeImpact.netFar.toFixed(1)}
+              </div>
+              <div className="text-[9px] text-slate-400">
+                <span className="text-red-500">{zTradeImpact.sendFar.toFixed(1)}</span>
+                {" -> "}
+                <span className="text-emerald-500">{zTradeImpact.recvFar.toFixed(1)}</span>
+              </div>
+            </div>
           </div>
 
           {/* Category-by-category impact */}
@@ -327,24 +547,27 @@ export default function TradeRoomPage() {
                   const net = imp.net;
                   const isRate = cat === "AVG" || cat === "ERA" || cat === "WHIP";
                   const isLower = cat === "ERA" || cat === "WHIP" || cat === "L";
-                  // For rate stats, show values; for counting stats, show +/- difference
-                  const displayNet = isRate ? net : net;
                   const isPositive = isLower ? net < 0 : net > 0;
                   const isNegative = isLower ? net > 0 : net < 0;
+                  const isWeakCat = myWeakCats.has(cat);
 
                   return (
-                    <div key={cat} className="border-r border-b border-border last:border-r-0 px-2 py-2.5 text-center">
-                      <div className="text-[10px] font-bold text-slate-500">{cat}</div>
+                    <div key={cat} className={`border-r border-b border-border last:border-r-0 px-2 py-2.5 text-center ${
+                      isWeakCat ? "bg-amber-50/50" : ""
+                    }`}>
+                      <div className={`text-[10px] font-bold ${isWeakCat ? "text-amber-600" : "text-slate-500"}`}>
+                        {cat}{isWeakCat ? "*" : ""}
+                      </div>
                       <div className="mt-1 text-[10px] text-slate-500">
                         <span className="text-red-600">{fmtStat(cat, imp.sending)}</span>
-                        {" → "}
+                        {" -> "}
                         <span className="text-emerald-600">{fmtStat(cat, imp.receiving)}</span>
                       </div>
                       <div className={`mt-0.5 text-[13px] font-bold font-mono tabular-nums ${
                         isPositive ? "text-emerald-600" : isNegative ? "text-red-600" : "text-slate-500"
                       }`}>
                         {isRate
-                          ? fmtStat(cat, displayNet)
+                          ? fmtStat(cat, net)
                           : `${net > 0 ? "+" : ""}${Math.round(net)}`
                         }
                       </div>
@@ -367,15 +590,28 @@ export default function TradeRoomPage() {
                   {sending.map((name) => {
                     const stats = getStats(name);
                     const ps = statsMap.get(name);
+                    const zp = zScoreByName.get(name);
                     const isPitcher = ps?.pos === "SP" || ps?.pos === "RP";
                     const cats = isPitcher ? PIT_CATS : BAT_CATS;
                     return (
                       <div key={name} className="border-b border-border px-3 py-2">
-                        <div className="text-[12px] font-medium text-red-600">{name}</div>
+                        <div className="flex items-center gap-2">
+                          <div className="text-[12px] font-medium text-red-600">{name}</div>
+                          {zp && (
+                            <span className={`text-[10px] font-mono ${zColorClass(zp.zTotal)}`}>
+                              FAR {zp.far.toFixed(1)}
+                            </span>
+                          )}
+                        </div>
                         <div className="mt-1 flex flex-wrap gap-x-3 gap-y-0.5 text-[10px]">
                           {cats.map((cat) => (
                             <span key={cat} className="text-slate-500">
                               <span className="text-slate-400">{cat}</span> {fmtStat(cat, stats[cat])}
+                              {zp && zp.zScores[cat] !== undefined && (
+                                <span className={`ml-0.5 ${zColorClass(zp.zScores[cat])}`}>
+                                  ({zp.zScores[cat] >= 0 ? "+" : ""}{zp.zScores[cat].toFixed(1)})
+                                </span>
+                              )}
                             </span>
                           ))}
                         </div>
@@ -388,15 +624,28 @@ export default function TradeRoomPage() {
                   {receiving.map((name) => {
                     const stats = getStats(name);
                     const ps = statsMap.get(name);
+                    const zp = zScoreByName.get(name);
                     const isPitcher = ps?.pos === "SP" || ps?.pos === "RP";
                     const cats = isPitcher ? PIT_CATS : BAT_CATS;
                     return (
                       <div key={name} className="border-b border-border px-3 py-2">
-                        <div className="text-[12px] font-medium text-emerald-600">{name}</div>
+                        <div className="flex items-center gap-2">
+                          <div className="text-[12px] font-medium text-emerald-600">{name}</div>
+                          {zp && (
+                            <span className={`text-[10px] font-mono ${zColorClass(zp.zTotal)}`}>
+                              FAR {zp.far.toFixed(1)}
+                            </span>
+                          )}
+                        </div>
                         <div className="mt-1 flex flex-wrap gap-x-3 gap-y-0.5 text-[10px]">
                           {cats.map((cat) => (
                             <span key={cat} className="text-slate-500">
                               <span className="text-slate-400">{cat}</span> {fmtStat(cat, stats[cat])}
+                              {zp && zp.zScores[cat] !== undefined && (
+                                <span className={`ml-0.5 ${zColorClass(zp.zScores[cat])}`}>
+                                  ({zp.zScores[cat] >= 0 ? "+" : ""}{zp.zScores[cat].toFixed(1)})
+                                </span>
+                              )}
                             </span>
                           ))}
                         </div>
@@ -405,6 +654,13 @@ export default function TradeRoomPage() {
                   })}
                 </div>
               </div>
+            </div>
+          )}
+
+          {/* Weak categories note */}
+          {myWeakCats.size > 0 && (
+            <div className="px-4 py-2 border-t border-border text-[10px] text-amber-600 bg-amber-50/30">
+              * Highlighted categories are your team&apos;s weak spots (below-average z-score)
             </div>
           )}
 

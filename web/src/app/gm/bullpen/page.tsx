@@ -3,7 +3,7 @@
 const IL_INJURY_STATUSES = new Set(["SEVEN_DAY_DL", "TEN_DAY_DL", "FIFTEEN_DAY_DL", "SIXTY_DAY_DL", "OUT"]);
 function isOnIL(status: string): boolean { return IL_INJURY_STATUSES.has(status); }
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 
 interface RosterPlayer {
   name: string;
@@ -44,6 +44,36 @@ interface ProbablePitchersData {
   endDate: string;
   byPitcher: Record<string, ProbableStart[]>;
   allStarts: ProbableStart[];
+}
+
+interface StartsTeamData {
+  teamId: number;
+  teamName: string;
+  pitchers: { name: string; pos: string; proTeam: string; onIL: boolean }[];
+}
+
+interface StartsApiData {
+  myTeamId: number;
+  currentMatchupPeriod: number;
+  currentDates: { start: string; end: string } | null;
+  nextDates: { start: string; end: string } | null;
+  teams: StartsTeamData[];
+  rosteredPitchers: string[];
+}
+
+interface MatchupApiData {
+  myTeamId: number;
+  oppTeamId: number;
+  matchupStartDate: string | null;
+  matchupEndDate: string | null;
+}
+
+interface PlayerStatsEntry {
+  name: string;
+  playerId: number;
+  pos: string;
+  proTeam: string;
+  seasonStats: Record<string, number>;
 }
 
 const SP_SLOT_ID = 14;
@@ -90,6 +120,91 @@ function fmtDateRange(start: string, end: string): string {
 // Per-day schedule grid: date → team → opponent
 type ScheduleGrid = Record<string, Record<string, string>>;
 
+const STATS_COLUMNS = ["IP", "ERA", "WHIP", "K", "QS", "W", "L", "SV", "HD"];
+
+function PitchingStatsTable({
+  stats,
+  sortColumn,
+  sortAsc,
+  onSort,
+}: {
+  stats: PlayerStatsEntry[];
+  sortColumn: string;
+  sortAsc: boolean;
+  onSort: (col: string) => void;
+}) {
+  const sorted = useMemo(() => {
+    return [...stats].sort((a, b) => {
+      const aVal = a.seasonStats[sortColumn] ?? 9999;
+      const bVal = b.seasonStats[sortColumn] ?? 9999;
+      return sortAsc ? aVal - bVal : bVal - aVal;
+    });
+  }, [stats, sortColumn, sortAsc]);
+
+  function fmtStat(col: string, val: number | undefined): string {
+    if (val === undefined || val === null) return "-";
+    if (col === "ERA" || col === "WHIP") return val.toFixed(2);
+    if (col === "IP") return val.toFixed(1);
+    return String(Math.round(val));
+  }
+
+  function statColor(col: string, val: number | undefined): string {
+    if (val === undefined || val === null) return "";
+    if (col === "ERA") return val < 3.5 ? "text-emerald-600" : val > 4.5 ? "text-red-600" : "";
+    if (col === "WHIP") return val < 1.2 ? "text-emerald-600" : val > 1.4 ? "text-red-600" : "";
+    return "";
+  }
+
+  return (
+    <div className="mt-6">
+      <div className="mb-2">
+        <h2 className="text-[14px] font-bold text-gray-900">Pitching Staff Stats</h2>
+        <span className="text-[11px] text-slate-500">Season totals — click headers to sort</span>
+      </div>
+      <div className="rounded-lg border border-border overflow-x-auto">
+        <table className="w-full text-[11px]">
+          <thead>
+            <tr className="border-b border-border bg-surface">
+              <th className="px-2 py-1.5 text-left text-[10px] font-semibold text-slate-500 min-w-[120px]">Name</th>
+              <th className="px-1 py-1.5 text-center text-[10px] font-semibold text-slate-500 min-w-[36px]">Team</th>
+              {STATS_COLUMNS.map((col) => (
+                <th
+                  key={col}
+                  onClick={() => onSort(col)}
+                  className={`px-1 py-1.5 text-center text-[10px] font-semibold cursor-pointer min-w-[40px] hover:bg-black/[0.05] ${
+                    sortColumn === col ? "text-orange-600 bg-orange-50" : "text-slate-500"
+                  }`}
+                >
+                  {col}
+                  {sortColumn === col && (
+                    <span className="ml-0.5 text-[8px]">{sortAsc ? "\u25B2" : "\u25BC"}</span>
+                  )}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {sorted.map((p, i) => (
+              <tr key={p.playerId || i} className={`border-b border-border last:border-b-0 ${i % 2 === 0 ? "" : "bg-surface/50"}`}>
+                <td className="px-2 py-1.5">
+                  <span className="text-[11px] font-medium text-slate-700">{p.name}</span>
+                  <span className="ml-1 text-[9px] text-slate-400">{p.pos}</span>
+                </td>
+                <td className="px-1 py-1.5 text-center text-[10px] text-slate-500">{p.proTeam}</td>
+                {STATS_COLUMNS.map((col) => (
+                  <td key={col} className={`px-1 py-1.5 text-center font-mono tabular-nums ${statColor(col, p.seasonStats[col])}`}>
+                    {fmtStat(col, p.seasonStats[col])}
+                  </td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
 export default function BullpenPage() {
   const [teams, setTeams] = useState<EspnTeam[]>([]);
   const [schedule, setSchedule] = useState<Record<string, TeamSchedule>>({});
@@ -100,6 +215,11 @@ export default function BullpenPage() {
   const [matchupDates, setMatchupDates] = useState<{ start: string; end: string } | null>(null);
   const [scheduleGrid, setScheduleGrid] = useState<ScheduleGrid>({});
   const [myTeamId, setMyTeamId] = useState<number | null>(null);
+  const [startsApiData, setStartsApiData] = useState<StartsApiData | null>(null);
+  const [matchupApiData, setMatchupApiData] = useState<MatchupApiData | null>(null);
+  const [playerStats, setPlayerStats] = useState<PlayerStatsEntry[]>([]);
+  const [sortColumn, setSortColumn] = useState<string>("ERA");
+  const [sortAsc, setSortAsc] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [view, setView] = useState<"SP" | "RP">("SP");
@@ -116,12 +236,25 @@ export default function BullpenPage() {
       fetch(`/api/mlb/schedule?startDate=${today}&endDate=${endDate}`).then((r) => r.json()).catch(() => ({})),
       fetch(`/api/mlb/probable-pitchers?startDate=${today}&endDate=${endDate}`).then((r) => r.json()).catch(() => null),
       fetch("/api/espn/starts").then((r) => r.json()).catch(() => null),
-    ]).then(([rosterData, matchupData, scheduleData, probableData, startsData]) => {
+      fetch("/api/espn/player-stats").then((r) => r.json()).catch(() => null),
+    ]).then(([rosterData, matchupData, scheduleData, probableData, startsData, playerStatsData]) => {
       if (rosterData.error) { setError(rosterData.error); setLoading(false); return; }
       setTeams(rosterData);
       if (matchupData.myTeamId) setMyTeamId(matchupData.myTeamId);
+      if (matchupData.myTeamId && matchupData.oppTeamId) {
+        setMatchupApiData({
+          myTeamId: matchupData.myTeamId,
+          oppTeamId: matchupData.oppTeamId,
+          matchupStartDate: matchupData.matchupStartDate ?? null,
+          matchupEndDate: matchupData.matchupEndDate ?? null,
+        });
+      }
       if (!scheduleData.error) setSchedule(scheduleData);
       if (probableData && !probableData.error) setProbables(probableData);
+      if (startsData && !startsData.error) setStartsApiData(startsData);
+      if (playerStatsData && !playerStatsData.error && playerStatsData.players) {
+        setPlayerStats(playerStatsData.players.filter((p: PlayerStatsEntry) => p.pos === "SP" || p.pos === "RP"));
+      }
 
       // Fetch probable pitchers and full schedule grid for the matchup period + next week
       const mStart = matchupData.matchupStartDate;
@@ -240,6 +373,30 @@ export default function BullpenPage() {
       return starts?.some((s) => s.date === today);
     });
   }, [starters, pitcherStarts]);
+
+  // Starts summary: My vs Opp for this week and next week
+  const startsSummary = useMemo(() => {
+    if (!startsApiData || !matchupApiData || !matchupProbables) return null;
+
+    function countTeamStarts(teamId: number, probs: ProbablePitchersData): number {
+      const team = startsApiData!.teams.find((t) => t.teamId === teamId);
+      if (!team) return 0;
+      let count = 0;
+      for (const p of team.pitchers) {
+        if (p.onIL || p.pos !== "SP") continue;
+        const starts = findPitcherStarts(p.name, p.proTeam, probs);
+        count += starts.length;
+      }
+      return count;
+    }
+
+    const myThis = countTeamStarts(matchupApiData.myTeamId, matchupProbables);
+    const oppThis = countTeamStarts(matchupApiData.oppTeamId, matchupProbables);
+    const myNext = nextProbables ? countTeamStarts(matchupApiData.myTeamId, nextProbables) : null;
+    const oppNext = nextProbables ? countTeamStarts(matchupApiData.oppTeamId, nextProbables) : null;
+
+    return { myThis, oppThis, myNext, oppNext };
+  }, [startsApiData, matchupApiData, matchupProbables, nextProbables]);
 
   if (loading) return <div className="flex h-64 items-center justify-center text-slate-500">Loading bullpen...</div>;
   if (error === "ESPN_CREDS_MISSING") {
@@ -374,6 +531,39 @@ export default function BullpenPage() {
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-6">
+      {/* Starts summary at top */}
+      {startsSummary && (
+        <div className="mb-4 flex items-center justify-center gap-2 rounded-lg border border-border bg-surface px-4 py-2.5 text-[12px]">
+          <span className="font-semibold text-slate-500">This Week:</span>
+          <span className={`font-bold tabular-nums ${startsSummary.myThis > startsSummary.oppThis ? "text-emerald-600" : startsSummary.myThis < startsSummary.oppThis ? "text-red-600" : "text-slate-600"}`}>
+            My {startsSummary.myThis}
+          </span>
+          <span className="text-slate-400">|</span>
+          <span className={`font-bold tabular-nums ${startsSummary.oppThis > startsSummary.myThis ? "text-emerald-600" : startsSummary.oppThis < startsSummary.myThis ? "text-red-600" : "text-slate-600"}`}>
+            Opp {startsSummary.oppThis}
+          </span>
+          <span className={`font-bold text-[11px] ${startsSummary.myThis - startsSummary.oppThis > 0 ? "text-emerald-600" : startsSummary.myThis - startsSummary.oppThis < 0 ? "text-red-600" : "text-slate-400"}`}>
+            ({startsSummary.myThis - startsSummary.oppThis > 0 ? "+" : ""}{startsSummary.myThis - startsSummary.oppThis})
+          </span>
+          {startsSummary.myNext !== null && startsSummary.oppNext !== null && (
+            <>
+              <span className="text-slate-300 mx-1">·</span>
+              <span className="font-semibold text-slate-500">Next Week:</span>
+              <span className={`font-bold tabular-nums ${startsSummary.myNext > startsSummary.oppNext ? "text-emerald-600" : startsSummary.myNext < startsSummary.oppNext ? "text-red-600" : "text-slate-600"}`}>
+                My {startsSummary.myNext}
+              </span>
+              <span className="text-slate-400">|</span>
+              <span className={`font-bold tabular-nums ${startsSummary.oppNext > startsSummary.myNext ? "text-emerald-600" : startsSummary.oppNext < startsSummary.myNext ? "text-red-600" : "text-slate-600"}`}>
+                Opp {startsSummary.oppNext}
+              </span>
+              <span className={`font-bold text-[11px] ${startsSummary.myNext - startsSummary.oppNext > 0 ? "text-emerald-600" : startsSummary.myNext - startsSummary.oppNext < 0 ? "text-red-600" : "text-slate-400"}`}>
+                ({startsSummary.myNext - startsSummary.oppNext > 0 ? "+" : ""}{startsSummary.myNext - startsSummary.oppNext})
+              </span>
+            </>
+          )}
+        </div>
+      )}
+
       {/* Header */}
       <div className="mb-5 flex flex-wrap items-start justify-between gap-4">
         <div>
@@ -486,6 +676,23 @@ export default function BullpenPage() {
         nextDates={nextWeekData?.nextDates ?? null}
         scheduleGrid={scheduleGrid}
       />
+
+      {/* Pitching Staff Stats Table */}
+      {playerStats.length > 0 && (
+        <PitchingStatsTable
+          stats={playerStats}
+          sortColumn={sortColumn}
+          sortAsc={sortAsc}
+          onSort={(col) => {
+            if (col === sortColumn) {
+              setSortAsc(!sortAsc);
+            } else {
+              setSortColumn(col);
+              setSortAsc(col === "ERA" || col === "WHIP" ? true : false);
+            }
+          }}
+        />
+      )}
 
       {/* Next Week Starts — streaming targets */}
       <NextWeekStarts

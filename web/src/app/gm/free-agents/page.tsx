@@ -13,6 +13,19 @@ interface PlayerStats {
   last30Stats: Record<string, number>;
 }
 
+interface ZScorePlayer {
+  name: string;
+  playerId: number;
+  pos: string;
+  proTeam: string;
+  isPitcher: boolean;
+  onTeamId: number;
+  seasonStats: Record<string, number>;
+  zScores: Record<string, number>;
+  zTotal: number;
+  far: number;
+}
+
 interface RosterPlayer {
   name: string;
 }
@@ -25,6 +38,7 @@ interface EspnTeam {
 
 const POSITIONS = ["ALL", "C", "1B", "2B", "3B", "SS", "OF", "SP", "RP", "DH"];
 const BAT_SORT_OPTIONS = [
+  { key: "FAR", label: "FAR" },
   { key: "HR", label: "HR" },
   { key: "AVG", label: "AVG" },
   { key: "R", label: "R" },
@@ -35,6 +49,7 @@ const BAT_SORT_OPTIONS = [
   { key: "TB", label: "TB" },
 ];
 const PIT_SORT_OPTIONS = [
+  { key: "FAR", label: "FAR" },
   { key: "K", label: "K" },
   { key: "ERA", label: "ERA" },
   { key: "WHIP", label: "WHIP" },
@@ -53,6 +68,13 @@ function fmtStat(cat: string, val: number | undefined): string {
   return String(Math.round(val));
 }
 
+function zColorClass(z: number): string {
+  if (z >= 1.5) return "text-emerald-700 font-bold";
+  if (z >= 0.5) return "text-emerald-600";
+  if (z >= 0) return "text-slate-600";
+  return "text-red-600";
+}
+
 function EspnSetupCard() {
   return (
     <div className="mx-auto max-w-lg rounded-xl border border-border bg-surface px-8 py-10 text-center">
@@ -64,22 +86,31 @@ function EspnSetupCard() {
 
 export default function FreeAgentsPage() {
   const [allPlayers, setAllPlayers] = useState<PlayerStats[]>([]);
+  const [zScoreMap, setZScoreMap] = useState<Map<number, ZScorePlayer>>(new Map());
   const [rosteredNames, setRosteredNames] = useState<Set<string>>(new Set());
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
   const [search, setSearch] = useState("");
   const [posFilter, setPosFilter] = useState("ALL");
-  const [sortBy, setSortBy] = useState("HR");
+  const [sortBy, setSortBy] = useState("FAR");
   const [statPeriod, setStatPeriod] = useState<"season" | "last7" | "last15" | "last30">("season");
 
   useEffect(() => {
     Promise.all([
       fetch("/api/espn/player-stats?status=ALL").then((r) => r.json()).catch(() => ({ players: [] })),
       fetch("/api/espn/roster").then((r) => r.json()).catch(() => []),
-    ]).then(([statsData, rosterData]) => {
+      fetch("/api/analysis/z-scores").then((r) => r.json()).catch(() => ({ players: [] })),
+    ]).then(([statsData, rosterData, zData]) => {
       if (statsData.error) { setError(statsData.error); return; }
       setAllPlayers(statsData.players ?? []);
+
+      // Build z-score lookup by playerId
+      const zMap = new Map<number, ZScorePlayer>();
+      for (const p of zData.players ?? []) {
+        zMap.set(p.playerId, p);
+      }
+      setZScoreMap(zMap);
 
       // Build set of rostered player names
       if (Array.isArray(rosterData)) {
@@ -126,6 +157,13 @@ export default function FreeAgentsPage() {
 
     // Sort
     list = [...list].sort((a, b) => {
+      // Z-score / FAR sort
+      if (sortBy === "FAR") {
+        const aZ = zScoreMap.get(a.playerId);
+        const bZ = zScoreMap.get(b.playerId);
+        return (bZ?.far ?? -999) - (aZ?.far ?? -999);
+      }
+
       const aStats = getStats(a);
       const bStats = getStats(b);
       const aVal = aStats[sortBy] ?? (LOWER_IS_BETTER.has(sortBy) ? 999 : -999);
@@ -135,16 +173,16 @@ export default function FreeAgentsPage() {
 
     return list.slice(0, 50); // Top 50
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [freeAgents, posFilter, search, sortBy, statPeriod]);
+  }, [freeAgents, posFilter, search, sortBy, statPeriod, zScoreMap]);
 
   const sortOptions = isPitcherFilter ? PIT_SORT_OPTIONS : BAT_SORT_OPTIONS;
 
   // Auto-switch sort when changing position filter
   useEffect(() => {
     if (posFilter === "SP" || posFilter === "RP") {
-      if (!PIT_SORT_OPTIONS.find((o) => o.key === sortBy)) setSortBy("K");
+      if (!PIT_SORT_OPTIONS.find((o) => o.key === sortBy)) setSortBy("FAR");
     } else {
-      if (!BAT_SORT_OPTIONS.find((o) => o.key === sortBy)) setSortBy("HR");
+      if (!BAT_SORT_OPTIONS.find((o) => o.key === sortBy)) setSortBy("FAR");
     }
   }, [posFilter, sortBy]);
 
@@ -162,11 +200,11 @@ export default function FreeAgentsPage() {
   }
 
   return (
-    <div className="mx-auto max-w-5xl px-4 py-6">
+    <div className="mx-auto max-w-6xl px-4 py-6">
       <div className="mb-5 flex flex-wrap items-start justify-between gap-3">
         <div>
           <h1 className="text-lg font-bold text-gray-900">Free Agents</h1>
-          <span className="text-[12px] text-slate-500">{freeAgents.length} available players</span>
+          <span className="text-[12px] text-slate-500">{freeAgents.length} available players &middot; sorted by Fantasy Above Replacement</span>
         </div>
         {/* Stat period toggle */}
         <div className="flex gap-0.5 rounded bg-surface border border-border p-0.5">
@@ -229,6 +267,8 @@ export default function FreeAgentsPage() {
               <th className="px-3 py-2.5">Player</th>
               <th className="px-2 py-2.5">Pos</th>
               <th className="px-2 py-2.5">Team</th>
+              <th className="px-2 py-2.5 text-right">Z</th>
+              <th className="px-2 py-2.5 text-right">FAR</th>
               {isPitcherFilter ? (
                 <>
                   <th className="px-2 py-2.5 text-right">ERA</th>
@@ -257,11 +297,20 @@ export default function FreeAgentsPage() {
           <tbody>
             {filtered.map((p, i) => {
               const stats = getStats(p);
+              const zPlayer = zScoreMap.get(p.playerId);
+              const zTotal = zPlayer?.zTotal ?? 0;
+              const far = zPlayer?.far ?? 0;
               return (
                 <tr key={p.playerId || i} className={`border-b border-border ${i % 2 === 0 ? "" : "bg-surface/50"} hover:bg-black/[0.03]`}>
                   <td className="px-3 py-2 font-medium text-slate-700">{p.name}</td>
                   <td className="px-2 py-2 text-slate-500">{p.pos}</td>
                   <td className="px-2 py-2 text-slate-500">{p.proTeam}</td>
+                  <td className={`px-2 py-2 text-right font-mono tabular-nums ${zColorClass(zTotal)}`}>
+                    {zPlayer ? zTotal.toFixed(2) : "-"}
+                  </td>
+                  <td className={`px-2 py-2 text-right font-mono tabular-nums ${zColorClass(zTotal)}`}>
+                    {zPlayer ? far.toFixed(1) : "-"}
+                  </td>
                   {isPitcherFilter ? (
                     <>
                       <td className="px-2 py-2 text-right font-mono tabular-nums text-slate-600">{fmtStat("ERA", stats.ERA)}</td>

@@ -2,56 +2,31 @@
 
 import { useState, useEffect, useMemo } from "react";
 
-interface MatchupCat {
-  cat: string;
-  myValue: number | null;
-  oppValue: number | null;
-  result: "WIN" | "LOSS" | "TIE" | "PENDING";
-}
-
-interface MatchupData {
-  scoringPeriodId: number;
-  matchupStartDate: string | null;
-  matchupEndDate: string | null;
-  myTeamName: string;
-  oppTeamName: string;
-  categories: MatchupCat[];
-}
-
 interface TeamCategoryStats {
   teamId: number;
   teamName: string;
+  wins: number;
+  losses: number;
+  ties: number;
   categories: Record<string, number>;
   ranks: Record<string, number>;
 }
 
 interface LeagueStatsData {
+  scoringPeriodId: number;
   myTeamId: number;
   teams: TeamCategoryStats[];
 }
 
-const BAT_CATS = ["H", "R", "HR", "TB", "RBI", "BB", "SB", "AVG"];
-const PIT_CATS = ["K", "QS", "W", "L", "SV", "HD", "ERA", "WHIP"];
+const CATS_ORDER = ["H", "R", "HR", "TB", "RBI", "BB", "SB", "AVG", "K", "QS", "W", "L", "SV", "HD", "ERA", "WHIP"];
 const LOWER_IS_BETTER = new Set(["ERA", "WHIP", "L"]);
 
-function resultColor(result: string) {
-  if (result === "WIN") return "text-emerald-600";
-  if (result === "LOSS") return "text-red-600";
-  if (result === "TIE") return "text-orange-600";
-  return "text-slate-500";
-}
-
-function resultBg(result: string) {
-  if (result === "WIN") return "bg-emerald-100 border-emerald-300";
-  if (result === "LOSS") return "bg-red-100 border-red-300";
-  if (result === "TIE") return "bg-orange-100 border-orange-300";
-  return "bg-surface border-border";
-}
-
-function rankColor(rank: number): string {
-  if (rank <= 3) return "text-emerald-600";
-  if (rank <= 7) return "text-slate-500";
-  return "text-red-600";
+function rankCellClasses(rank: number): string {
+  if (rank <= 2) return "bg-emerald-600 text-white";
+  if (rank <= 4) return "bg-emerald-200 text-emerald-800";
+  if (rank <= 6) return "bg-slate-100 text-slate-600";
+  if (rank <= 8) return "bg-orange-200 text-orange-800";
+  return "bg-red-600 text-white";
 }
 
 function fmtValue(cat: string, val: number | null | undefined): string {
@@ -59,12 +34,6 @@ function fmtValue(cat: string, val: number | null | undefined): string {
   if (cat === "AVG") return val.toFixed(3);
   if (cat === "ERA" || cat === "WHIP") return val.toFixed(2);
   return String(Math.round(val));
-}
-
-function fmtDateRange(start: string | null, end: string | null): string {
-  if (!start || !end) return "";
-  const fmt = (d: string) => new Date(d + "T12:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric" });
-  return `${fmt(start)} - ${fmt(end)}`;
 }
 
 function EspnSetupCard() {
@@ -80,82 +49,60 @@ function EspnSetupCard() {
 }
 
 export default function CategoryBreakdownPage() {
-  const [matchup, setMatchup] = useState<MatchupData | null>(null);
-  const [leagueStats, setLeagueStats] = useState<LeagueStatsData | null>(null);
+  const [data, setData] = useState<LeagueStatsData | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [sortCat, setSortCat] = useState<string | null>(null);
 
   useEffect(() => {
-    Promise.all([
-      fetch("/api/espn/matchup").then((r) => r.json()),
-      fetch("/api/espn/league-stats").then((r) => r.json()),
-    ]).then(([m, ls]) => {
-      if (m.error) { setError(m.error); return; }
-      setMatchup(m);
-      if (!ls.error) setLeagueStats(ls);
-    })
-    .catch(() => setError("FETCH_FAILED"))
-    .finally(() => setLoading(false));
+    fetch("/api/espn/league-stats")
+      .then((r) => r.json())
+      .then((d) => {
+        if (d.error) { setError(d.error); return; }
+        setData(d);
+      })
+      .catch(() => setError("FETCH_FAILED"))
+      .finally(() => setLoading(false));
   }, []);
 
-  const myLeagueTeam = useMemo(() => {
-    if (!leagueStats) return null;
-    return leagueStats.teams.find((t) => t.teamId === leagueStats.myTeamId) ?? null;
-  }, [leagueStats]);
-
-  // For each category, find who's #1 and the gap
-  const catDetails = useMemo(() => {
-    if (!matchup || !leagueStats || !myLeagueTeam) return [];
-    return [...BAT_CATS, ...PIT_CATS].map((cat) => {
-      const matchupCat = matchup.categories.find((c) => c.cat === cat);
-      const myRank = myLeagueTeam.ranks[cat] ?? 0;
-      const myValue = myLeagueTeam.categories[cat] ?? 0;
-
-      // Find leader
-      const lower = LOWER_IS_BETTER.has(cat);
-      const sorted = [...leagueStats.teams].sort((a, b) => {
-        const aVal = a.categories[cat] ?? 0;
-        const bVal = b.categories[cat] ?? 0;
+  const sortedTeams = useMemo(() => {
+    if (!data) return [];
+    const teams = [...data.teams];
+    if (sortCat) {
+      const lower = LOWER_IS_BETTER.has(sortCat);
+      teams.sort((a, b) => {
+        const aVal = a.categories[sortCat] ?? 0;
+        const bVal = b.categories[sortCat] ?? 0;
         return lower ? aVal - bVal : bVal - aVal;
       });
-      const leader = sorted[0];
-      const leaderValue = leader?.categories[cat] ?? 0;
-      const gap = lower ? myValue - leaderValue : leaderValue - myValue;
+    } else {
+      teams.sort((a, b) => b.wins - a.wins || a.losses - b.losses);
+    }
+    return teams;
+  }, [data, sortCat]);
 
-      // Find next team ahead and behind
-      const myIdx = sorted.findIndex((t) => t.teamId === leagueStats.myTeamId);
-      const teamAhead = myIdx > 0 ? sorted[myIdx - 1] : null;
-      const teamBehind = myIdx < sorted.length - 1 ? sorted[myIdx + 1] : null;
-      const gapAhead = teamAhead
-        ? (lower ? myValue - (teamAhead.categories[cat] ?? 0) : (teamAhead.categories[cat] ?? 0) - myValue)
-        : 0;
-      const gapBehind = teamBehind
-        ? (lower ? (teamBehind.categories[cat] ?? 0) - myValue : myValue - (teamBehind.categories[cat] ?? 0))
-        : 0;
+  const myTeam = useMemo(() => {
+    if (!data) return null;
+    return data.teams.find((t) => t.teamId === data.myTeamId) ?? null;
+  }, [data]);
 
-      return {
-        cat,
-        matchupResult: matchupCat?.result ?? "PENDING",
-        matchupMyValue: matchupCat?.myValue ?? null,
-        matchupOppValue: matchupCat?.oppValue ?? null,
-        leagueRank: myRank,
-        leagueValue: myValue,
-        leaderName: leader?.teamName ?? "",
-        leaderValue,
-        gapToLeader: gap,
-        teamAheadName: teamAhead?.teamName ?? null,
-        gapAhead,
-        teamBehindName: teamBehind?.teamName ?? null,
-        gapBehind,
-      };
-    });
-  }, [matchup, leagueStats, myLeagueTeam]);
+  const summary = useMemo(() => {
+    if (!myTeam) return { dominant: [] as string[], critical: [] as string[] };
+    const dominant: string[] = [];
+    const critical: string[] = [];
+    for (const cat of CATS_ORDER) {
+      const rank = myTeam.ranks[cat] ?? 5;
+      if (rank <= 2) dominant.push(cat);
+      if (rank >= 9) critical.push(cat);
+    }
+    return { dominant, critical };
+  }, [myTeam]);
 
-  if (loading) return <div className="flex h-64 items-center justify-center text-slate-500">Loading category breakdown...</div>;
+  if (loading) return <div className="flex h-64 items-center justify-center text-slate-500">Loading...</div>;
   if (error === "ESPN_CREDS_MISSING" || error === "MY_ESPN_TEAM_ID_MISSING") {
     return <div className="flex min-h-[70vh] items-center justify-center px-4"><EspnSetupCard /></div>;
   }
-  if (error || !matchup) {
+  if (error || !data) {
     return (
       <div className="flex h-64 flex-col items-center justify-center gap-2">
         <div className="text-red-600">Failed to load breakdown</div>
@@ -164,97 +111,103 @@ export default function CategoryBreakdownPage() {
     );
   }
 
-  const batDetails = catDetails.filter((d) => BAT_CATS.includes(d.cat));
-  const pitDetails = catDetails.filter((d) => PIT_CATS.includes(d.cat));
-
   return (
-    <div className="mx-auto max-w-6xl px-4 py-6">
+    <div className="mx-auto max-w-7xl px-4 py-6">
       {/* Header */}
       <div className="mb-5">
         <h1 className="text-lg font-bold text-gray-900">Category Breakdown</h1>
-        <div className="flex items-center gap-2 text-[12px] text-slate-500">
-          <span>Week {matchup.scoringPeriodId}</span>
-          {matchup.matchupStartDate && (
-            <span className="text-slate-400">{fmtDateRange(matchup.matchupStartDate, matchup.matchupEndDate)}</span>
+        <div className="text-[12px] text-slate-500">
+          Week {data.scoringPeriodId} &middot; League-wide category ranks
+          {sortCat && (
+            <button
+              onClick={() => setSortCat(null)}
+              className="ml-3 text-orange-600 hover:text-orange-700 font-semibold"
+            >
+              Clear sort ({sortCat}) &times;
+            </button>
           )}
-          <span className="text-slate-400">vs</span>
-          <span>{matchup.oppTeamName}</span>
         </div>
       </div>
 
-      {/* Category cards */}
-      {[
-        { label: "Batting", details: batDetails },
-        { label: "Pitching", details: pitDetails },
-      ].map(({ label, details }) => (
-        <div key={label} className="mb-6">
-          <div className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-slate-400">{label}</div>
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-            {details.map((d) => (
-              <div key={d.cat} className={`rounded-lg border p-3 ${resultBg(d.matchupResult)}`}>
-                {/* Category header */}
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-[13px] font-bold text-slate-600">{d.cat}</span>
-                  <div className="flex items-center gap-2">
-                    {d.leagueRank > 0 && (
-                      <span className={`text-[10px] font-bold ${rankColor(d.leagueRank)}`}>
-                        #{d.leagueRank} in league
-                      </span>
-                    )}
-                    {d.matchupResult !== "PENDING" && (
-                      <span className={`text-[10px] font-bold uppercase ${resultColor(d.matchupResult)}`}>
-                        {d.matchupResult}
-                      </span>
-                    )}
-                  </div>
-                </div>
-
-                {/* This week's matchup values */}
-                <div className="flex items-baseline justify-between mb-3">
-                  <div>
-                    <div className={`text-[20px] font-bold font-mono tabular-nums ${resultColor(d.matchupResult)}`}>
-                      {fmtValue(d.cat, d.matchupMyValue)}
-                    </div>
-                    <div className="text-[10px] text-slate-600">My total</div>
-                  </div>
-                  <div className="text-right">
-                    <div className="text-[16px] font-mono tabular-nums text-slate-500">
-                      {fmtValue(d.cat, d.matchupOppValue)}
-                    </div>
-                    <div className="text-[10px] text-slate-400">Opponent</div>
-                  </div>
-                </div>
-
-                {/* League context */}
-                {myLeagueTeam && (
-                  <div className="border-t border-border pt-2 space-y-1">
-                    {d.teamAheadName && (
-                      <div className="flex justify-between text-[10px]">
-                        <span className="text-slate-600">Gap to #{d.leagueRank - 1}</span>
-                        <span className="text-orange-600 tabular-nums font-mono">
-                          {LOWER_IS_BETTER.has(d.cat) ? "+" : "-"}{Math.abs(d.gapAhead).toFixed(
-                            d.cat === "AVG" ? 3 : d.cat === "ERA" || d.cat === "WHIP" ? 2 : 0
-                          )}
-                        </span>
-                      </div>
-                    )}
-                    {d.teamBehindName && (
-                      <div className="flex justify-between text-[10px]">
-                        <span className="text-slate-600">Lead on #{d.leagueRank + 1}</span>
-                        <span className="text-emerald-600/70 tabular-nums font-mono">
-                          +{Math.abs(d.gapBehind).toFixed(
-                            d.cat === "AVG" ? 3 : d.cat === "ERA" || d.cat === "WHIP" ? 2 : 0
-                          )}
-                        </span>
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
+      {/* Summary */}
+      {myTeam && (summary.dominant.length > 0 || summary.critical.length > 0) && (
+        <div className="mb-4 rounded-lg border border-border bg-surface px-4 py-3 text-[12px]">
+          {summary.dominant.length > 0 && (
+            <span>
+              <span className="font-semibold text-emerald-700">Dominant (top 2):</span>{" "}
+              <span className="text-emerald-600">{summary.dominant.join(", ")}</span>
+            </span>
+          )}
+          {summary.dominant.length > 0 && summary.critical.length > 0 && (
+            <span className="mx-2 text-slate-300">|</span>
+          )}
+          {summary.critical.length > 0 && (
+            <span>
+              <span className="font-semibold text-red-700">Critical (bottom 2):</span>{" "}
+              <span className="text-red-600">{summary.critical.join(", ")}</span>
+            </span>
+          )}
         </div>
-      ))}
+      )}
+
+      {/* Heatmap Table */}
+      <div className="overflow-x-auto rounded-lg border border-border">
+        <table className="w-full text-left text-[12px]">
+          <thead className="border-b border-border bg-surface text-[10px] uppercase tracking-wider text-slate-500">
+            <tr>
+              <th className="px-3 py-2.5 sticky left-0 bg-surface z-10">Team</th>
+              <th className="px-2 py-2.5 text-center">W-L</th>
+              {CATS_ORDER.map((cat) => (
+                <th
+                  key={cat}
+                  className={`px-1.5 py-2.5 text-center cursor-pointer hover:text-orange-600 transition-colors select-none ${
+                    sortCat === cat ? "text-orange-600 font-extrabold" : ""
+                  }`}
+                  onClick={() => setSortCat(sortCat === cat ? null : cat)}
+                >
+                  {cat}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {sortedTeams.map((team) => {
+              const isMyTeam = team.teamId === data.myTeamId;
+              return (
+                <tr
+                  key={team.teamId}
+                  className={`border-b border-border/50 ${
+                    isMyTeam ? "border-l-4 border-l-orange-500 bg-orange-50" : ""
+                  }`}
+                >
+                  <td className={`px-3 py-2 sticky left-0 z-10 whitespace-nowrap ${
+                    isMyTeam ? "font-bold text-gray-900 bg-orange-50" : "text-slate-600 bg-white"
+                  }`}>
+                    {team.teamName}
+                  </td>
+                  <td className="px-2 py-2 text-center font-mono tabular-nums text-slate-500 text-[11px]">
+                    {team.wins}-{team.losses}{team.ties > 0 ? `-${team.ties}` : ""}
+                  </td>
+                  {CATS_ORDER.map((cat) => {
+                    const rank = team.ranks[cat] ?? 5;
+                    const value = team.categories[cat];
+                    const showValue = sortCat === cat;
+                    return (
+                      <td key={cat} className="px-0.5 py-1 text-center">
+                        <div
+                          className={`mx-auto w-9 rounded px-1 py-0.5 text-[11px] font-bold tabular-nums font-mono ${rankCellClasses(rank)}`}
+                        >
+                          {showValue ? fmtValue(cat, value) : `#${rank}`}
+                        </div>
+                      </td>
+                    );
+                  })}
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }

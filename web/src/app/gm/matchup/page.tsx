@@ -29,7 +29,9 @@ interface MatchupData {
   scoringPeriodId: number;
   matchupStartDate: string | null;
   matchupEndDate: string | null;
+  myTeamId: number;
   myTeamName: string;
+  oppTeamId: number;
   oppTeamName: string;
   myWins: number;
   myLosses: number;
@@ -40,6 +42,17 @@ interface MatchupData {
   categories: MatchupCat[];
   myRoster: MatchupPlayer[];
   oppRoster: MatchupPlayer[];
+}
+
+interface StartsTeamData {
+  teamId: number;
+  teamName: string;
+  pitchers: { name: string; pos: string; proTeam: string; onIL: boolean }[];
+}
+
+interface StartsData {
+  myTeamId: number;
+  teams: StartsTeamData[];
 }
 
 interface TeamSchedule {
@@ -240,14 +253,6 @@ function PlayerRow({
           }`}>{starts}S</span>
         )}
 
-        {/* Games this week */}
-        {schedule && (
-          <span className={`shrink-0 text-[10px] tabular-nums font-semibold ${
-            schedule.weekGames >= 5 ? "text-emerald-600" :
-            schedule.weekGames >= 3 ? "text-orange-600" : "text-slate-600"
-          }`}>{schedule.weekGames}G</span>
-        )}
-
         {/* Injury */}
         {player.injuryStatus !== "ACTIVE" && (
           <span className={`shrink-0 text-[10px] font-bold ${player.injuryColor}`}>
@@ -345,6 +350,7 @@ export default function MatchupPage() {
   const [data, setData] = useState<MatchupData | null>(null);
   const [schedule, setSchedule] = useState<Record<string, TeamSchedule>>({});
   const [probables, setProbables] = useState<ProbablePitchersData | null>(null);
+  const [startsData, setStartsData] = useState<StartsData | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [selectedCat, setSelectedCat] = useState<string | null>(null);
@@ -368,9 +374,12 @@ export default function MatchupPage() {
             .then((r) => r.json()),
           fetch(`/api/mlb/probable-pitchers?startDate=${startDate}&endDate=${endDate}`)
             .then((r) => r.json()).catch(() => null),
-        ]).then(([s, p]) => {
+          fetch("/api/espn/starts")
+            .then((r) => r.json()).catch(() => null),
+        ]).then(([s, p, st]) => {
           if (!s.error) setSchedule(s);
           if (p && !p.error) setProbables(p);
+          if (st && !st.error) setStartsData(st);
         });
       })
       .catch(() => setError("FETCH_FAILED"))
@@ -386,6 +395,33 @@ export default function MatchupPage() {
     const now = new Date();
     return Math.max(0, Math.ceil((end.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)));
   }, [data]);
+
+  // Count SP starts from probables for my team and opponent
+  const startsCounts = useMemo(() => {
+    if (!probables || !startsData || !data) return null;
+    const myTeam = startsData.teams.find((t) => t.teamId === data.myTeamId);
+    const oppTeam = startsData.teams.find((t) => t.teamId === data.oppTeamId);
+    if (!myTeam || !oppTeam) return null;
+
+    function countStarts(pitchers: { name: string; pos: string; proTeam: string; onIL: boolean }[]): number {
+      let count = 0;
+      for (const p of pitchers) {
+        if (p.onIL || p.pos !== "SP") continue;
+        // Match pitcher name to probables
+        const starts = probables!.byPitcher[p.name];
+        if (starts) { count += starts.length; continue; }
+        const lower = p.name.toLowerCase();
+        for (const [pName, pStarts] of Object.entries(probables!.byPitcher)) {
+          if (pName.toLowerCase() === lower) { count += pStarts.length; break; }
+        }
+      }
+      return count;
+    }
+
+    const mySPPitchers = myTeam.pitchers.filter((p) => p.pos === "SP");
+    const oppSPPitchers = oppTeam.pitchers.filter((p) => p.pos === "SP");
+    return { my: countStarts(mySPPitchers), opp: countStarts(oppSPPitchers) };
+  }, [probables, startsData, data]);
 
   const batCats = useMemo(() => data?.categories.filter((c) => BAT_CATS.includes(c.cat)) ?? [], [data]);
   const pitCats = useMemo(() => data?.categories.filter((c) => PIT_CATS.includes(c.cat)) ?? [], [data]);
@@ -452,6 +488,36 @@ export default function MatchupPage() {
         </div>
       </div>
 
+      {/* Starts counter bar */}
+      {startsCounts && (
+        <div className="mb-4 flex items-center justify-center gap-4 rounded-lg border border-border bg-surface px-4 py-2">
+          <span className="text-[11px] font-semibold text-slate-500">SP Starts:</span>
+          <span className={`text-[13px] font-bold tabular-nums ${
+            startsCounts.my > startsCounts.opp ? "text-emerald-600" :
+            startsCounts.my < startsCounts.opp ? "text-red-600" : "text-slate-600"
+          }`}>
+            You {startsCounts.my}
+          </span>
+          <span className="text-slate-400">|</span>
+          <span className={`text-[13px] font-bold tabular-nums ${
+            startsCounts.opp > startsCounts.my ? "text-emerald-600" :
+            startsCounts.opp < startsCounts.my ? "text-red-600" : "text-slate-600"
+          }`}>
+            Opp {startsCounts.opp}
+          </span>
+          {startsCounts.my !== startsCounts.opp && (
+            <span className={`text-[11px] font-bold ${
+              startsCounts.my > startsCounts.opp ? "text-emerald-600" : "text-red-600"
+            }`}>
+              ({startsCounts.my > startsCounts.opp ? "+" : ""}{startsCounts.my - startsCounts.opp})
+            </span>
+          )}
+          {daysLeft > 0 && (
+            <span className="text-[11px] text-slate-400 ml-2">{daysLeft}d left</span>
+          )}
+        </div>
+      )}
+
       {/* Category scoreboard — donut charts */}
       <div className="mb-6 space-y-3">
         {[
@@ -477,15 +543,28 @@ export default function MatchupPage() {
                 const myColor = c.result === "WIN" ? "#059669" : c.result === "TIE" ? "#ea580c" : "#cbd5e1";
                 const oppColor = c.result === "LOSS" ? "#dc2626" : c.result === "TIE" ? "#ea580c" : "#cbd5e1";
 
+                // Danger flag logic: 25-55% lock means at-risk
+                const isDanger = pct !== null && daysLeft > 0 && pct >= 25 && pct <= 55;
+                const isWinningAtRisk = isDanger && c.result === "WIN";
+                const isLosingFlippable = isDanger && c.result === "LOSS";
+                const dangerRing = isWinningAtRisk
+                  ? "ring-2 ring-orange-400 animate-pulse"
+                  : isLosingFlippable
+                  ? "ring-2 ring-red-400 animate-pulse"
+                  : "";
+
                 return (
                   <div key={c.cat}
                     className={`flex flex-col items-center cursor-pointer rounded-lg px-1 py-1 transition-all ${
                       selectedCat === c.cat ? "ring-2 ring-orange-400 bg-orange-50" :
+                      dangerRing ? dangerRing :
                       "hover:bg-black/[0.03]"
                     }`}
                     onClick={() => setSelectedCat(selectedCat === c.cat ? null : c.cat)}>
                     {/* Category label */}
-                    <span className="text-[10px] font-bold text-slate-500 mb-1">{c.cat}</span>
+                    <span className="text-[10px] font-bold text-slate-500 mb-1">
+                      {c.cat}{(isWinningAtRisk || isLosingFlippable) && " \u26A0"}
+                    </span>
 
                     {/* Donut chart */}
                     <div className="relative w-[72px] h-[72px]">

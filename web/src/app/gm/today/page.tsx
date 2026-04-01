@@ -66,11 +66,19 @@ interface BvpStats {
   avg: string;
 }
 
+interface AdvisorRec {
+  type: string;
+  title: string;
+  description: string;
+  priority: "high" | "medium" | "low";
+}
+
 export default function TodayPage() {
   const [teams, setTeams] = useState<EspnTeam[]>([]);
   const [schedule, setSchedule] = useState<Record<string, TeamSchedule>>({});
   const [probableNames, setProbableNames] = useState<Set<string>>(new Set());
   const [bvpData, setBvpData] = useState<Record<string, BvpStats | null>>({});
+  const [advisorRecs, setAdvisorRecs] = useState<AdvisorRec[]>([]);
   const [myTeamId, setMyTeamId] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -110,6 +118,14 @@ export default function TodayPage() {
       .catch(() => {})
       .finally(() => setLoading(false));
   }, [matchupEndDate]);
+
+  // Fetch advisor recommendations
+  useEffect(() => {
+    fetch("/api/analysis/advisor")
+      .then((r) => r.json())
+      .then((d) => { if (d.recommendations) setAdvisorRecs(d.recommendations); })
+      .catch(() => {});
+  }, []);
 
   const myTeam = useMemo(() => {
     if (!teams.length) return null;
@@ -282,7 +298,10 @@ export default function TodayPage() {
   const spsNotStarting = playingPitchers.filter((p) => p.pos === "SP" && !isProbableStarter(p.name));
 
   return (
-    <div className="mx-auto max-w-5xl px-4 py-6">
+    <div className="mx-auto max-w-7xl px-4 py-6">
+      <div className="grid gap-6 lg:grid-cols-[1fr_320px]">
+      {/* Main content */}
+      <div>
       {/* Header */}
       <div className="mb-5 flex flex-wrap items-start justify-between gap-4">
         <div>
@@ -386,6 +405,44 @@ export default function TodayPage() {
             No roster data available.
           </div>
         )}
+      </div>
+      </div>
+
+      {/* Advisor sidebar */}
+      <div className="space-y-3">
+        <div className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Matchup Advisor</div>
+        {advisorRecs.length === 0 && (
+          <div className="rounded-lg border border-border bg-surface px-4 py-6 text-center text-[12px] text-slate-400">
+            Loading recommendations...
+          </div>
+        )}
+        {advisorRecs.map((rec, i) => (
+          <div key={i} className={`rounded-lg border px-4 py-3 ${
+            rec.priority === "high" ? "border-red-300 bg-red-50" :
+            rec.priority === "medium" ? "border-orange-300 bg-orange-50" :
+            "border-border bg-surface"
+          }`}>
+            <div className="flex items-start gap-2">
+              <span className={`shrink-0 text-[12px] ${
+                rec.type === "score" ? "" :
+                rec.type === "target" ? "" :
+                rec.type === "stream" ? "" :
+                ""
+              }`}>
+                {rec.type === "score" ? "📊" : rec.type === "target" ? "🎯" : rec.type === "stream" ? "📡" : rec.type === "alert" ? "⚠️" : "💡"}
+              </span>
+              <div>
+                <div className={`text-[12px] font-bold ${
+                  rec.priority === "high" ? "text-red-700" :
+                  rec.priority === "medium" ? "text-orange-700" : "text-slate-700"
+                }`}>{rec.title}</div>
+                <div className="mt-0.5 text-[11px] text-slate-600">{rec.description}</div>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+
       </div>
     </div>
   );
