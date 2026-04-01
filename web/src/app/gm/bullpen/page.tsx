@@ -378,22 +378,36 @@ export default function BullpenPage() {
   const startsSummary = useMemo(() => {
     if (!startsApiData || !matchupApiData || !matchupProbables) return null;
 
-    function countTeamStarts(teamId: number, probs: ProbablePitchersData): number {
+    function estimateTeamStarts(teamId: number, probs: ProbablePitchersData, periodDays: number): number {
       const team = startsApiData!.teams.find((t) => t.teamId === teamId);
       if (!team) return 0;
-      let count = 0;
-      for (const p of team.pitchers) {
-        if (p.onIL || p.pos !== "SP") continue;
+      const activeSPs = team.pitchers.filter((p) => p.pos === "SP" && !p.onIL);
+      if (activeSPs.length === 0) return 0;
+
+      // Count confirmed PP starts
+      let confirmed = 0;
+      const confirmedDates = new Set<string>();
+      for (const p of activeSPs) {
         const starts = findPitcherStarts(p.name, p.proTeam, probs);
-        count += starts.length;
+        confirmed += starts.length;
+        starts.forEach((s) => confirmedDates.add(s.date));
       }
-      return count;
+
+      // Estimate additional starts for unconfirmed days
+      // 5-man rotation: each SP starts every 5 team games
+      const unconfirmedDays = Math.max(0, periodDays - confirmedDates.size);
+      const estimatedExtra = Math.round((unconfirmedDays * activeSPs.length) / 5);
+
+      return confirmed + estimatedExtra;
     }
 
-    const myThis = countTeamStarts(matchupApiData.myTeamId, matchupProbables);
-    const oppThis = countTeamStarts(matchupApiData.oppTeamId, matchupProbables);
-    const myNext = nextProbables ? countTeamStarts(matchupApiData.myTeamId, nextProbables) : null;
-    const oppNext = nextProbables ? countTeamStarts(matchupApiData.oppTeamId, nextProbables) : null;
+    const thisWeekDays = matchupDates ? Math.ceil((new Date(matchupDates.end + "T23:59:59").getTime() - Date.now()) / 86400000) : 7;
+    const nextWeekDays = 7; // standard week
+
+    const myThis = estimateTeamStarts(matchupApiData.myTeamId, matchupProbables, thisWeekDays);
+    const oppThis = estimateTeamStarts(matchupApiData.oppTeamId, matchupProbables, thisWeekDays);
+    const myNext = nextProbables ? estimateTeamStarts(matchupApiData.myTeamId, nextProbables, nextWeekDays) : null;
+    const oppNext = nextProbables ? estimateTeamStarts(matchupApiData.oppTeamId, nextProbables, nextWeekDays) : null;
 
     return { myThis, oppThis, myNext, oppNext };
   }, [startsApiData, matchupApiData, matchupProbables, nextProbables]);

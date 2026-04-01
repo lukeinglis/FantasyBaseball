@@ -396,32 +396,51 @@ export default function MatchupPage() {
     return Math.max(0, Math.ceil((end.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)));
   }, [data]);
 
-  // Count SP starts from probables for my team and opponent
+  // Estimate SP starts for both teams
+  // Uses confirmed PP data where available, then estimates remaining starts
+  // based on rotation math: each SP starts every ~5 games
   const startsCounts = useMemo(() => {
-    if (!probables || !startsData || !data) return null;
+    if (!startsData || !data) return null;
     const myTeam = startsData.teams.find((t) => t.teamId === data.myTeamId);
     const oppTeam = startsData.teams.find((t) => t.teamId === data.oppTeamId);
     if (!myTeam || !oppTeam) return null;
 
-    function countStarts(pitchers: { name: string; pos: string; proTeam: string; onIL: boolean }[]): number {
-      let count = 0;
-      for (const p of pitchers) {
-        if (p.onIL || p.pos !== "SP") continue;
-        // Match pitcher name to probables
-        const starts = probables!.byPitcher[p.name];
-        if (starts) { count += starts.length; continue; }
-        const lower = p.name.toLowerCase();
-        for (const [pName, pStarts] of Object.entries(probables!.byPitcher)) {
-          if (pName.toLowerCase() === lower) { count += pStarts.length; break; }
+    function estimateStarts(pitchers: { name: string; pos: string; proTeam: string; onIL: boolean }[]): number {
+      const activeSPs = pitchers.filter((p) => p.pos === "SP" && !p.onIL);
+      if (activeSPs.length === 0) return 0;
+
+      // Count confirmed PP starts from probables data
+      let confirmedStarts = 0;
+      const confirmedDates = new Set<string>();
+      if (probables) {
+        for (const p of activeSPs) {
+          let found = false;
+          const check = (starts: ProbableStart[]) => {
+            confirmedStarts += starts.length;
+            starts.forEach((s) => confirmedDates.add(s.date));
+            found = true;
+          };
+          if (probables.byPitcher[p.name]) { check(probables.byPitcher[p.name]); }
+          if (!found) {
+            const lower = p.name.toLowerCase();
+            for (const [pName, pStarts] of Object.entries(probables.byPitcher)) {
+              if (pName.toLowerCase() === lower) { check(pStarts); break; }
+            }
+          }
         }
       }
-      return count;
+
+      // For days without confirmed PP data, estimate based on rotation math:
+      // Each team uses a 5-man rotation → each SP starts every 5 team games
+      // Estimate: (remaining_unconfirmed_days × activeSPs) / 5
+      const unconfirmedDays = Math.max(0, daysLeft - confirmedDates.size);
+      const estimatedAdditional = Math.round((unconfirmedDays * activeSPs.length) / 5);
+
+      return confirmedStarts + estimatedAdditional;
     }
 
-    const mySPPitchers = myTeam.pitchers.filter((p) => p.pos === "SP");
-    const oppSPPitchers = oppTeam.pitchers.filter((p) => p.pos === "SP");
-    return { my: countStarts(mySPPitchers), opp: countStarts(oppSPPitchers) };
-  }, [probables, startsData, data]);
+    return { my: estimateStarts(myTeam.pitchers), opp: estimateStarts(oppTeam.pitchers) };
+  }, [probables, startsData, data, daysLeft]);
 
   const batCats = useMemo(() => data?.categories.filter((c) => BAT_CATS.includes(c.cat)) ?? [], [data]);
   const pitCats = useMemo(() => data?.categories.filter((c) => PIT_CATS.includes(c.cat)) ?? [], [data]);
