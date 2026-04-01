@@ -64,16 +64,10 @@ function parsePlayers(entries: any[], scoringPeriodId: number): MatchupPlayer[] 
     const statBlocks: any[] = player.stats ?? [];
     const stats: Record<string, number> = {};
 
-    // Use matchup period stats (splitType 5) if they have actual data,
-    // otherwise fall back to season stats (id "002026")
-    const matchupBlock = statBlocks.find((s: any) =>
-      s.statSplitTypeId === 5 && s.statSourceId === 0 && s.seasonId === 2026
-    );
+    // Use season stats (id "002026") — most reliable and matches ESPN's display
+    // Note: statSplitTypeId 5 is the current day only, not the full matchup period
     const seasonBlock = statBlocks.find((s: any) => s.id === "002026");
-
-    // Check if matchup block has meaningful stats (not empty)
-    const matchupHasStats = matchupBlock?.stats && Object.keys(matchupBlock.stats).length > 2;
-    const sourceBlock = matchupHasStats ? matchupBlock : seasonBlock;
+    const sourceBlock = seasonBlock;
 
     if (sourceBlock?.stats) {
       for (const [sid, val] of Object.entries(sourceBlock.stats)) {

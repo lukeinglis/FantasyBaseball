@@ -18,21 +18,36 @@ export interface StartsData {
 const MY_TEAM_ID = parseInt(process.env.MY_ESPN_TEAM_ID ?? "0");
 
 // Fetch MLB schedule to map ESPN game IDs (gamePk) to dates
+// Map ESPN game IDs to dates using ESPN's scoreboard API (NOT MLB's gamePk — different ID systems)
 async function buildGameIdDateMap(startDate: string, endDate: string): Promise<Record<string, string>> {
+  const map: Record<string, string> = {};
   try {
-    const url = `https://statsapi.mlb.com/api/v1/schedule?sportId=1&startDate=${startDate}&endDate=${endDate}&gameType=R`;
-    const res = await fetch(url, { next: { revalidate: 3600 } });
-    if (!res.ok) return {};
-    const data = await res.json();
-    const map: Record<string, string> = {};
-    for (const dateObj of data.dates ?? []) {
-      for (const game of dateObj.games ?? []) {
-        map[String(game.gamePk)] = dateObj.date;
-      }
+    // Iterate each day in the range and fetch ESPN scoreboard
+    const start = new Date(startDate + "T12:00:00");
+    const end = new Date(endDate + "T12:00:00");
+    const fetches: Promise<void>[] = [];
+
+    for (const d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+      const dateStr = d.toISOString().slice(0, 10);
+      const espnDate = dateStr.replace(/-/g, ""); // "20260401"
+      const url = `https://site.api.espn.com/apis/site/v2/sports/baseball/mlb/scoreboard?dates=${espnDate}`;
+
+      fetches.push(
+        fetch(url, { next: { revalidate: 3600 } })
+          .then((r) => r.json())
+          .then((data) => {
+            for (const event of data.events ?? []) {
+              map[String(event.id)] = dateStr;
+            }
+          })
+          .catch(() => {})
+      );
     }
+
+    await Promise.all(fetches);
     return map;
   } catch {
-    return {};
+    return map;
   }
 }
 
