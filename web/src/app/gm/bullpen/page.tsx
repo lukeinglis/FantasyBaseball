@@ -378,36 +378,30 @@ export default function BullpenPage() {
   const startsSummary = useMemo(() => {
     if (!startsApiData || !matchupApiData || !matchupProbables) return null;
 
-    function estimateTeamStarts(teamId: number, probs: ProbablePitchersData, periodDays: number): number {
+    // Use ESPN's starterStatusByProGame PP data for accurate start counts
+    function countPPStarts(teamId: number): number {
       const team = startsApiData!.teams.find((t) => t.teamId === teamId);
       if (!team) return 0;
-      const activeSPs = team.pitchers.filter((p) => p.pos === "SP" && !p.onIL);
-      if (activeSPs.length === 0) return 0;
-
-      // Count confirmed PP starts
-      let confirmed = 0;
-      const confirmedDates = new Set<string>();
-      for (const p of activeSPs) {
-        const starts = findPitcherStarts(p.name, p.proTeam, probs);
-        confirmed += starts.length;
-        starts.forEach((s) => confirmedDates.add(s.date));
-      }
-
-      // Estimate additional starts for unconfirmed days
-      // 5-man rotation: each SP starts every 5 team games
-      const unconfirmedDays = Math.max(0, periodDays - confirmedDates.size);
-      const estimatedExtra = Math.round((unconfirmedDays * activeSPs.length) / 5);
-
-      return confirmed + estimatedExtra;
+      return team.pitchers
+        .filter((p: any) => p.pos === "SP" && !p.onIL)
+        .reduce((sum: number, p: any) => sum + (p.ppCount ?? 0), 0);
     }
 
-    const thisWeekDays = matchupDates ? Math.ceil((new Date(matchupDates.end + "T23:59:59").getTime() - Date.now()) / 86400000) : 7;
-    const nextWeekDays = 7; // standard week
-
-    const myThis = estimateTeamStarts(matchupApiData.myTeamId, matchupProbables, thisWeekDays);
-    const oppThis = estimateTeamStarts(matchupApiData.oppTeamId, matchupProbables, thisWeekDays);
-    const myNext = nextProbables ? estimateTeamStarts(matchupApiData.myTeamId, nextProbables, nextWeekDays) : null;
-    const oppNext = nextProbables ? estimateTeamStarts(matchupApiData.oppTeamId, nextProbables, nextWeekDays) : null;
+    const myThis = countPPStarts(matchupApiData.myTeamId);
+    const oppThis = countPPStarts(matchupApiData.oppTeamId);
+    // For next week, fall back to probables-based count since PP data is for current period
+    const myNext = nextProbables ? (() => {
+      const team = startsApiData!.teams.find((t) => t.teamId === matchupApiData.myTeamId);
+      if (!team) return 0;
+      return team.pitchers.filter((p: any) => p.pos === "SP" && !p.onIL)
+        .reduce((sum: number, p: any) => sum + findPitcherStarts(p.name, p.proTeam, nextProbables!).length, 0);
+    })() : null;
+    const oppNext = nextProbables ? (() => {
+      const team = startsApiData!.teams.find((t) => t.teamId === matchupApiData.oppTeamId);
+      if (!team) return 0;
+      return team.pitchers.filter((p: any) => p.pos === "SP" && !p.onIL)
+        .reduce((sum: number, p: any) => sum + findPitcherStarts(p.name, p.proTeam, nextProbables!).length, 0);
+    })() : null;
 
     return { myThis, oppThis, myNext, oppNext };
   }, [startsApiData, matchupApiData, matchupProbables, nextProbables]);

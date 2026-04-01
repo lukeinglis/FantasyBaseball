@@ -6,7 +6,7 @@ import { espnFetch, hasEspnCreds, POS_MAP, getProTeam, getMatchupDates, getCurre
 export interface StartsTeam {
   teamId: number;
   teamName: string;
-  pitchers: { name: string; pos: string; proTeam: string; onIL: boolean }[];
+  pitchers: { name: string; pos: string; proTeam: string; onIL: boolean; ppCount: number }[];
 }
 
 export interface StartsData {
@@ -52,11 +52,17 @@ export async function GET() {
 
         const pName = player.fullName ?? "";
         const isIL = e.lineupSlotId === 12;
+
+        // Count ESPN's projected starts from starterStatusByProGame
+        const ppMap: Record<string, string> = player.starterStatusByProGame ?? {};
+        const ppCount = Object.values(ppMap).filter((s) => s === "PROBABLE").length;
+
         pitchers.push({
           name: pName,
           pos: POS_MAP[posId] ?? "?",
           proTeam: getProTeam(player),
           onIL: isIL,
+          ppCount, // ESPN's projected starts count
         });
         allRosteredPitchers.push(pName);
       }

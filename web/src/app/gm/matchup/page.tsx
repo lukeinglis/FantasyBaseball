@@ -396,51 +396,21 @@ export default function MatchupPage() {
     return Math.max(0, Math.ceil((end.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)));
   }, [data]);
 
-  // Estimate SP starts for both teams
-  // Uses confirmed PP data where available, then estimates remaining starts
-  // based on rotation math: each SP starts every ~5 games
+  // Count SP starts using ESPN's starterStatusByProGame PP data
   const startsCounts = useMemo(() => {
     if (!startsData || !data) return null;
-    const myTeam = startsData.teams.find((t) => t.teamId === data.myTeamId);
-    const oppTeam = startsData.teams.find((t) => t.teamId === data.oppTeamId);
+    const myTeam = startsData.teams.find((t: any) => t.teamId === data.myTeamId);
+    const oppTeam = startsData.teams.find((t: any) => t.teamId === data.oppTeamId);
     if (!myTeam || !oppTeam) return null;
 
-    function estimateStarts(pitchers: { name: string; pos: string; proTeam: string; onIL: boolean }[]): number {
-      const activeSPs = pitchers.filter((p) => p.pos === "SP" && !p.onIL);
-      if (activeSPs.length === 0) return 0;
-
-      // Count confirmed PP starts from probables data
-      let confirmedStarts = 0;
-      const confirmedDates = new Set<string>();
-      if (probables) {
-        for (const p of activeSPs) {
-          let found = false;
-          const check = (starts: ProbableStart[]) => {
-            confirmedStarts += starts.length;
-            starts.forEach((s) => confirmedDates.add(s.date));
-            found = true;
-          };
-          if (probables.byPitcher[p.name]) { check(probables.byPitcher[p.name]); }
-          if (!found) {
-            const lower = p.name.toLowerCase();
-            for (const [pName, pStarts] of Object.entries(probables.byPitcher)) {
-              if (pName.toLowerCase() === lower) { check(pStarts); break; }
-            }
-          }
-        }
-      }
-
-      // For days without confirmed PP data, estimate based on rotation math:
-      // Each team uses a 5-man rotation → each SP starts every 5 team games
-      // Estimate: (remaining_unconfirmed_days × activeSPs) / 5
-      const unconfirmedDays = Math.max(0, daysLeft - confirmedDates.size);
-      const estimatedAdditional = Math.round((unconfirmedDays * activeSPs.length) / 5);
-
-      return confirmedStarts + estimatedAdditional;
+    function countPPStarts(pitchers: any[]): number {
+      return pitchers
+        .filter((p: any) => p.pos === "SP" && !p.onIL)
+        .reduce((sum: number, p: any) => sum + (p.ppCount ?? 0), 0);
     }
 
-    return { my: estimateStarts(myTeam.pitchers), opp: estimateStarts(oppTeam.pitchers) };
-  }, [probables, startsData, data, daysLeft]);
+    return { my: countPPStarts(myTeam.pitchers), opp: countPPStarts(oppTeam.pitchers) };
+  }, [startsData, data]);
 
   const batCats = useMemo(() => data?.categories.filter((c) => BAT_CATS.includes(c.cat)) ?? [], [data]);
   const pitCats = useMemo(() => data?.categories.filter((c) => PIT_CATS.includes(c.cat)) ?? [], [data]);
