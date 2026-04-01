@@ -103,12 +103,13 @@ export function dayToDate(dayNum: number): string {
 export function buildMatchupSchedule(matchupCount: number): { start: string; end: string }[] {
   const schedule: { start: string; end: string }[] = [];
 
-  // First matchup: season start → first Sunday (or next if < 3 days)
+  // First matchup: season start → second Sunday (ESPN pattern for mid-week starts)
+  // Mar 25 (Wed) → skip Mar 29 (1st Sun) → Apr 5 (2nd Sun) = 12 days
   const firstStart = new Date(SEASON_START);
   const firstEnd = new Date(SEASON_START);
   const dow = firstStart.getDay(); // 0=Sun, 1=Mon, ..., 6=Sat
-  const daysToSunday = dow === 0 ? 7 : (7 - dow);
-  firstEnd.setDate(firstEnd.getDate() + (daysToSunday < 3 ? daysToSunday + 7 : daysToSunday));
+  const daysToFirstSunday = dow === 0 ? 7 : (7 - dow);
+  firstEnd.setDate(firstEnd.getDate() + daysToFirstSunday + 7);
 
   schedule.push({
     start: firstStart.toISOString().slice(0, 10),
