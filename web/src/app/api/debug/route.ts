@@ -1,51 +1,47 @@
-import { espnFetch, hasEspnCreds } from "@/lib/espn";
+import { espnFetch, hasEspnCreds, getProTeam } from "@/lib/espn";
 
 export async function GET() {
   if (!hasEspnCreds()) return Response.json({ error: "ESPN_CREDS_MISSING" }, { status: 401 });
   try {
-    // Fetch roster with extended views to find PP data
     const data: any = await espnFetch(["mRoster", "mTeam", "mStatus"]);
     const myTeamId = parseInt(process.env.MY_ESPN_TEAM_ID ?? "0");
-    const myTeam = (data.teams ?? []).find((t: any) => t.id === myTeamId);
-    if (!myTeam) return Response.json({ error: "NO_TEAM" });
 
-    // Find a known PP pitcher (Tanner Bibee or Casey Mize based on ESPN screenshots)
-    const entries = myTeam.roster?.entries ?? [];
-    const pitcher = entries.find((e: any) => {
-      const name = e.playerPoolEntry?.player?.fullName ?? "";
-      return name.includes("Bibee") || name.includes("Mize") || name.includes("Rogers");
-    });
+    // Count PP for all teams
+    const teamPPCounts: Record<string, { name: string; pitchers: { name: string; ppCount: number; ppGames: string[] }[] }> = {};
 
-    if (!pitcher) return Response.json({ error: "NO_PITCHER_FOUND" });
+    for (const team of data.teams ?? []) {
+      const teamName = `${team.location ?? ""} ${team.nickname ?? ""}`.trim();
+      const pitchers: { name: string; ppCount: number; ppGames: string[] }[] = [];
 
-    const player = pitcher.playerPoolEntry?.player ?? {};
-    const ppe = pitcher.playerPoolEntry ?? {};
+      for (const entry of team.roster?.entries ?? []) {
+        const player = entry.playerPoolEntry?.player ?? {};
+        const posId = player.defaultPositionId;
+        if (posId !== 1 && posId !== 11) continue; // SP or RP only
 
-    // Dump ALL fields to find where PP data lives
+        const ppMap = player.starterStatusByProGame ?? {};
+        const ppGames = Object.entries(ppMap)
+          .filter(([, status]) => status === "PROBABLE")
+          .map(([gameId]) => gameId);
+
+        if (ppGames.length > 0 || posId === 1) {
+          pitchers.push({
+            name: player.fullName ?? "?",
+            ppCount: ppGames.length,
+            ppGames,
+          });
+        }
+      }
+
+      const totalPP = pitchers.reduce((sum, p) => sum + p.ppCount, 0);
+      teamPPCounts[team.id] = {
+        name: `${teamName} (${totalPP} starts)`,
+        pitchers: pitchers.sort((a, b) => b.ppCount - a.ppCount),
+      };
+    }
+
     return Response.json({
-      playerName: player.fullName,
-      // Check for starterStatus fields
-      starterStatusByProGame: player.starterStatusByProGame,
-      // Check for lineup/start info
-      lineupSlotId: pitcher.lineupSlotId,
-      // All top-level player keys
-      playerKeys: Object.keys(player).sort(),
-      // All playerPoolEntry keys
-      ppeKeys: Object.keys(ppe).sort(),
-      // All roster entry keys
-      entryKeys: Object.keys(pitcher).sort(),
-      // Check for any "start" or "probable" related fields
-      ownership: player.ownership,
-      rankings: ppe.ratings,
-      // Player's full proGamesByScoringPeriod if it exists
-      proGamesByScoringPeriod: player.proGamesByScoringPeriod,
-      // starterStatus
-      starterStatus: player.starterStatus,
-      // Check the entry's acquisitionDate and other metadata
-      acquisitionDate: pitcher.acquisitionDate,
-      // Look for any schedule data
-      draftRanksByRankType: player.draftRanksByRankType ? "exists" : "missing",
-      eligibleSlots: player.eligibleSlots,
+      myTeamId,
+      teamPPCounts,
     });
   } catch (err) {
     return Response.json({ error: String(err) }, { status: 502 });
