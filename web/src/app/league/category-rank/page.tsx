@@ -11,12 +11,18 @@ interface TeamCategoryStats {
   ties: number;
   categories: Record<string, number>;
   ranks: Record<string, number>;
+  deltas: Record<string, number>;
+  battingAvgRank: number;
+  pitchingAvgRank: number;
+  compositeAvgRank: number;
+  powerRank: number;
 }
 
 interface LeagueStatsData {
   scoringPeriodId: number;
   myTeamId: number;
   teams: TeamCategoryStats[];
+  averages: Record<string, number>;
 }
 
 const BAT_CATS = ["H", "R", "HR", "TB", "RBI", "BB", "SB", "AVG"];
@@ -45,6 +51,18 @@ function fmtValue(cat: string, val: number | undefined): string {
   if (cat === "AVG") return val.toFixed(3);
   if (cat === "ERA" || cat === "WHIP") return val.toFixed(2);
   return String(Math.round(val));
+}
+
+function fmtDelta(cat: string, delta: number | undefined): string {
+  if (delta === undefined) return "";
+  if (cat === "AVG") return (delta >= 0 ? "+" : "") + delta.toFixed(3);
+  if (cat === "ERA" || cat === "WHIP") return (delta >= 0 ? "+" : "") + delta.toFixed(2);
+  return (delta >= 0 ? "+" : "") + delta.toFixed(1);
+}
+
+function deltaColor(delta: number | undefined): string {
+  if (delta === undefined || delta === 0) return "text-slate-400";
+  return delta > 0 ? "text-emerald-600" : "text-red-500";
 }
 
 function EspnSetupCard() {
@@ -160,6 +178,7 @@ export default function CategoryRankPage() {
                 {cats.map((cat) => {
                   const rank = myTeam.ranks[cat] ?? 0;
                   const val = myTeam.categories[cat];
+                  const delta = myTeam.deltas?.[cat];
                   return (
                     <div key={cat} className={`rounded-lg border px-3 py-3 text-center ${rankBg(rank)}`}>
                       <div className="text-[10px] font-bold text-slate-500">{cat}</div>
@@ -169,6 +188,11 @@ export default function CategoryRankPage() {
                       <div className="mt-0.5 text-[11px] font-mono text-slate-500">
                         {fmtValue(cat, val)}
                       </div>
+                      {delta !== undefined && (
+                        <div className={`mt-0.5 text-[10px] font-mono tabular-nums ${deltaColor(delta)}`}>
+                          {fmtDelta(cat, delta)}
+                        </div>
+                      )}
                     </div>
                   );
                 })}
@@ -249,12 +273,18 @@ export default function CategoryRankPage() {
                           {cats.map((cat) => {
                             const rank = team.ranks[cat] ?? 0;
                             const val = team.categories[cat];
+                            const delta = team.deltas?.[cat];
                             return (
                               <td key={cat} className="px-2 py-2 text-right">
                                 <div className={`font-mono tabular-nums ${rankColor(rank)}`}>
                                   {fmtValue(cat, val)}
                                 </div>
                                 <div className={`text-[9px] ${rankColor(rank)}`}>#{rank}</div>
+                                {delta !== undefined && (
+                                  <div className={`text-[9px] font-mono tabular-nums ${deltaColor(delta)}`}>
+                                    {fmtDelta(cat, delta)}
+                                  </div>
+                                )}
                               </td>
                             );
                           })}

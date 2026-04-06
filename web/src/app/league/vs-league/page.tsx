@@ -11,12 +11,18 @@ interface TeamCategoryStats {
   ties: number;
   categories: Record<string, number>;
   ranks: Record<string, number>;
+  deltas: Record<string, number>;
+  battingAvgRank: number;
+  pitchingAvgRank: number;
+  compositeAvgRank: number;
+  powerRank: number;
 }
 
 interface LeagueStatsData {
   scoringPeriodId: number;
   myTeamId: number;
   teams: TeamCategoryStats[];
+  averages: Record<string, number>;
 }
 
 const BAT_CATS = ["H", "R", "HR", "TB", "RBI", "BB", "SB", "AVG"];
@@ -50,6 +56,16 @@ function fmtValue(cat: string, val: number | undefined): string {
   if (cat === "AVG") return val.toFixed(3);
   if (cat === "ERA" || cat === "WHIP") return val.toFixed(2);
   return String(Math.round(val));
+}
+
+function rankLabel(rank: number): string {
+  return rank.toFixed(1);
+}
+
+function compColor(myRank: number, oppRank: number): string {
+  if (myRank < oppRank) return "text-emerald-600";
+  if (myRank > oppRank) return "text-red-600";
+  return "text-orange-600";
 }
 
 function EspnSetupCard() {
@@ -193,6 +209,15 @@ export default function VsLeaguePage() {
                       {isWin ? "W" : isLoss ? "L" : "T"}
                     </span>
                     <span className="text-[14px] font-medium text-slate-700">{r.oppTeamName}</span>
+                    {(() => {
+                      const oppTeamData = data.teams.find((t) => t.teamId === r.oppTeamId);
+                      if (!oppTeamData || !myTeam) return null;
+                      return (
+                        <span className="text-[10px] text-slate-400 tabular-nums hidden sm:inline">
+                          PWR #{oppTeamData.powerRank}
+                        </span>
+                      );
+                    })()}
                   </div>
                   <div className="flex items-center gap-3">
                     <span className={`text-[16px] font-bold tabular-nums ${resultColor(r.wins, r.losses)}`}>
@@ -204,33 +229,64 @@ export default function VsLeaguePage() {
               </button>
 
               {/* Expanded category breakdown */}
-              {isExpanded && (
-                <div className="mt-1 rounded-lg border border-border bg-surface px-2 py-2">
-                  <div className="grid grid-cols-8 sm:grid-cols-16 gap-0">
-                    {ALL_CATS.map((cat) => {
-                      const result = r.catResults[cat];
-                      const myVal = myTeam.categories[cat];
-                      const oppTeamData = data.teams.find((t) => t.teamId === r.oppTeamId);
-                      const oppVal = oppTeamData?.categories[cat];
-                      return (
-                        <div key={cat} className={`px-1.5 py-2 text-center border-r border-border last:border-r-0 ${
-                          result === "W" ? "bg-emerald-50" : result === "L" ? "bg-red-50" : ""
-                        }`}>
-                          <div className="text-[9px] font-bold text-slate-500">{cat}</div>
-                          <div className={`text-[11px] font-mono tabular-nums font-bold ${
-                            result === "W" ? "text-emerald-600" : result === "L" ? "text-red-600" : "text-orange-600"
+              {isExpanded && (() => {
+                const oppTeamData = data.teams.find((t) => t.teamId === r.oppTeamId);
+                return (
+                  <div className="mt-1 rounded-lg border border-border bg-surface px-2 py-2">
+                    {/* Batting / Pitching / Overall subtotal bar */}
+                    {oppTeamData && myTeam && (
+                      <div className="flex items-center justify-center gap-6 border-b border-border pb-2 mb-2 text-[11px]">
+                        {[
+                          { label: "BAT", my: myTeam.battingAvgRank, opp: oppTeamData.battingAvgRank },
+                          { label: "PIT", my: myTeam.pitchingAvgRank, opp: oppTeamData.pitchingAvgRank },
+                          { label: "ALL", my: myTeam.compositeAvgRank, opp: oppTeamData.compositeAvgRank },
+                        ].map(({ label, my: myR, opp: oppR }) => (
+                          <div key={label} className="flex items-center gap-1.5">
+                            <span className="text-[9px] font-bold text-slate-400">{label}</span>
+                            <span className={`font-mono font-bold tabular-nums ${compColor(myR, oppR)}`}>
+                              {rankLabel(myR)}
+                            </span>
+                            <span className="text-slate-300">vs</span>
+                            <span className="font-mono tabular-nums text-slate-500">
+                              {rankLabel(oppR)}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    <div className="grid grid-cols-8 sm:grid-cols-16 gap-0">
+                      {ALL_CATS.map((cat) => {
+                        const result = r.catResults[cat];
+                        const myVal = myTeam.categories[cat];
+                        const myRank = myTeam.ranks[cat];
+                        const oppVal = oppTeamData?.categories[cat];
+                        const oppRank = oppTeamData?.ranks[cat];
+                        return (
+                          <div key={cat} className={`px-1.5 py-2 text-center border-r border-border last:border-r-0 ${
+                            result === "W" ? "bg-emerald-50" : result === "L" ? "bg-red-50" : ""
                           }`}>
-                            {fmtValue(cat, myVal)}
+                            <div className="text-[9px] font-bold text-slate-500">{cat}</div>
+                            <div className={`text-[11px] font-mono tabular-nums font-bold ${
+                              result === "W" ? "text-emerald-600" : result === "L" ? "text-red-600" : "text-orange-600"
+                            }`}>
+                              {fmtValue(cat, myVal)}
+                              {myRank !== undefined && (
+                                <span className="text-[8px] ml-0.5 opacity-60">#{myRank}</span>
+                              )}
+                            </div>
+                            <div className="text-[9px] font-mono tabular-nums text-slate-400">
+                              {fmtValue(cat, oppVal)}
+                              {oppRank !== undefined && (
+                                <span className="text-[8px] ml-0.5 opacity-60">#{oppRank}</span>
+                              )}
+                            </div>
                           </div>
-                          <div className="text-[9px] font-mono tabular-nums text-slate-400">
-                            {fmtValue(cat, oppVal)}
-                          </div>
-                        </div>
-                      );
-                    })}
+                        );
+                      })}
+                    </div>
                   </div>
-                </div>
-              )}
+                );
+              })()}
             </div>
           );
         })}
