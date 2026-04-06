@@ -1,3 +1,4 @@
+export const dynamic = "force-dynamic";
 import { espnFetch, hasEspnCreds, SLOT_MAP, POS_MAP, INJURY_MAP, getProTeam } from "@/lib/espn";
 
 export interface RosterPlayer {

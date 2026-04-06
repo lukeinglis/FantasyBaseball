@@ -1,3 +1,4 @@
+export const dynamic = "force-dynamic";
 import { espnFetch, hasEspnCreds, POS_MAP, SLOT_MAP, INJURY_MAP, STAT_ID_MAP, getProTeam, getMatchupDates, getCurrentMatchupPeriod } from "@/lib/espn";
 
 export interface MatchupCatResult {

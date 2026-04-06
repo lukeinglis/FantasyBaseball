@@ -1,3 +1,4 @@
+export const dynamic = "force-dynamic";
 import { espnFetch, hasEspnCreds, getCurrentMatchupPeriod, buildMatchupSchedule, SEASON_START } from "@/lib/espn";
 
 // Returns the full season schedule with matchup periods, dates, and opponents

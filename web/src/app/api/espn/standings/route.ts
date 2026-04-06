@@ -1,3 +1,4 @@
+export const dynamic = "force-dynamic";
 import { espnFetch, hasEspnCreds } from "@/lib/espn";
 
 export interface StandingsTeam {

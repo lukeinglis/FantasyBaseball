@@ -1,3 +1,4 @@
+export const dynamic = "force-dynamic";
 import { hasEspnCreds, STAT_ID_MAP, getProTeam } from "@/lib/espn";
 
 // Fetch current season stats for all rostered players

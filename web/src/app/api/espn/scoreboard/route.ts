@@ -1,3 +1,4 @@
+export const dynamic = "force-dynamic";
 import { espnFetch, hasEspnCreds, STAT_ID_MAP } from "@/lib/espn";
 
 export interface ScoreboardMatchup {
