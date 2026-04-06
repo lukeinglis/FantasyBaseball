@@ -136,11 +136,16 @@ function parseMatchup(data: any, myTeamId: number): MatchupData | null {
   const myStats: Record<string, { score: number; result: string | null }> = {};
   const oppStats: Record<string, { score: number }> = {};
 
+  // Helper: sanitize ESPN values that may be Infinity/NaN/strings (e.g. ERA at 0 IP)
+  const cleanNumber = (v: unknown): number | null => {
+    if (typeof v === "number" && Number.isFinite(v)) return v;
+    return null;
+  };
   for (const [statId, statData] of Object.entries(myCumulative.scoreByStat ?? {})) {
     const cat = STAT_ID_MAP[parseInt(statId)];
     if (cat) {
       myStats[cat] = {
-        score: (statData as any).score ?? 0,
+        score: cleanNumber((statData as any).score) ?? 0,
         result: (statData as any).result ?? null,
       };
     }
@@ -148,7 +153,7 @@ function parseMatchup(data: any, myTeamId: number): MatchupData | null {
   for (const [statId, statData] of Object.entries(oppCumulative.scoreByStat ?? {})) {
     const cat = STAT_ID_MAP[parseInt(statId)];
     if (cat) {
-      oppStats[cat] = { score: (statData as any).score ?? 0 };
+      oppStats[cat] = { score: cleanNumber((statData as any).score) ?? 0 };
     }
   }
 

@@ -90,6 +90,11 @@ export async function GET() {
     // We need the season-wide view. Let's use the current matchup's cumulative which ESPN
     // calculates as season totals within the H2H context.
     // Re-approach: just use the current matchup period's cumulative scores which reflect season totals
+    // Sanitize ESPN values that may be Infinity/NaN/strings (e.g. ERA at 0 IP)
+    const cleanScore = (v: unknown): number => {
+      if (typeof v === "number" && Number.isFinite(v)) return v;
+      return 0;
+    };
     const currentTeamStats: Record<number, Record<string, number>> = {};
     for (const matchup of schedule) {
       if (matchup.matchupPeriodId !== currentMatchupPeriod) continue;
@@ -101,7 +106,8 @@ export async function GET() {
         for (const [statId, statData] of Object.entries(scoreByStat)) {
           const cat = STAT_ID_MAP[parseInt(statId)];
           if (!cat) continue;
-          currentTeamStats[teamId][cat] = (statData as any).score ?? 0;
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          currentTeamStats[teamId][cat] = cleanScore((statData as any).score);
         }
       }
     }

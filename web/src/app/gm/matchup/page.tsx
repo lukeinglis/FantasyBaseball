@@ -98,7 +98,7 @@ function catBg(result: string) {
 }
 
 function fmtCat(cat: string, val: number | null): string {
-  if (val === null) return "—";
+  if (typeof val !== "number" || !Number.isFinite(val)) return "—";
   if (cat === "AVG" || cat === "ERA" || cat === "WHIP") return val.toFixed(3);
   return String(Math.round(val));
 }
@@ -166,7 +166,7 @@ function fmtDateRange(start: string | null, end: string | null): string {
 }
 
 function fmtPlayerStat(cat: string, val: number | undefined): string {
-  if (val === undefined || val === null) return "-";
+  if (typeof val !== "number" || !Number.isFinite(val)) return "-";
   if (cat === "AVG") return val.toFixed(3);
   if (cat === "ERA" || cat === "WHIP") return val.toFixed(2);
   if (cat === "IP") return val.toFixed(1);

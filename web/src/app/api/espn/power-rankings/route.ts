@@ -23,6 +23,11 @@ function buildSnapshotForPeriod(
   matchupPeriodId: number,
   weights: Record<string, number>,
 ): WeekSnapshot {
+  // Sanitize ESPN values that may be Infinity/NaN/strings (e.g. ERA at 0 IP)
+  const cleanScore = (v: unknown): number => {
+    if (typeof v === "number" && Number.isFinite(v)) return v;
+    return 0;
+  };
   // Extract each team's cumulative stats for this matchup period
   const teamStats: Record<number, Record<string, number>> = {};
   for (const matchup of schedule) {
@@ -35,7 +40,8 @@ function buildSnapshotForPeriod(
       for (const [statId, statData] of Object.entries(scoreByStat)) {
         const cat = STAT_ID_MAP[parseInt(statId)];
         if (!cat) continue;
-        teamStats[teamId][cat] = (statData as any).score ?? 0; // eslint-disable-line @typescript-eslint/no-explicit-any
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        teamStats[teamId][cat] = cleanScore((statData as any).score);
       }
     }
   }
