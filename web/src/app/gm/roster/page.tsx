@@ -3,7 +3,7 @@
 const IL_INJURY_STATUSES = new Set(["SEVEN_DAY_DL", "TEN_DAY_DL", "FIFTEEN_DAY_DL", "SIXTY_DAY_DL", "OUT"]);
 function isOnIL(status: string): boolean { return IL_INJURY_STATUSES.has(status); }
 
-import { useState, useEffect, useMemo, useCallback } from "react";
+import { useState, useEffect, useMemo } from "react";
 
 interface RosterPlayer {
   name: string;
@@ -163,10 +163,8 @@ interface GmAdvice {
   week: string[];
   month: string[];
   season: string[];
-  generatedAt: string;
+  generatedAt: string | null;
 }
-
-const GM_CACHE_KEY = "gmAdviceV1";
 
 const TABS: { key: keyof Omit<GmAdvice, "generatedAt">; label: string; accent: string; bullet: string }[] = [
   { key: "week",   label: "This Week",      accent: "border-orange-400 bg-orange-50 text-orange-700", bullet: "text-orange-500" },
@@ -176,37 +174,19 @@ const TABS: { key: keyof Omit<GmAdvice, "generatedAt">; label: string; accent: s
 
 function GmAdvisor() {
   const [advice, setAdvice] = useState<GmAdvice | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<keyof Omit<GmAdvice, "generatedAt">>("week");
 
   useEffect(() => {
-    try {
-      const raw = localStorage.getItem(GM_CACHE_KEY);
-      if (raw) {
-        const parsed: GmAdvice = JSON.parse(raw);
-        if (parsed.generatedAt) setAdvice(parsed);
-      }
-    } catch { /* ignore */ }
-  }, []);
-
-  const generate = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const r = await fetch("/api/analysis/gm-advice");
-      const d: GmAdvice & { error?: string } = await r.json();
-      if (d.error) { setError(d.error); return; }
-      setAdvice(d);
-      try { localStorage.setItem(GM_CACHE_KEY, JSON.stringify(d)); } catch { /* ignore */ }
-    } catch {
-      setError("Network error — try again");
-    } finally {
-      setLoading(false);
-    }
+    fetch("/gm-advice.json")
+      .then(r => r.ok ? r.json() : null)
+      .then((d: GmAdvice | null) => { if (d?.generatedAt) setAdvice(d); })
+      .catch(() => {})
+      .finally(() => setLoading(false));
   }, []);
 
   const activeStyle = TABS.find(t => t.key === activeTab)!;
+  const hasAdvice = advice && advice.week.length > 0;
 
   return (
     <div className="mt-6 rounded-xl border border-border bg-surface overflow-hidden">
@@ -216,39 +196,32 @@ function GmAdvisor() {
           <div className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">AI · Claude Opus</div>
           <div className="text-[14px] font-bold text-slate-800">GM Advisor</div>
         </div>
-        <button
-          onClick={generate}
-          disabled={loading}
-          className="rounded-lg bg-orange-600 px-3 py-1.5 text-[12px] font-semibold text-white hover:bg-orange-700 disabled:opacity-50 transition-colors"
-        >
-          {loading ? "Analyzing…" : advice ? "Refresh" : "Generate Analysis"}
-        </button>
+        {advice?.generatedAt && (
+          <span className="text-[10px] text-slate-400">
+            Updated {new Date(advice.generatedAt).toLocaleDateString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })}
+          </span>
+        )}
       </div>
-
-      {/* Empty state */}
-      {!advice && !loading && !error && (
-        <div className="px-6 py-10 text-center text-[13px] text-slate-400">
-          Hit Generate to get a harsh, data-driven GM assessment of your roster.
-        </div>
-      )}
 
       {/* Loading */}
       {loading && (
-        <div className="flex flex-col items-center gap-3 px-6 py-10">
-          <div className="h-5 w-5 animate-spin rounded-full border-2 border-orange-500 border-t-transparent" />
-          <div className="text-[12px] text-slate-500">
-            Pulling roster, matchup, league stats, and free agents — this takes ~15s…
+        <div className="flex items-center justify-center px-6 py-8">
+          <div className="h-4 w-4 animate-spin rounded-full border-2 border-orange-500 border-t-transparent" />
+        </div>
+      )}
+
+      {/* Empty state */}
+      {!loading && !hasAdvice && (
+        <div className="px-6 py-10 text-center">
+          <div className="text-[13px] text-slate-500">No analysis yet.</div>
+          <div className="mt-2 text-[12px] text-slate-400">
+            Run <code className="rounded bg-slate-100 px-1.5 py-0.5 font-mono text-slate-600">/gm-advice</code> in Claude Code to generate.
           </div>
         </div>
       )}
 
-      {/* Error */}
-      {error && !loading && (
-        <div className="px-5 py-4 text-[12px] text-red-600">{error}</div>
-      )}
-
       {/* Advice */}
-      {advice && !loading && (
+      {!loading && hasAdvice && (
         <>
           {/* Tab bar */}
           <div className="flex border-b border-border text-[11px] font-semibold">
@@ -270,15 +243,15 @@ function GmAdvisor() {
           {/* Bullets */}
           <div className="px-5 py-5">
             <ul className="space-y-3">
-              {(advice[activeTab] ?? []).map((bullet, i) => (
+              {(advice![activeTab] ?? []).map((bullet, i) => (
                 <li key={i} className="flex gap-2.5 leading-snug">
                   <span className={`mt-0.5 shrink-0 text-[18px] leading-none ${activeStyle.bullet}`}>›</span>
                   <span className="text-[13px] text-slate-700">{bullet}</span>
                 </li>
               ))}
             </ul>
-            <div className="mt-5 text-[10px] text-slate-400">
-              Generated {new Date(advice.generatedAt).toLocaleString()}
+            <div className="mt-4 text-[10px] text-slate-400">
+              Run <code className="font-mono">/gm-advice</code> in Claude Code to refresh
             </div>
           </div>
         </>
