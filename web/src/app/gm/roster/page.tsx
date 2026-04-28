@@ -3,7 +3,7 @@
 const IL_INJURY_STATUSES = new Set(["SEVEN_DAY_DL", "TEN_DAY_DL", "FIFTEEN_DAY_DL", "SIXTY_DAY_DL", "OUT"]);
 function isOnIL(status: string): boolean { return IL_INJURY_STATUSES.has(status); }
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 
 interface RosterPlayer {
   name: string;
@@ -153,6 +153,139 @@ function PlayerRow({
           </span>
         )}
       </div>
+    </div>
+  );
+}
+
+// ── GM Advisor ────────────────────────────────────────────────────────────────
+
+interface GmAdvice {
+  week: string[];
+  month: string[];
+  season: string[];
+  generatedAt: string;
+}
+
+const GM_CACHE_KEY = "gmAdviceV1";
+const GM_CACHE_TTL = 30 * 60 * 1000;
+
+const TABS: { key: keyof Omit<GmAdvice, "generatedAt">; label: string; accent: string; bullet: string }[] = [
+  { key: "week",   label: "This Week",      accent: "border-orange-400 bg-orange-50 text-orange-700", bullet: "text-orange-500" },
+  { key: "month",  label: "Next 30 Days",   accent: "border-blue-400 bg-blue-50 text-blue-700",       bullet: "text-blue-500"   },
+  { key: "season", label: "Win the League", accent: "border-purple-400 bg-purple-50 text-purple-700", bullet: "text-purple-500" },
+];
+
+function GmAdvisor() {
+  const [advice, setAdvice] = useState<GmAdvice | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<keyof Omit<GmAdvice, "generatedAt">>("week");
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(GM_CACHE_KEY);
+      if (raw) {
+        const parsed: GmAdvice = JSON.parse(raw);
+        if (parsed.generatedAt && Date.now() - new Date(parsed.generatedAt).getTime() < GM_CACHE_TTL) {
+          setAdvice(parsed);
+        }
+      }
+    } catch { /* ignore */ }
+  }, []);
+
+  const generate = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const r = await fetch("/api/analysis/gm-advice");
+      const d: GmAdvice & { error?: string } = await r.json();
+      if (d.error) { setError(d.error); return; }
+      setAdvice(d);
+      try { localStorage.setItem(GM_CACHE_KEY, JSON.stringify(d)); } catch { /* ignore */ }
+    } catch {
+      setError("Network error — try again");
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const activeStyle = TABS.find(t => t.key === activeTab)!;
+
+  return (
+    <div className="mt-6 rounded-xl border border-border bg-surface overflow-hidden">
+      {/* Header */}
+      <div className="flex items-center justify-between border-b border-border px-4 py-3">
+        <div>
+          <div className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">AI · Claude Opus</div>
+          <div className="text-[14px] font-bold text-slate-800">GM Advisor</div>
+        </div>
+        <button
+          onClick={generate}
+          disabled={loading}
+          className="rounded-lg bg-orange-600 px-3 py-1.5 text-[12px] font-semibold text-white hover:bg-orange-700 disabled:opacity-50 transition-colors"
+        >
+          {loading ? "Analyzing…" : advice ? "Refresh" : "Generate Analysis"}
+        </button>
+      </div>
+
+      {/* Empty state */}
+      {!advice && !loading && !error && (
+        <div className="px-6 py-10 text-center text-[13px] text-slate-400">
+          Hit Generate to get a harsh, data-driven GM assessment of your roster.
+        </div>
+      )}
+
+      {/* Loading */}
+      {loading && (
+        <div className="flex flex-col items-center gap-3 px-6 py-10">
+          <div className="h-5 w-5 animate-spin rounded-full border-2 border-orange-500 border-t-transparent" />
+          <div className="text-[12px] text-slate-500">
+            Pulling roster, matchup, league stats, and free agents — this takes ~15s…
+          </div>
+        </div>
+      )}
+
+      {/* Error */}
+      {error && !loading && (
+        <div className="px-5 py-4 text-[12px] text-red-600">{error}</div>
+      )}
+
+      {/* Advice */}
+      {advice && !loading && (
+        <>
+          {/* Tab bar */}
+          <div className="flex border-b border-border text-[11px] font-semibold">
+            {TABS.map(t => (
+              <button
+                key={t.key}
+                onClick={() => setActiveTab(t.key)}
+                className={`flex-1 px-3 py-2.5 transition-colors ${
+                  activeTab === t.key
+                    ? `border-b-2 ${t.accent}`
+                    : "text-slate-500 hover:text-slate-700"
+                }`}
+              >
+                {t.label}
+              </button>
+            ))}
+          </div>
+
+          {/* Bullets */}
+          <div className="px-5 py-5">
+            <ul className="space-y-3">
+              {(advice[activeTab] ?? []).map((bullet, i) => (
+                <li key={i} className="flex gap-2.5 leading-snug">
+                  <span className={`mt-0.5 shrink-0 text-[18px] leading-none ${activeStyle.bullet}`}>›</span>
+                  <span className="text-[13px] text-slate-700">{bullet}</span>
+                </li>
+              ))}
+            </ul>
+            <div className="mt-5 text-[10px] text-slate-400">
+              Generated {new Date(advice.generatedAt).toLocaleString()}
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 }
@@ -367,6 +500,9 @@ export default function RosterPage() {
           </div>
         </div>
       )}
+
+      {/* GM Advisor */}
+      <GmAdvisor />
     </div>
   );
 }
