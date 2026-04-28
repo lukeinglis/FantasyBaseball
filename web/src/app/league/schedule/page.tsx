@@ -18,6 +18,18 @@ interface ScheduleData {
   weeks: MatchupWeek[];
 }
 
+interface TeamRankInfo {
+  powerRank: number;
+  compositeAvgRank: number;
+}
+
+function difficultyLabel(rank: number): { label: string; color: string } {
+  if (rank <= 2) return { label: "Hard", color: "text-red-600 bg-red-50 border-red-200" };
+  if (rank <= 4) return { label: "Tough", color: "text-orange-600 bg-orange-50 border-orange-200" };
+  if (rank <= 7) return { label: "Even", color: "text-slate-500 bg-slate-50 border-slate-200" };
+  return { label: "Easy", color: "text-emerald-600 bg-emerald-50 border-emerald-200" };
+}
+
 function fmtDateRange(start: string, end: string): string {
   const s = new Date(start + "T12:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric" });
   const e = new Date(end + "T12:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric" });
@@ -39,19 +51,28 @@ function EspnSetupCard() {
 
 export default function SchedulePage() {
   const [data, setData] = useState<ScheduleData | null>(null);
+  const [teamRanks, setTeamRanks] = useState<Record<number, TeamRankInfo>>({});
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const currentRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    fetch("/api/espn/schedule")
-      .then((r) => r.json())
-      .then((d) => {
-        if (d.error) { setError(d.error); return; }
-        setData(d);
-      })
-      .catch(() => setError("FETCH_FAILED"))
-      .finally(() => setLoading(false));
+    Promise.all([
+      fetch("/api/espn/schedule").then(r => r.json()),
+      fetch("/api/espn/league-stats?scope=season").then(r => r.json()).catch(() => null),
+    ]).then(([schedData, leagueData]) => {
+      if (schedData.error) { setError(schedData.error); return; }
+      setData(schedData);
+      if (leagueData?.teams) {
+        const ranks: Record<number, TeamRankInfo> = {};
+        for (const t of leagueData.teams) {
+          ranks[t.teamId] = { powerRank: t.powerRank, compositeAvgRank: t.compositeAvgRank };
+        }
+        setTeamRanks(ranks);
+      }
+    })
+    .catch(() => setError("FETCH_FAILED"))
+    .finally(() => setLoading(false));
   }, []);
 
   // Auto-scroll to current week
@@ -121,9 +142,16 @@ export default function SchedulePage() {
               </div>
               <div className="flex items-center gap-3">
                 {week.myOpponentName ? (
-                  <span className={`text-[13px] font-medium ${isCurrent ? "text-orange-700" : "text-slate-700"}`}>
-                    vs {week.myOpponentName}
-                  </span>
+                  <>
+                    <span className={`text-[13px] font-medium ${isCurrent ? "text-orange-700" : "text-slate-700"}`}>
+                      vs {week.myOpponentName}
+                    </span>
+                    {week.myOpponentId && teamRanks[week.myOpponentId] && (
+                      <span className={`text-[9px] font-bold border rounded px-1.5 py-0.5 ${difficultyLabel(teamRanks[week.myOpponentId].powerRank).color}`}>
+                        #{teamRanks[week.myOpponentId].powerRank} {difficultyLabel(teamRanks[week.myOpponentId].powerRank).label}
+                      </span>
+                    )}
+                  </>
                 ) : (
                   <span className="text-[12px] text-slate-400">TBD</span>
                 )}

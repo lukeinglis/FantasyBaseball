@@ -2,6 +2,13 @@
 
 import { useState, useEffect } from "react";
 
+interface ScoreboardCatResult {
+  cat: string;
+  homeValue: number;
+  awayValue: number;
+  result: "HOME" | "AWAY" | "TIE";
+}
+
 interface ScoreboardMatchup {
   homeTeamId: number;
   homeTeamName: string;
@@ -13,12 +20,19 @@ interface ScoreboardMatchup {
   awayWins: number;
   awayLosses: number;
   awayTies: number;
+  categories?: ScoreboardCatResult[];
 }
 
 interface ScoreboardData {
   currentMatchupPeriod: number;
   myTeamId: number;
   matchups: ScoreboardMatchup[];
+}
+
+function fmtCatVal(cat: string, val: number): string {
+  if (cat === "AVG") return val.toFixed(3);
+  if (cat === "ERA" || cat === "WHIP") return val.toFixed(2);
+  return String(Math.round(val));
 }
 
 function resultColor(w: number, l: number): string {
@@ -40,6 +54,7 @@ export default function ScoreboardPage() {
   const [data, setData] = useState<ScoreboardData | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [expanded, setExpanded] = useState<number | null>(null);
 
   useEffect(() => {
     fetch("/api/espn/scoreboard")
@@ -79,8 +94,12 @@ export default function ScoreboardPage() {
           const awayLeading = m.awayWins > m.awayLosses;
           const tied = m.homeWins === m.homeLosses;
 
+          const isExpanded = expanded === i;
           return (
-            <div key={i} className={`rounded-lg border ${isMyMatchup ? "border-orange-300 bg-orange-50" : "border-border bg-surface"} overflow-hidden`}>
+            <div key={i}
+              className={`rounded-lg border ${isMyMatchup ? "border-orange-300 bg-orange-50" : "border-border bg-surface"} overflow-hidden cursor-pointer`}
+              onClick={() => setExpanded(isExpanded ? null : i)}
+            >
               {/* Away team */}
               <div className={`flex items-center justify-between px-4 py-3 ${awayLeading ? "bg-emerald-50" : ""}`}>
                 <div className="flex items-center gap-3">
@@ -113,6 +132,25 @@ export default function ScoreboardPage() {
                   {m.homeWins}-{m.homeLosses}{m.homeTies > 0 ? `-${m.homeTies}` : ""}
                 </span>
               </div>
+
+              {/* Expanded category breakdown */}
+              {isExpanded && m.categories && (
+                <div className="border-t border-border/50 px-4 py-2">
+                  <div className="grid grid-cols-8 gap-1">
+                    {m.categories.map(c => (
+                      <div key={c.cat} className="text-center py-1">
+                        <div className="text-[9px] font-bold text-slate-400">{c.cat}</div>
+                        <div className={`text-[10px] font-mono tabular-nums ${c.result === "AWAY" ? "text-emerald-600 font-bold" : "text-slate-500"}`}>
+                          {fmtCatVal(c.cat, c.awayValue)}
+                        </div>
+                        <div className={`text-[10px] font-mono tabular-nums ${c.result === "HOME" ? "text-emerald-600 font-bold" : "text-slate-500"}`}>
+                          {fmtCatVal(c.cat, c.homeValue)}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           );
         })}

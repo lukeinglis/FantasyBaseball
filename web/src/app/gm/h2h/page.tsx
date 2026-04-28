@@ -22,12 +22,25 @@ interface OpponentRecord {
   matchupsPlayed: number;
 }
 
+interface AllPlayWeek {
+  week: number;
+  wins: number;
+  losses: number;
+  ties: number;
+}
+
 interface H2HData {
   myTeamId: number;
   myTeamName: string;
   scoringPeriodId: number;
   matchups: H2HMatchup[];
   opponents: Record<string, OpponentRecord>;
+  allPlay?: {
+    totalWins: number;
+    totalLosses: number;
+    totalTies: number;
+    weeks: AllPlayWeek[];
+  };
 }
 
 interface TeamCategoryStats {
@@ -329,6 +342,15 @@ export default function TeamH2HPage() {
             <span className={`font-bold tabular-nums ${resultColor(seasonRecord.w, seasonRecord.l)}`}>
               {seasonRecord.w}-{seasonRecord.l}{seasonRecord.t > 0 ? `-${seasonRecord.t}` : ""}
             </span>
+            {data?.allPlay && (
+              <>
+                <span className="text-slate-300">|</span>
+                <span className="text-slate-500">All-Play:</span>
+                <span className={`font-bold tabular-nums ${resultColor(data.allPlay.totalWins, data.allPlay.totalLosses)}`}>
+                  {data.allPlay.totalWins}-{data.allPlay.totalLosses}{data.allPlay.totalTies > 0 ? `-${data.allPlay.totalTies}` : ""}
+                </span>
+              </>
+            )}
           </div>
         </div>
         {/* Top-level tab toggle */}

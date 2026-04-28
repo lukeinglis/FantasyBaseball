@@ -34,7 +34,36 @@ interface TeamSchedule {
   weekGames: number;
 }
 
+interface ZScorePlayer {
+  name: string;
+  zScores: Record<string, number>;
+  zTotal: number;
+  far: number;
+}
+
+interface PlayerSeasonStats {
+  name: string;
+  pos: string;
+  seasonStats: Record<string, number>;
+  last7Stats: Record<string, number>;
+}
+
 const MY_TEAM_ID_KEY = "espnMyTeamId";
+
+function fmtStat(cat: string, val: number | undefined): string {
+  if (val === undefined || val === null) return "-";
+  if (cat === "AVG") return val.toFixed(3);
+  if (cat === "ERA" || cat === "WHIP") return val.toFixed(2);
+  if (cat === "IP") return val.toFixed(1);
+  return String(Math.round(val));
+}
+
+function zColor(z: number): string {
+  if (z >= 1.5) return "text-emerald-700 font-bold";
+  if (z >= 0.5) return "text-emerald-600";
+  if (z >= 0) return "text-slate-600";
+  return "text-red-600";
+}
 
 // Slot IDs
 const BATTER_SLOT_IDS = new Set([0, 1, 2, 3, 4, 5, 6, 7, 8, 12]);
@@ -45,12 +74,19 @@ const BENCH_SLOT_ID = 16;
 function PlayerRow({
   player,
   schedule,
+  zp,
+  stats,
+  showDetail,
 }: {
   player: RosterPlayer;
   schedule: TeamSchedule | null;
+  zp?: ZScorePlayer;
+  stats?: PlayerSeasonStats;
+  showDetail: boolean;
 }) {
   const hasGame = !!schedule?.todayOpponent;
   const isInjured = player.injuryStatus !== "ACTIVE";
+  const isPitcher = player.pos === "SP" || player.pos === "RP";
 
   return (
     <div className="border-b border-border px-2 py-1.5">
@@ -62,19 +98,45 @@ function PlayerRow({
         <span className="w-6 shrink-0 text-[10px] text-slate-500">{player.pos}</span>
         <span className="w-7 shrink-0 text-[10px] text-slate-500">{player.proTeam}</span>
 
-        {/* Today's game */}
-        <div className="flex-1 min-w-0">
-          {hasGame ? (
-            <span className="text-[10px] text-slate-600 whitespace-nowrap">
-              {schedule!.todayOpponent}
-              {schedule!.todayTime && (
-                <span className="ml-1 text-slate-500">{schedule!.todayTime}</span>
-              )}
-            </span>
-          ) : (
-            <span className="text-[10px] text-slate-400">Off</span>
-          )}
-        </div>
+        {showDetail && stats ? (
+          <div className="flex-1 flex items-center gap-2 justify-end text-[9px] font-mono text-slate-500 tabular-nums">
+            {!isPitcher ? (
+              <>
+                <span>{fmtStat("AVG", stats.seasonStats.AVG)}</span>
+                <span>{fmtStat("HR", stats.seasonStats.HR)} <span className="text-slate-400">HR</span></span>
+                <span>{fmtStat("RBI", stats.seasonStats.RBI)} <span className="text-slate-400">RBI</span></span>
+                <span>{fmtStat("SB", stats.seasonStats.SB)} <span className="text-slate-400">SB</span></span>
+              </>
+            ) : (
+              <>
+                <span>{fmtStat("ERA", stats.seasonStats.ERA)}</span>
+                <span>{fmtStat("WHIP", stats.seasonStats.WHIP)}</span>
+                <span>{fmtStat("K", stats.seasonStats.K)} <span className="text-slate-400">K</span></span>
+                <span>{fmtStat("IP", stats.seasonStats.IP)} <span className="text-slate-400">IP</span></span>
+              </>
+            )}
+          </div>
+        ) : (
+          <div className="flex-1 min-w-0">
+            {hasGame ? (
+              <span className="text-[10px] text-slate-600 whitespace-nowrap">
+                {schedule!.todayOpponent}
+                {schedule!.todayTime && (
+                  <span className="ml-1 text-slate-500">{schedule!.todayTime}</span>
+                )}
+              </span>
+            ) : (
+              <span className="text-[10px] text-slate-400">Off</span>
+            )}
+          </div>
+        )}
+
+        {/* FAR badge */}
+        {zp && (
+          <span className={`shrink-0 text-[9px] font-mono font-bold ${zColor(zp.zTotal)}`}>
+            {zp.far.toFixed(1)}
+          </span>
+        )}
 
         {/* Games this week */}
         {schedule && (
@@ -84,13 +146,6 @@ function PlayerRow({
           }`}>{schedule.weekGames}G</span>
         )}
 
-        {/* Acquisition badge */}
-        {player.acquisitionType && player.acquisitionType !== "DRAFT" && (
-          <span className="shrink-0 text-[9px] font-bold text-violet-600/60">
-            {player.acquisitionType === "ADD" ? "FA" : player.acquisitionType}
-          </span>
-        )}
-
         {/* Injury */}
         {isInjured && (
           <span className={`shrink-0 text-[10px] font-bold ${player.injuryColor}`}>
@@ -98,10 +153,6 @@ function PlayerRow({
           </span>
         )}
       </div>
-      {/* Injury note */}
-      {isInjured && player.injuryNote && (
-        <div className="ml-9 mt-0.5 text-[10px] text-slate-500">{player.injuryNote}</div>
-      )}
     </div>
   );
 }
@@ -131,27 +182,39 @@ function EspnSetupCard() {
 export default function RosterPage() {
   const [teams, setTeams] = useState<EspnTeam[]>([]);
   const [schedule, setSchedule] = useState<Record<string, TeamSchedule>>({});
+  const [zScoreMap, setZScoreMap] = useState<Map<string, ZScorePlayer>>(new Map());
+  const [playerStatsMap, setPlayerStatsMap] = useState<Map<string, PlayerSeasonStats>>(new Map());
+  const [showStats, setShowStats] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch("/api/espn/roster")
-      .then((r) => r.json())
-      .then((data) => {
-        if (data.error) { setError(data.error); setLoading(false); return; }
-        setTeams(data);
+    Promise.all([
+      fetch("/api/espn/roster").then(r => r.json()),
+      fetch("/api/analysis/z-scores").then(r => r.json()).catch(() => ({ players: [] })),
+      fetch("/api/espn/player-stats").then(r => r.json()).catch(() => ({ players: [] })),
+    ]).then(([rosterData, zData, statsData]) => {
+      if (rosterData.error) { setError(rosterData.error); setLoading(false); return; }
+      setTeams(rosterData);
 
-        // Fetch MLB schedule for the current week
-        const today = new Date().toISOString().slice(0, 10);
-        const end = new Date();
-        end.setDate(end.getDate() + 6);
-        const endDate = end.toISOString().slice(0, 10);
-        return fetch(`/api/mlb/schedule?startDate=${today}&endDate=${endDate}`)
-          .then((r) => r.json())
-          .then((s) => { if (!s.error) setSchedule(s); });
-      })
-      .catch(() => setError("FETCH_FAILED"))
-      .finally(() => setLoading(false));
+      const zMap = new Map<string, ZScorePlayer>();
+      for (const p of zData.players ?? []) zMap.set(p.name, p);
+      setZScoreMap(zMap);
+
+      const sMap = new Map<string, PlayerSeasonStats>();
+      for (const p of statsData.players ?? []) sMap.set(p.name, p);
+      setPlayerStatsMap(sMap);
+
+      const today = new Date().toISOString().slice(0, 10);
+      const end = new Date();
+      end.setDate(end.getDate() + 6);
+      const endDate = end.toISOString().slice(0, 10);
+      return fetch(`/api/mlb/schedule?startDate=${today}&endDate=${endDate}`)
+        .then((r) => r.json())
+        .then((s) => { if (!s.error) setSchedule(s); });
+    })
+    .catch(() => setError("FETCH_FAILED"))
+    .finally(() => setLoading(false));
   }, []);
 
   // Determine my team — use MY_ESPN_TEAM_ID from the matchup endpoint or first team
@@ -217,7 +280,8 @@ export default function RosterPage() {
         <span className="text-[10px] tabular-nums text-slate-400">{players.length}</span>
       </div>
       {players.map((p, i) => (
-        <PlayerRow key={i} player={p} schedule={schedule[p.proTeam] ?? null} />
+        <PlayerRow key={i} player={p} schedule={schedule[p.proTeam] ?? null}
+          zp={zScoreMap.get(p.name)} stats={playerStatsMap.get(p.name)} showDetail={showStats} />
       ))}
       {players.length === 0 && (
         <div className="px-3 py-3 text-[11px] text-slate-400">-</div>
@@ -257,13 +321,16 @@ export default function RosterPage() {
               </span>
             )}
           </div>
-          {/* Legend */}
-          <div className="text-[10px] text-slate-400">
-            <span className="text-emerald-600">5G+</span>
-            <span className="mx-1">/</span>
-            <span className="text-orange-600">3-4G</span>
-            <span className="mx-1">/</span>
-            <span className="text-slate-600">&le;2G</span>
+          {/* View toggle */}
+          <div className="flex rounded-lg border border-border overflow-hidden text-[11px] font-semibold">
+            <button onClick={() => setShowStats(true)}
+              className={`px-3 py-1.5 transition-colors ${showStats ? "bg-orange-600 text-white" : "bg-surface text-slate-600 hover:bg-slate-100"}`}>
+              Stats
+            </button>
+            <button onClick={() => setShowStats(false)}
+              className={`px-3 py-1.5 transition-colors ${!showStats ? "bg-orange-600 text-white" : "bg-surface text-slate-600 hover:bg-slate-100"}`}>
+              Schedule
+            </button>
           </div>
         </div>
       </div>

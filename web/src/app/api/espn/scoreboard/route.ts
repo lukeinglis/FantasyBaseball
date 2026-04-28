@@ -1,6 +1,13 @@
 export const dynamic = "force-dynamic";
 import { espnFetch, hasEspnCreds, STAT_ID_MAP } from "@/lib/espn";
 
+export interface ScoreboardCatResult {
+  cat: string;
+  homeValue: number;
+  awayValue: number;
+  result: "HOME" | "AWAY" | "TIE";
+}
+
 export interface ScoreboardMatchup {
   matchupPeriodId: number;
   homeTeamId: number;
@@ -13,6 +20,7 @@ export interface ScoreboardMatchup {
   awayWins: number;
   awayLosses: number;
   awayTies: number;
+  categories: ScoreboardCatResult[];
 }
 
 export interface ScoreboardData {
@@ -41,17 +49,35 @@ export async function GET() {
     const schedule: any[] = data.schedule ?? [];
     const currentMatchups = schedule.filter((m: any) => m.matchupPeriodId === currentMatchupPeriod);
 
+    const cleanScore = (v: unknown): number => {
+      if (typeof v === "number" && Number.isFinite(v)) return v;
+      return 0;
+    };
+
     const matchups: ScoreboardMatchup[] = currentMatchups.map((m: any) => {
-      // Count W/L/T from ESPN's result fields on home side
       const homeStats = m.home?.cumulativeScore?.scoreByStat ?? {};
+      const awayStats = m.away?.cumulativeScore?.scoreByStat ?? {};
       let homeW = 0, homeL = 0, homeT = 0;
-      for (const [statId, statData] of Object.entries(homeStats)) {
-        const cat = STAT_ID_MAP[parseInt(statId)];
-        if (!cat || !CATS_ORDER.includes(cat)) continue;
-        const result = (statData as any).result;
+      const categories: ScoreboardCatResult[] = [];
+
+      for (const cat of CATS_ORDER) {
+        const statId = Object.entries(STAT_ID_MAP).find(([, c]) => c === cat)?.[0];
+        if (!statId) continue;
+        const homeData = homeStats[statId] as any;
+        const awayData = awayStats[statId] as any;
+        const homeValue = cleanScore(homeData?.score);
+        const awayValue = cleanScore(awayData?.score);
+        const result = homeData?.result;
         if (result === "WIN") homeW++;
         else if (result === "LOSS") homeL++;
         else if (result === "TIE") homeT++;
+
+        categories.push({
+          cat,
+          homeValue,
+          awayValue,
+          result: result === "WIN" ? "HOME" : result === "LOSS" ? "AWAY" : "TIE",
+        });
       }
 
       return {
@@ -63,9 +89,10 @@ export async function GET() {
         homeTies: homeT,
         awayTeamId: m.away?.teamId ?? 0,
         awayTeamName: teamNames[m.away?.teamId] ?? "?",
-        awayWins: homeL,  // away wins = home losses
+        awayWins: homeL,
         awayLosses: homeW,
         awayTies: homeT,
+        categories,
       };
     });
 

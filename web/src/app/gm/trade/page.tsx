@@ -293,6 +293,57 @@ export default function TradeRoomPage() {
     return { sendFar, recvFar, netFar: recvFar - sendFar };
   }, [sending, receiving, zScoreByName]);
 
+  // Sell-high candidates: my players performing above their projected level
+  // Identify players with high recent stats (last 7/15) relative to season
+  const sellHighCandidates = useMemo(() => {
+    if (!myTeam) return [];
+    const candidates: { name: string; pos: string; reason: string; far: number }[] = [];
+    for (const p of myTeam.roster) {
+      const ps = statsMap.get(p.name);
+      const zp = zScoreByName.get(p.name);
+      if (!ps || !zp) continue;
+      const isPitcher = p.pos === "SP" || p.pos === "RP";
+
+      // Sell high if last 7 day stats are significantly better than season
+      if (!isPitcher) {
+        const seasonAvg = ps.seasonStats.AVG ?? 0;
+        const recent = ps.last7Stats.AVG ?? 0;
+        if (recent > seasonAvg + 0.050 && seasonAvg > 0 && recent > 0.300) {
+          candidates.push({ name: p.name, pos: p.pos, reason: `.${(recent * 1000).toFixed(0)} last 7D vs .${(seasonAvg * 1000).toFixed(0)} season`, far: zp.far });
+        }
+      } else {
+        const seasonEra = ps.seasonStats.ERA ?? 99;
+        const recent = ps.last7Stats.ERA ?? 99;
+        if (recent < seasonEra - 1.5 && recent < 3.0 && seasonEra > 0) {
+          candidates.push({ name: p.name, pos: p.pos, reason: `${recent.toFixed(2)} ERA last 7D vs ${seasonEra.toFixed(2)} season`, far: zp.far });
+        }
+      }
+    }
+    return candidates.sort((a, b) => b.far - a.far);
+  }, [myTeam, statsMap, zScoreByName]);
+
+  // Position surplus: positions where we have 2+ starters
+  const positionSurplus = useMemo(() => {
+    if (!myTeam) return [];
+    const posCounts: Record<string, string[]> = {};
+    const activeSlots = new Set([0, 1, 2, 3, 4, 5, 6, 7, 8, 12, 13, 14, 15]);
+    for (const p of myTeam.roster) {
+      if (!activeSlots.has(p.slotId)) continue;
+      const pos = p.pos;
+      if (!posCounts[pos]) posCounts[pos] = [];
+      posCounts[pos].push(p.name);
+    }
+    const surplus: { pos: string; count: number; players: string[] }[] = [];
+    for (const [pos, names] of Object.entries(posCounts)) {
+      if (names.length >= 2 && pos !== "OF") {
+        surplus.push({ pos, count: names.length, players: names });
+      } else if (names.length >= 4 && pos === "OF") {
+        surplus.push({ pos, count: names.length, players: names });
+      }
+    }
+    return surplus.sort((a, b) => b.count - a.count);
+  }, [myTeam]);
+
   const hasTrade = sending.length > 0 || receiving.length > 0;
 
   if (loading) return <div className="flex h-64 items-center justify-center text-slate-500">Loading trade room...</div>;
@@ -382,6 +433,37 @@ export default function TradeRoomPage() {
           ))}
         </div>
       </div>
+
+      {/* Sell High + Position Surplus */}
+      {(sellHighCandidates.length > 0 || positionSurplus.length > 0) && (
+        <div className="mb-4 grid gap-4 sm:grid-cols-2">
+          {sellHighCandidates.length > 0 && (
+            <div className="rounded-lg border border-purple-300 bg-purple-50/50 px-4 py-3">
+              <div className="text-[10px] font-semibold uppercase tracking-wider text-purple-700 mb-2">Sell High</div>
+              {sellHighCandidates.map((c, i) => (
+                <div key={i} className="flex items-center justify-between py-1 border-b border-purple-200/50 last:border-0">
+                  <div>
+                    <span className="text-[12px] font-medium text-slate-700">{c.name}</span>
+                    <span className="text-[10px] text-slate-500 ml-1">{c.pos}</span>
+                  </div>
+                  <span className="text-[10px] text-purple-600">{c.reason}</span>
+                </div>
+              ))}
+            </div>
+          )}
+          {positionSurplus.length > 0 && (
+            <div className="rounded-lg border border-blue-300 bg-blue-50/50 px-4 py-3">
+              <div className="text-[10px] font-semibold uppercase tracking-wider text-blue-700 mb-2">Position Surplus</div>
+              {positionSurplus.map((s, i) => (
+                <div key={i} className="flex items-center justify-between py-1 border-b border-blue-200/50 last:border-0">
+                  <span className="text-[12px] font-bold text-blue-700">{s.pos} x{s.count}</span>
+                  <span className="text-[10px] text-slate-500">{s.players.join(", ")}</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Trade Targets Section */}
       {tradeTargets.length > 0 && (

@@ -87,9 +87,11 @@ export default function CategoryRankPage() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [view, setView] = useState<"my-ranks" | "leaderboard">("my-ranks");
+  const [scope, setScope] = useState<"season" | "week">("season");
 
   useEffect(() => {
-    fetch("/api/espn/league-stats")
+    setLoading(true);
+    fetch(`/api/espn/league-stats?scope=${scope}`)
       .then((r) => r.json())
       .then((d) => {
         if (d.error) { setError(d.error); setLoading(false); return; }
@@ -97,7 +99,7 @@ export default function CategoryRankPage() {
       })
       .catch(() => setError("FETCH_FAILED"))
       .finally(() => setLoading(false));
-  }, []);
+  }, [scope]);
 
   const myTeam = useMemo(
     () => data?.teams.find((t) => t.teamId === data.myTeamId) ?? null,
@@ -143,7 +145,9 @@ export default function CategoryRankPage() {
       <div className="mb-5 flex flex-wrap items-start justify-between gap-4">
         <div>
           <h1 className="text-lg font-bold text-gray-900">Category Rankings</h1>
-          <span className="text-[12px] text-slate-500">Week {data.scoringPeriodId} — Where you rank 1-10 in each category</span>
+          <span className="text-[12px] text-slate-500">
+            {scope === "season" ? "Season cumulative" : `Week ${data.scoringPeriodId}`} &middot; Where you rank 1-10 in each category
+          </span>
         </div>
         <div className="flex items-center gap-4">
           <div className="text-center">
@@ -151,6 +155,16 @@ export default function CategoryRankPage() {
               {avgRank.toFixed(1)}
             </div>
             <div className="text-[10px] text-slate-600">AVG RANK</div>
+          </div>
+          <div className="flex rounded-lg border border-border overflow-hidden text-[11px] font-semibold">
+            <button onClick={() => setScope("season")}
+              className={`px-3 py-1.5 transition-colors ${scope === "season" ? "bg-orange-600 text-white" : "bg-surface text-slate-600 hover:bg-slate-100"}`}>
+              Season
+            </button>
+            <button onClick={() => setScope("week")}
+              className={`px-3 py-1.5 transition-colors ${scope === "week" ? "bg-orange-600 text-white" : "bg-surface text-slate-600 hover:bg-slate-100"}`}>
+              This Week
+            </button>
           </div>
           <div className="flex gap-0.5 rounded bg-surface p-0.5">
             {(["my-ranks", "leaderboard"] as const).map((v) => (

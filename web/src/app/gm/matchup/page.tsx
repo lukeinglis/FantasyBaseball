@@ -396,6 +396,138 @@ export default function MatchupPage() {
     return Math.max(0, Math.ceil((end.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)));
   }, [data]);
 
+  // Roster-aware projections: estimate remaining contributions per team
+  const projections = useMemo(() => {
+    if (!data || daysLeft <= 0 || !data.matchupStartDate || !data.matchupEndDate) return null;
+
+    const start = new Date(data.matchupStartDate + "T12:00:00");
+    const end = new Date(data.matchupEndDate + "T12:00:00");
+    const totalDays = Math.max(1, Math.round((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1);
+    const daysElapsed = Math.max(1, totalDays - daysLeft);
+
+    function projectTeamRemaining(roster: MatchupPlayer[]) {
+      const activeBatters = roster.filter(p => BATTER_SLOT_IDS.has(p.slotId) && !isOnIL(p.injuryStatus));
+      const activePitchers = roster.filter(p => PITCHER_SLOT_IDS.has(p.slotId) && !isOnIL(p.injuryStatus));
+
+      const teamGamesLeft: Record<string, number> = {};
+      for (const p of [...activeBatters, ...activePitchers]) {
+        if (!(p.proTeam in teamGamesLeft)) {
+          const ts = schedule[p.proTeam];
+          teamGamesLeft[p.proTeam] = ts ? ts.weekGames * (daysLeft / totalDays) : daysLeft * 0.8;
+        }
+      }
+
+      const rem: Record<string, number> = {};
+
+      for (const b of activeBatters) {
+        const s = b.stats;
+        const ab = s.AB ?? 0;
+        if (ab < 10) continue;
+        const gPlayed = ab / 3.8;
+        const gLeft = teamGamesLeft[b.proTeam] ?? 0;
+        for (const cat of ["H", "R", "HR", "TB", "RBI", "BB", "SB"]) {
+          rem[cat] = (rem[cat] ?? 0) + ((s[cat] ?? 0) / gPlayed) * gLeft;
+        }
+        rem["_AB"] = (rem["_AB"] ?? 0) + (ab / gPlayed) * gLeft;
+        rem["_H"] = (rem["_H"] ?? 0) + ((s.H ?? 0) / gPlayed) * gLeft;
+      }
+
+      for (const p of activePitchers) {
+        const s = p.stats;
+        const ip = s.IP ?? 0;
+        if (ip < 3) continue;
+        const isSP = p.pos === "SP";
+        const ipPerApp = isSP ? 5.5 : 1.0;
+        const gPlayed = ip / ipPerApp;
+        const gLeft = teamGamesLeft[p.proTeam] ?? 0;
+        const apps = isSP ? gLeft / 5 : gLeft * 0.6;
+        for (const cat of ["K", "QS", "W", "L", "SV", "HD"]) {
+          rem[cat] = (rem[cat] ?? 0) + ((s[cat] ?? 0) / gPlayed) * apps;
+        }
+        const projIP = ipPerApp * apps;
+        rem["_IP"] = (rem["_IP"] ?? 0) + projIP;
+        rem["_ER"] = (rem["_ER"] ?? 0) + ((s.ERA ?? 4.0) * projIP / 9);
+        rem["_WHIP_NUM"] = (rem["_WHIP_NUM"] ?? 0) + ((s.WHIP ?? 1.3) * projIP);
+      }
+
+      return rem;
+    }
+
+    const myRem = projectTeamRemaining(data.myRoster);
+    const oppRem = projectTeamRemaining(data.oppRoster);
+
+    // Current matchup values are for the week so far. Estimate current components from them.
+    const currentMatchupDays = daysElapsed;
+    function estimateCurrentComponents(cats: Record<string, { myValue: number | null; oppValue: number | null }>) {
+      const myEra = cats["ERA"]?.myValue ?? 4.0;
+      const oppEra = cats["ERA"]?.oppValue ?? 4.0;
+      const myWhip = cats["WHIP"]?.myValue ?? 1.3;
+      const oppWhip = cats["WHIP"]?.oppValue ?? 1.3;
+      // Estimate current IP from counting stat volume (rough: ~5 IP/team/day)
+      const estIP = currentMatchupDays * 5;
+      return {
+        myIP: estIP, oppIP: estIP,
+        myER: myEra * estIP / 9, oppER: oppEra * estIP / 9,
+        myWN: myWhip * estIP, oppWN: oppWhip * estIP,
+        myH: cats["H"]?.myValue ?? 0, oppH: cats["H"]?.oppValue ?? 0,
+        myAB: (cats["H"]?.myValue ?? 0) / Math.max(0.001, cats["AVG"]?.myValue ?? 0.250),
+        oppAB: (cats["H"]?.oppValue ?? 0) / Math.max(0.001, cats["AVG"]?.oppValue ?? 0.250),
+      };
+    }
+
+    const catMap: Record<string, { myValue: number | null; oppValue: number | null }> = {};
+    for (const c of data.categories) catMap[c.cat] = { myValue: c.myValue, oppValue: c.oppValue };
+    const comp = estimateCurrentComponents(catMap);
+
+    return data.categories.map(c => {
+      const cur = { my: c.myValue ?? 0, opp: c.oppValue ?? 0 };
+      let myProj: number, oppProj: number;
+
+      if (c.cat === "AVG") {
+        const myTotalH = comp.myH + (myRem["_H"] ?? 0);
+        const myTotalAB = comp.myAB + (myRem["_AB"] ?? 0);
+        const oppTotalH = comp.oppH + (oppRem["_H"] ?? 0);
+        const oppTotalAB = comp.oppAB + (oppRem["_AB"] ?? 0);
+        myProj = myTotalAB > 0 ? myTotalH / myTotalAB : cur.my;
+        oppProj = oppTotalAB > 0 ? oppTotalH / oppTotalAB : cur.opp;
+      } else if (c.cat === "ERA") {
+        const myTotalER = comp.myER + (myRem["_ER"] ?? 0);
+        const myTotalIP = comp.myIP + (myRem["_IP"] ?? 0);
+        const oppTotalER = comp.oppER + (oppRem["_ER"] ?? 0);
+        const oppTotalIP = comp.oppIP + (oppRem["_IP"] ?? 0);
+        myProj = myTotalIP > 0 ? (myTotalER / myTotalIP) * 9 : cur.my;
+        oppProj = oppTotalIP > 0 ? (oppTotalER / oppTotalIP) * 9 : cur.opp;
+      } else if (c.cat === "WHIP") {
+        const myTotalWN = comp.myWN + (myRem["_WHIP_NUM"] ?? 0);
+        const myTotalIP = comp.myIP + (myRem["_IP"] ?? 0);
+        const oppTotalWN = comp.oppWN + (oppRem["_WHIP_NUM"] ?? 0);
+        const oppTotalIP = comp.oppIP + (oppRem["_IP"] ?? 0);
+        myProj = myTotalIP > 0 ? myTotalWN / myTotalIP : cur.my;
+        oppProj = oppTotalIP > 0 ? oppTotalWN / oppTotalIP : cur.opp;
+      } else {
+        myProj = cur.my + (myRem[c.cat] ?? 0);
+        oppProj = cur.opp + (oppRem[c.cat] ?? 0);
+      }
+
+      const lower = LOWER_IS_BETTER.has(c.cat);
+      const projResult = lower
+        ? (myProj < oppProj ? "WIN" : myProj > oppProj ? "LOSS" : "TIE")
+        : (myProj > oppProj ? "WIN" : myProj < oppProj ? "LOSS" : "TIE");
+      const willFlip = c.result !== "PENDING" && projResult !== c.result;
+
+      return { cat: c.cat, myProj, oppProj, projResult, willFlip };
+    });
+  }, [data, schedule, daysLeft]);
+
+  const projectedRecord = useMemo(() => {
+    if (!projections) return null;
+    const wins = projections.filter(p => p.projResult === "WIN").length;
+    const losses = projections.filter(p => p.projResult === "LOSS").length;
+    const ties = projections.filter(p => p.projResult === "TIE").length;
+    const flips = projections.filter(p => p.willFlip).length;
+    return { wins, losses, ties, flips };
+  }, [projections]);
+
   // Count SP starts using ESPN's starterStatusByProGame PP data
   const startsCounts = useMemo(() => {
     if (!startsData || !data) return null;
@@ -507,6 +639,45 @@ export default function MatchupPage() {
         </div>
       )}
 
+      {/* Projected Final */}
+      {projectedRecord && daysLeft > 0 && (
+        <div className="mb-4 rounded-lg border border-border bg-surface px-4 py-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <span className="text-[10px] font-semibold uppercase tracking-widest text-slate-500">Projected Final</span>
+              <span className="text-[14px] font-bold tabular-nums">
+                <span className={projectedRecord.wins > projectedRecord.losses ? "text-emerald-600" : "text-red-600"}>
+                  {projectedRecord.wins}
+                </span>
+                <span className="text-slate-400">-</span>
+                <span className={projectedRecord.losses > projectedRecord.wins ? "text-emerald-600" : "text-red-600"}>
+                  {projectedRecord.losses}
+                </span>
+                {projectedRecord.ties > 0 && (
+                  <><span className="text-slate-400">-</span><span className="text-orange-600">{projectedRecord.ties}</span></>
+                )}
+              </span>
+            </div>
+            {projectedRecord.flips > 0 && (
+              <span className="text-[11px] font-bold text-orange-600">
+                {projectedRecord.flips} {projectedRecord.flips === 1 ? "category" : "categories"} projected to flip
+              </span>
+            )}
+          </div>
+          {projections && projections.some(p => p.willFlip) && (
+            <div className="mt-2 flex gap-2 flex-wrap">
+              {projections.filter(p => p.willFlip).map(p => (
+                <span key={p.cat} className={`text-[10px] font-bold px-2 py-0.5 rounded ${
+                  p.projResult === "WIN" ? "bg-emerald-100 text-emerald-700" : "bg-red-100 text-red-700"
+                }`}>
+                  {p.cat}: {p.projResult === "WIN" ? "flipping to W" : "flipping to L"}
+                </span>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
       {/* Category scoreboard — donut charts */}
       <div className="mb-6 space-y-3">
         {[
@@ -517,6 +688,7 @@ export default function MatchupPage() {
             <div className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-slate-400">{label}</div>
             <div className="grid grid-cols-4 gap-3 sm:grid-cols-8">
               {cats.map((c) => {
+                const proj = projections?.find(p => p.cat === c.cat);
                 const pct = lockPct(c.cat, c.myValue, c.oppValue, daysLeft);
                 const myVal = c.myValue ?? 0;
                 const oppVal = c.oppValue ?? 0;
@@ -590,16 +762,18 @@ export default function MatchupPage() {
                       </div>
                     </div>
 
-                    {/* Result + lock */}
+                    {/* Result + projection */}
                     <div className="mt-1 flex flex-col items-center">
                       {c.result !== "PENDING" && (
                         <span className={`text-[9px] font-bold uppercase ${catResultColor(c.result)}`}>
                           {c.result}
                         </span>
                       )}
-                      {pct !== null && daysLeft > 0 && (
-                        <span className={`text-[8px] font-bold ${lockColor(pct)}`}>
-                          {pct}%
+                      {proj && daysLeft > 0 && (
+                        <span className={`text-[8px] font-bold ${
+                          proj.willFlip ? "text-orange-600" : proj.projResult === "WIN" ? "text-emerald-600" : proj.projResult === "LOSS" ? "text-red-500" : "text-slate-400"
+                        }`}>
+                          {fmtCat(c.cat, proj.myProj)}{proj.willFlip ? " !" : ""}
                         </span>
                       )}
                     </div>

@@ -11,12 +11,18 @@ export interface H2HMatchup {
   categories: Record<string, { myValue: number; oppValue: number; result: "WIN" | "LOSS" | "TIE" }>;
 }
 
+export interface AllPlayWeek {
+  week: number;
+  wins: number;
+  losses: number;
+  ties: number;
+}
+
 export interface H2HData {
   myTeamId: number;
   myTeamName: string;
   scoringPeriodId: number;
   matchups: H2HMatchup[];
-  // Aggregated record vs each opponent
   opponents: Record<number, {
     teamName: string;
     totalWins: number;
@@ -26,7 +32,15 @@ export interface H2HData {
     catLosses: Record<string, number>;
     matchupsPlayed: number;
   }>;
+  allPlay: {
+    totalWins: number;
+    totalLosses: number;
+    totalTies: number;
+    weeks: AllPlayWeek[];
+  };
 }
+
+const LOWER_IS_BETTER = new Set(["ERA", "WHIP", "L"]);
 
 const MY_TEAM_ID = parseInt(process.env.MY_ESPN_TEAM_ID ?? "0");
 const CATS_ORDER = ["H", "R", "HR", "TB", "RBI", "BB", "SB", "AVG", "K", "QS", "W", "L", "SV", "HD", "ERA", "WHIP"];
@@ -144,12 +158,72 @@ export async function GET() {
     // Sort matchups by week
     matchups.sort((a, b) => a.week - b.week);
 
+    // All-Play: simulate matchups vs every team for every completed week
+    const allPlayWeeks: AllPlayWeek[] = [];
+    let allPlayTotalW = 0, allPlayTotalL = 0, allPlayTotalT = 0;
+
+    const cleanScore = (v: unknown): number => {
+      if (typeof v === "number" && Number.isFinite(v)) return v;
+      return 0;
+    };
+
+    for (let week = 1; week <= currentMatchupPeriod; week++) {
+      // Build each team's stats for this week
+      const weekTeamStats: Record<number, Record<string, number>> = {};
+      for (const m of schedule) {
+        if (m.matchupPeriodId !== week) continue;
+        for (const side of [m.home, m.away]) {
+          if (!side?.teamId) continue;
+          weekTeamStats[side.teamId] = {};
+          const scoreByStat = side.cumulativeScore?.scoreByStat ?? {};
+          for (const [statId, statData] of Object.entries(scoreByStat)) {
+            const cat = STAT_ID_MAP[parseInt(statId)];
+            if (!cat) continue;
+            weekTeamStats[side.teamId][cat] = cleanScore((statData as any).score);
+          }
+        }
+      }
+
+      const myStats = weekTeamStats[MY_TEAM_ID];
+      if (!myStats) continue;
+
+      let weekW = 0, weekL = 0, weekT = 0;
+      for (const [teamIdStr, oppStats] of Object.entries(weekTeamStats)) {
+        const teamId = parseInt(teamIdStr);
+        if (teamId === MY_TEAM_ID) continue;
+
+        let w = 0, l = 0, t = 0;
+        for (const cat of CATS_ORDER) {
+          const myVal = myStats[cat] ?? 0;
+          const oppVal = oppStats[cat] ?? 0;
+          const lower = LOWER_IS_BETTER.has(cat);
+          if (myVal === oppVal) t++;
+          else if (lower ? myVal < oppVal : myVal > oppVal) w++;
+          else l++;
+        }
+        if (w > l) weekW++;
+        else if (l > w) weekL++;
+        else weekT++;
+      }
+
+      allPlayWeeks.push({ week, wins: weekW, losses: weekL, ties: weekT });
+      allPlayTotalW += weekW;
+      allPlayTotalL += weekL;
+      allPlayTotalT += weekT;
+    }
+
     const result: H2HData = {
       myTeamId: MY_TEAM_ID,
       myTeamName: teamNames[MY_TEAM_ID] ?? `Team ${MY_TEAM_ID}`,
       scoringPeriodId: currentMatchupPeriod,
       matchups,
       opponents,
+      allPlay: {
+        totalWins: allPlayTotalW,
+        totalLosses: allPlayTotalL,
+        totalTies: allPlayTotalT,
+        weeks: allPlayWeeks,
+      },
     };
 
     return Response.json(result);

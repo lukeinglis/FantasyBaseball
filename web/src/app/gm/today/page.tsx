@@ -73,12 +73,38 @@ interface AdvisorRec {
   priority: "high" | "medium" | "low";
 }
 
+interface MatchupCat {
+  cat: string;
+  myValue: number | null;
+  oppValue: number | null;
+  result: "WIN" | "LOSS" | "TIE" | "PENDING";
+}
+
+interface MatchupSnapshot {
+  myWins: number;
+  myLosses: number;
+  myTies: number;
+  oppTeamName: string;
+  categories: MatchupCat[];
+  matchupEndDate: string | null;
+}
+
+const LOWER_IS_BETTER = new Set(["ERA", "WHIP", "L"]);
+
+function fmtCatVal(cat: string, val: number | null): string {
+  if (typeof val !== "number" || !Number.isFinite(val)) return "-";
+  if (cat === "AVG") return val.toFixed(3);
+  if (cat === "ERA" || cat === "WHIP") return val.toFixed(2);
+  return String(Math.round(val));
+}
+
 export default function TodayPage() {
   const [teams, setTeams] = useState<EspnTeam[]>([]);
   const [schedule, setSchedule] = useState<Record<string, TeamSchedule>>({});
   const [probableNames, setProbableNames] = useState<Set<string>>(new Set());
   const [bvpData, setBvpData] = useState<Record<string, BvpStats | null>>({});
   const [advisorRecs, setAdvisorRecs] = useState<AdvisorRec[]>([]);
+  const [matchupSnapshot, setMatchupSnapshot] = useState<MatchupSnapshot | null>(null);
   const [myTeamId, setMyTeamId] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -98,6 +124,16 @@ export default function TodayPage() {
       setTeams(rosterData);
       if (matchupData.myTeamId) setMyTeamId(matchupData.myTeamId);
       if (matchupData.matchupEndDate) setMatchupEndDate(matchupData.matchupEndDate);
+      if (matchupData.categories) {
+        setMatchupSnapshot({
+          myWins: matchupData.myWins ?? 0,
+          myLosses: matchupData.myLosses ?? 0,
+          myTies: matchupData.myTies ?? 0,
+          oppTeamName: matchupData.oppTeamName ?? "Opponent",
+          categories: matchupData.categories,
+          matchupEndDate: matchupData.matchupEndDate,
+        });
+      }
       if (probableData?.allStarts) {
         setProbableNames(new Set(probableData.allStarts.map((s: any) => s.pitcherName)));
       }
@@ -169,6 +205,26 @@ export default function TodayPage() {
   const playing = useMemo(() => allActive.filter((p) => getGame(p)?.todayOpponent), [allActive, schedule]);
   const off = useMemo(() => allActive.filter((p) => !getGame(p)?.todayOpponent), [allActive, schedule]);
   const benchWithGames = useMemo(() => benchPlayers.filter((p) => getGame(p)?.todayOpponent), [benchPlayers, schedule]);
+
+  // Identify at-risk and targetable categories
+  const categoryAlerts = useMemo(() => {
+    if (!matchupSnapshot) return { atRisk: [] as MatchupCat[], targets: [] as MatchupCat[], score: "" };
+    const cats = matchupSnapshot.categories;
+    const atRisk = cats.filter(c => {
+      if (c.result !== "WIN" || c.myValue === null || c.oppValue === null) return false;
+      const gap = LOWER_IS_BETTER.has(c.cat) ? c.oppValue - c.myValue : c.myValue - c.oppValue;
+      const threshold = LOWER_IS_BETTER.has(c.cat) ? 0.5 : (["AVG"].includes(c.cat) ? 0.005 : 3);
+      return gap < threshold && gap >= 0;
+    });
+    const targets = cats.filter(c => {
+      if (c.result !== "LOSS" || c.myValue === null || c.oppValue === null) return false;
+      const gap = LOWER_IS_BETTER.has(c.cat) ? c.myValue - c.oppValue : c.oppValue - c.myValue;
+      const threshold = LOWER_IS_BETTER.has(c.cat) ? 0.5 : (["AVG"].includes(c.cat) ? 0.010 : 5);
+      return gap < threshold && gap >= 0;
+    });
+    const score = `${matchupSnapshot.myWins}-${matchupSnapshot.myLosses}${matchupSnapshot.myTies > 0 ? `-${matchupSnapshot.myTies}` : ""}`;
+    return { atRisk, targets, score };
+  }, [matchupSnapshot]);
 
   const today = new Date().toLocaleDateString("en-US", { weekday: "long", month: "short", day: "numeric" });
 
@@ -327,6 +383,49 @@ export default function TodayPage() {
           </div>
         </div>
       </div>
+
+      {/* Matchup scoreboard snapshot */}
+      {matchupSnapshot && (
+        <div className="mb-4 rounded-lg border border-border bg-surface px-4 py-3">
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center gap-2">
+              <span className="text-[10px] font-semibold uppercase tracking-widest text-slate-500">vs {matchupSnapshot.oppTeamName}</span>
+              <span className="text-[13px] font-bold tabular-nums">
+                <span className={matchupSnapshot.myWins > matchupSnapshot.myLosses ? "text-emerald-600" : "text-red-600"}>
+                  {categoryAlerts.score}
+                </span>
+              </span>
+            </div>
+          </div>
+          <div className="flex gap-1 flex-wrap">
+            {matchupSnapshot.categories.map(c => (
+              <div key={c.cat} className={`px-1.5 py-1 rounded text-[10px] font-bold text-center min-w-[36px] ${
+                c.result === "WIN" ? "bg-emerald-100 text-emerald-700" :
+                c.result === "LOSS" ? "bg-red-100 text-red-700" :
+                c.result === "TIE" ? "bg-orange-100 text-orange-700" :
+                "bg-slate-100 text-slate-500"
+              }`}>
+                <div>{c.cat}</div>
+                <div className="font-mono tabular-nums">{fmtCatVal(c.cat, c.myValue)}</div>
+              </div>
+            ))}
+          </div>
+          {(categoryAlerts.atRisk.length > 0 || categoryAlerts.targets.length > 0) && (
+            <div className="mt-2 flex gap-3 text-[10px]">
+              {categoryAlerts.atRisk.length > 0 && (
+                <span className="text-orange-600 font-semibold">
+                  At risk: {categoryAlerts.atRisk.map(c => c.cat).join(", ")}
+                </span>
+              )}
+              {categoryAlerts.targets.length > 0 && (
+                <span className="text-emerald-600 font-semibold">
+                  Targetable: {categoryAlerts.targets.map(c => c.cat).join(", ")}
+                </span>
+              )}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Column headers */}
       {playing.length > 0 && (

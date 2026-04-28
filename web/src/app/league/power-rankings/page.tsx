@@ -1,6 +1,12 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
+
+interface WeeklyTrendPoint {
+  week: number;
+  powerRank: number;
+  compositeAvgRank: number;
+}
 
 interface PowerRankedTeam {
   teamId: number;
@@ -16,6 +22,9 @@ interface PowerRankedTeam {
   prevWeekCompositeAvgRank: number | null;
   rankChange: number | null;
   avgRankChange: number | null;
+  weeklyTrend: WeeklyTrendPoint[];
+  categoryRanks: Record<string, number>;
+  categoryValues: Record<string, number>;
 }
 
 interface PowerRankingsData {
@@ -82,10 +91,42 @@ function EspnSetupCard() {
   );
 }
 
+function Sparkline({ points, current }: { points: WeeklyTrendPoint[]; current: number }) {
+  if (points.length < 2) return null;
+  const maxRank = 10;
+  const w = 80;
+  const h = 24;
+  const pathParts = points.map((p, i) => {
+    const x = (i / (points.length - 1)) * w;
+    const y = ((p.powerRank - 1) / (maxRank - 1)) * h;
+    return `${i === 0 ? "M" : "L"}${x},${y}`;
+  });
+  const lastPt = points[points.length - 1];
+  const improving = points.length > 1 && lastPt.powerRank < points[points.length - 2].powerRank;
+  const color = improving ? "#059669" : lastPt.powerRank <= 3 ? "#059669" : lastPt.powerRank <= 7 ? "#64748b" : "#ef4444";
+  return (
+    <svg width={w} height={h} className="inline-block">
+      <path d={pathParts.join("")} fill="none" stroke={color} strokeWidth="1.5" />
+      <circle cx={w} cy={((lastPt.powerRank - 1) / (maxRank - 1)) * h} r="2.5" fill={color} />
+    </svg>
+  );
+}
+
+const CATS_ORDER = ["H", "R", "HR", "TB", "RBI", "BB", "SB", "AVG", "K", "QS", "W", "L", "SV", "HD", "ERA", "WHIP"];
+
+function catRankColor(rank: number): string {
+  if (rank <= 2) return "bg-emerald-600 text-white";
+  if (rank <= 4) return "bg-emerald-200 text-emerald-800";
+  if (rank <= 6) return "bg-slate-100 text-slate-600";
+  if (rank <= 8) return "bg-orange-200 text-orange-800";
+  return "bg-red-600 text-white";
+}
+
 export default function PowerRankingsPage() {
   const [data, setData] = useState<PowerRankingsData | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [expanded, setExpanded] = useState<number | null>(null);
 
   useEffect(() => {
     fetch("/api/espn/power-rankings")
@@ -117,7 +158,7 @@ export default function PowerRankingsPage() {
       <div className="mb-5">
         <h1 className="text-lg font-bold text-gray-900">Power Rankings</h1>
         <span className="text-[12px] text-slate-500">
-          Week {data.currentWeek} — Composite ranking across all 16 categories, weighted by predictive value
+          Season cumulative through Week {data.currentWeek} &middot; Composite ranking across all 16 categories
         </span>
       </div>
 
@@ -133,59 +174,80 @@ export default function PowerRankingsPage() {
               <th className="px-3 py-3 text-right">Wtd</th>
               <th className="px-3 py-3 text-right">BAT</th>
               <th className="px-3 py-3 text-right">PIT</th>
-              <th className="px-3 py-3 text-center">Trend</th>
-              <th className="px-3 py-3 text-center">Prev</th>
+              <th className="px-3 py-3 text-center">Chg</th>
+              <th className="px-3 py-3 text-center">History</th>
             </tr>
           </thead>
           <tbody>
             {data.teams.map((team, i) => {
               const isMe = team.teamId === data.myTeamId;
+              const isExpanded = expanded === team.teamId;
               return (
-                <tr key={team.teamId}
-                  className={`border-b border-border/50 ${isMe ? "bg-orange-50" : i % 2 === 0 ? "" : "bg-black/[0.02]"}`}>
-                  {/* Power Rank */}
+                <React.Fragment key={team.teamId}>
+                <tr
+                  className={`border-b border-border/50 cursor-pointer ${isMe ? "bg-orange-50" : i % 2 === 0 ? "" : "bg-black/[0.02]"}`}
+                  onClick={() => setExpanded(isExpanded ? null : team.teamId)}
+                >
                   <td className="px-3 py-3 text-center">
                     <span className={`inline-flex h-7 w-7 items-center justify-center rounded-full border text-[13px] font-bold ${rankBg(team.powerRank)} ${rankColor(team.powerRank)}`}>
                       {team.powerRank}
                     </span>
                   </td>
-                  {/* Team Name */}
                   <td className={`px-3 py-3 font-medium ${isMe ? "text-orange-600" : "text-slate-700"}`}>
                     {team.teamName}
                   </td>
-                  {/* Composite Avg Rank */}
                   <td className={`px-3 py-3 text-right font-mono font-bold tabular-nums ${avgRankColor(team.compositeAvgRank)}`}>
                     {team.compositeAvgRank.toFixed(2)}
                   </td>
-                  {/* Raw Score (matches spreadsheet: sum of value-avg deltas) */}
                   <td className={`px-3 py-3 text-right font-mono tabular-nums ${
                     team.rawScore > 0 ? "text-emerald-600" : team.rawScore < 0 ? "text-red-500" : "text-slate-500"
                   }`}>
                     {team.rawScore >= 0 ? "+" : ""}{team.rawScore.toFixed(1)}
                   </td>
-                  {/* Weighted Score (category-importance-weighted, sign-adjusted) */}
                   <td className={`px-3 py-3 text-right font-mono tabular-nums ${
                     team.weightedScore > 0 ? "text-emerald-600" : team.weightedScore < 0 ? "text-red-500" : "text-slate-500"
                   }`}>
                     {team.weightedScore >= 0 ? "+" : ""}{team.weightedScore.toFixed(1)}
                   </td>
-                  {/* Batting Avg Rank */}
                   <td className={`px-3 py-3 text-right font-mono tabular-nums ${avgRankColor(team.battingAvgRank)}`}>
                     {team.battingAvgRank.toFixed(1)}
                   </td>
-                  {/* Pitching Avg Rank */}
                   <td className={`px-3 py-3 text-right font-mono tabular-nums ${avgRankColor(team.pitchingAvgRank)}`}>
                     {team.pitchingAvgRank.toFixed(1)}
                   </td>
-                  {/* Trend */}
                   <td className="px-3 py-3 text-center">
                     <TrendIndicator change={team.rankChange} />
                   </td>
-                  {/* Previous Week Rank */}
-                  <td className="px-3 py-3 text-center text-[12px] text-slate-400 tabular-nums">
-                    {team.prevWeekPowerRank !== null ? `#${team.prevWeekPowerRank}` : "--"}
+                  <td className="px-3 py-3 text-center">
+                    <Sparkline points={team.weeklyTrend ?? []} current={data.currentWeek} />
                   </td>
                 </tr>
+                {isExpanded && (
+                  <tr className={isMe ? "bg-orange-50/50" : "bg-slate-50/50"}>
+                    <td colSpan={9} className="px-4 py-3">
+                      <div className="flex flex-wrap gap-1.5">
+                        {CATS_ORDER.map((cat) => {
+                          const rank = team.categoryRanks?.[cat] ?? 5;
+                          return (
+                            <div key={cat} className={`rounded px-2 py-1 text-center text-[10px] font-bold ${catRankColor(rank)}`}>
+                              {cat} #{rank}
+                            </div>
+                          );
+                        })}
+                      </div>
+                      {team.weeklyTrend && team.weeklyTrend.length > 1 && (
+                        <div className="mt-2 flex gap-2 text-[10px] text-slate-500">
+                          {team.weeklyTrend.map((pt) => (
+                            <span key={pt.week} className="tabular-nums">
+                              W{pt.week}: #{pt.powerRank}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                    </td>
+                  </tr>
+                )}
+                </React.Fragment>
               );
             })}
           </tbody>

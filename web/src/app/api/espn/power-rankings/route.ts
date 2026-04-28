@@ -18,33 +18,86 @@ interface WeekSnapshot {
   weightedScores: Record<number, number>;
 }
 
+// Component stat IDs for reconstructing rate stats across weeks
+const COMPONENT_IDS = { AB: 0, H_BAT: 1, IP: 34, H_PIT: 35, ER: 39, BB_PIT: 38 };
+
+const cleanScore = (v: unknown): number => {
+  if (typeof v === "number" && Number.isFinite(v)) return v;
+  return 0;
+};
+
+function buildSeasonStatsUpTo(
+  schedule: any[], // eslint-disable-line @typescript-eslint/no-explicit-any
+  throughPeriod: number,
+): Record<number, Record<string, number>> {
+  const rawById: Record<number, Record<number, number>> = {};
+  for (const matchup of schedule) {
+    if (matchup.matchupPeriodId > throughPeriod) continue;
+    for (const side of [matchup.home, matchup.away]) {
+      if (!side?.teamId) continue;
+      const teamId = side.teamId;
+      if (!rawById[teamId]) rawById[teamId] = {};
+      const scoreByStat = side.cumulativeScore?.scoreByStat ?? {};
+      for (const [statId, statData] of Object.entries(scoreByStat)) {
+        const id = parseInt(statId);
+        const val = cleanScore((statData as any).score); // eslint-disable-line @typescript-eslint/no-explicit-any
+        rawById[teamId][id] = (rawById[teamId][id] ?? 0) + val;
+      }
+    }
+  }
+
+  const stats: Record<number, Record<string, number>> = {};
+  for (const [teamIdStr, raw] of Object.entries(rawById)) {
+    const teamId = parseInt(teamIdStr);
+    stats[teamId] = {};
+    for (const [statIdStr, cat] of Object.entries(STAT_ID_MAP)) {
+      const id = parseInt(statIdStr);
+      if (cat === "AVG") {
+        const h = raw[COMPONENT_IDS.H_BAT] ?? 0;
+        const ab = raw[COMPONENT_IDS.AB] ?? 0;
+        stats[teamId][cat] = ab > 0 ? h / ab : 0;
+      } else if (cat === "ERA") {
+        const er = raw[COMPONENT_IDS.ER] ?? 0;
+        const ip = raw[COMPONENT_IDS.IP] ?? 0;
+        stats[teamId][cat] = ip > 0 ? (er / ip) * 9 : 0;
+      } else if (cat === "WHIP") {
+        const bb = raw[COMPONENT_IDS.BB_PIT] ?? 0;
+        const h = raw[COMPONENT_IDS.H_PIT] ?? 0;
+        const ip = raw[COMPONENT_IDS.IP] ?? 0;
+        stats[teamId][cat] = ip > 0 ? (bb + h) / ip : 0;
+      } else {
+        stats[teamId][cat] = raw[id] ?? 0;
+      }
+    }
+  }
+  return stats;
+}
+
 function buildSnapshotForPeriod(
   schedule: any[], // eslint-disable-line @typescript-eslint/no-explicit-any
   matchupPeriodId: number,
   weights: Record<string, number>,
+  seasonCumulative: boolean = false,
 ): WeekSnapshot {
-  // Sanitize ESPN values that may be Infinity/NaN/strings (e.g. ERA at 0 IP)
-  const cleanScore = (v: unknown): number => {
-    if (typeof v === "number" && Number.isFinite(v)) return v;
-    return 0;
-  };
-  // Extract each team's cumulative stats for this matchup period
-  const teamStats: Record<number, Record<string, number>> = {};
-  for (const matchup of schedule) {
-    if (matchup.matchupPeriodId !== matchupPeriodId) continue;
-    for (const side of [matchup.home, matchup.away]) {
-      if (!side?.teamId) continue;
-      const teamId = side.teamId;
-      teamStats[teamId] = {};
-      const scoreByStat = side.cumulativeScore?.scoreByStat ?? {};
-      for (const [statId, statData] of Object.entries(scoreByStat)) {
-        const cat = STAT_ID_MAP[parseInt(statId)];
-        if (!cat) continue;
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        teamStats[teamId][cat] = cleanScore((statData as any).score);
-      }
-    }
-  }
+  const teamStats = seasonCumulative
+    ? buildSeasonStatsUpTo(schedule, matchupPeriodId)
+    : (() => {
+        const stats: Record<number, Record<string, number>> = {};
+        for (const matchup of schedule) {
+          if (matchup.matchupPeriodId !== matchupPeriodId) continue;
+          for (const side of [matchup.home, matchup.away]) {
+            if (!side?.teamId) continue;
+            stats[side.teamId] = {};
+            const scoreByStat = side.cumulativeScore?.scoreByStat ?? {};
+            for (const [statId, statData] of Object.entries(scoreByStat)) {
+              const cat = STAT_ID_MAP[parseInt(statId)];
+              if (!cat) continue;
+              stats[side.teamId][cat] = cleanScore((statData as any).score); // eslint-disable-line @typescript-eslint/no-explicit-any
+            }
+          }
+        }
+        return stats;
+      })();
 
   const teamIds = Object.keys(teamStats).map(Number);
   const teamCount = teamIds.length;
@@ -166,10 +219,10 @@ export async function GET() {
 
     const schedule: any[] = data.schedule ?? []; // eslint-disable-line @typescript-eslint/no-explicit-any
 
-    // Build snapshots for each completed/in-progress matchup period
+    // Build season-cumulative snapshots for each week (ranks based on stats through that week)
     const snapshots: Record<number, WeekSnapshot> = {};
     for (let week = 1; week <= currentMatchupPeriod; week++) {
-      snapshots[week] = buildSnapshotForPeriod(schedule, week, weights);
+      snapshots[week] = buildSnapshotForPeriod(schedule, week, weights, true);
     }
 
     const current = snapshots[currentMatchupPeriod];
@@ -180,6 +233,21 @@ export async function GET() {
     }
 
     const teamIds = Object.keys(current.teamStats).map(Number);
+
+    // Build weekly trend history: powerRank per team per week
+    const weeklyTrends: Record<number, { week: number; powerRank: number; compositeAvgRank: number }[]> = {};
+    for (const teamId of teamIds) {
+      weeklyTrends[teamId] = [];
+      for (let week = 1; week <= currentMatchupPeriod; week++) {
+        const snap = snapshots[week];
+        if (!snap) continue;
+        weeklyTrends[teamId].push({
+          week,
+          powerRank: snap.powerRanks[teamId] ?? 10,
+          compositeAvgRank: snap.composites[teamId]?.composite ?? 5.5,
+        });
+      }
+    }
 
     const teams = teamIds
       .map((teamId) => ({
@@ -200,6 +268,9 @@ export async function GET() {
         avgRankChange: previous
           ? (previous.composites[teamId]?.composite ?? 5.5) - (current.composites[teamId]?.composite ?? 5.5)
           : null,
+        weeklyTrend: weeklyTrends[teamId] ?? [],
+        categoryRanks: current.ranks[teamId] ?? {},
+        categoryValues: current.teamStats[teamId] ?? {},
       }))
       .sort((a, b) => a.powerRank - b.powerRank);
 

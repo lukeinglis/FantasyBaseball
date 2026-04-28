@@ -53,9 +53,11 @@ export default function CategoryBreakdownPage() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [sortCat, setSortCat] = useState<string | null>(null);
+  const [scope, setScope] = useState<"season" | "week">("season");
 
   useEffect(() => {
-    fetch("/api/espn/league-stats")
+    setLoading(true);
+    fetch(`/api/espn/league-stats?scope=${scope}`)
       .then((r) => r.json())
       .then((d) => {
         if (d.error) { setError(d.error); return; }
@@ -63,7 +65,7 @@ export default function CategoryBreakdownPage() {
       })
       .catch(() => setError("FETCH_FAILED"))
       .finally(() => setLoading(false));
-  }, []);
+  }, [scope]);
 
   const sortedTeams = useMemo(() => {
     if (!data) return [];
@@ -114,18 +116,34 @@ export default function CategoryBreakdownPage() {
   return (
     <div className="mx-auto max-w-7xl px-4 py-6">
       {/* Header */}
-      <div className="mb-5">
-        <h1 className="text-lg font-bold text-gray-900">Category Breakdown</h1>
-        <div className="text-[12px] text-slate-500">
-          Week {data.scoringPeriodId} &middot; League-wide category ranks
-          {sortCat && (
-            <button
-              onClick={() => setSortCat(null)}
-              className="ml-3 text-orange-600 hover:text-orange-700 font-semibold"
-            >
-              Clear sort ({sortCat}) &times;
-            </button>
-          )}
+      <div className="mb-5 flex items-center justify-between">
+        <div>
+          <h1 className="text-lg font-bold text-gray-900">Category Breakdown</h1>
+          <div className="text-[12px] text-slate-500">
+            {scope === "season" ? "Season cumulative" : `Week ${data.scoringPeriodId}`} &middot; League-wide category ranks
+            {sortCat && (
+              <button
+                onClick={() => setSortCat(null)}
+                className="ml-3 text-orange-600 hover:text-orange-700 font-semibold"
+              >
+                Clear sort ({sortCat}) &times;
+              </button>
+            )}
+          </div>
+        </div>
+        <div className="flex rounded-lg border border-border overflow-hidden text-[11px] font-semibold">
+          <button
+            onClick={() => setScope("season")}
+            className={`px-3 py-1.5 transition-colors ${scope === "season" ? "bg-orange-600 text-white" : "bg-surface text-slate-600 hover:bg-slate-100"}`}
+          >
+            Season
+          </button>
+          <button
+            onClick={() => setScope("week")}
+            className={`px-3 py-1.5 transition-colors ${scope === "week" ? "bg-orange-600 text-white" : "bg-surface text-slate-600 hover:bg-slate-100"}`}
+          >
+            This Week
+          </button>
         </div>
       </div>
 

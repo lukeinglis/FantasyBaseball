@@ -84,10 +84,16 @@ function EspnSetupCard() {
   );
 }
 
+interface WeaknessInfo {
+  cat: string;
+  rank: number;
+}
+
 export default function FreeAgentsPage() {
   const [allPlayers, setAllPlayers] = useState<PlayerStats[]>([]);
   const [zScoreMap, setZScoreMap] = useState<Map<number, ZScorePlayer>>(new Map());
   const [rosteredNames, setRosteredNames] = useState<Set<string>>(new Set());
+  const [weaknesses, setWeaknesses] = useState<WeaknessInfo[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -95,13 +101,15 @@ export default function FreeAgentsPage() {
   const [posFilter, setPosFilter] = useState("ALL");
   const [sortBy, setSortBy] = useState("FAR");
   const [statPeriod, setStatPeriod] = useState<"season" | "last7" | "last15" | "last30">("season");
+  const [weaknessFilter, setWeaknessFilter] = useState<string | null>(null);
 
   useEffect(() => {
     Promise.all([
       fetch("/api/espn/player-stats?status=ALL").then((r) => r.json()).catch(() => ({ players: [] })),
       fetch("/api/espn/roster").then((r) => r.json()).catch(() => []),
       fetch("/api/analysis/z-scores").then((r) => r.json()).catch(() => ({ players: [] })),
-    ]).then(([statsData, rosterData, zData]) => {
+      fetch("/api/espn/league-stats?scope=season").then((r) => r.json()).catch(() => null),
+    ]).then(([statsData, rosterData, zData, leagueStats]) => {
       if (statsData.error) { setError(statsData.error); return; }
       setAllPlayers(statsData.players ?? []);
 
@@ -121,6 +129,19 @@ export default function FreeAgentsPage() {
           }
         }
         setRosteredNames(names);
+      }
+
+      // Extract team weaknesses from league stats
+      if (leagueStats?.teams && leagueStats.myTeamId) {
+        const myTeam = leagueStats.teams.find((t: any) => t.teamId === leagueStats.myTeamId);
+        if (myTeam?.ranks) {
+          const weak: WeaknessInfo[] = [];
+          for (const [cat, rank] of Object.entries(myTeam.ranks as Record<string, number>)) {
+            if (rank >= 7) weak.push({ cat, rank });
+          }
+          weak.sort((a, b) => b.rank - a.rank);
+          setWeaknesses(weak);
+        }
       }
     })
     .catch(() => setError("FETCH_FAILED"))
@@ -155,13 +176,28 @@ export default function FreeAgentsPage() {
       list = list.filter((p) => p.name.toLowerCase().includes(q) || p.proTeam.toLowerCase().includes(q));
     }
 
+    // Weakness filter: only show players with positive z-score in the selected weak category
+    if (weaknessFilter) {
+      list = list.filter((p) => {
+        const zp = zScoreMap.get(p.playerId);
+        if (!zp) return false;
+        return (zp.zScores[weaknessFilter] ?? 0) > 0;
+      });
+    }
+
     // Sort
+    const effectiveSort = weaknessFilter ?? sortBy;
     list = [...list].sort((a, b) => {
-      // Z-score / FAR sort
-      if (sortBy === "FAR") {
+      if (effectiveSort === "FAR" || (!weaknessFilter && sortBy === "FAR")) {
         const aZ = zScoreMap.get(a.playerId);
         const bZ = zScoreMap.get(b.playerId);
         return (bZ?.far ?? -999) - (aZ?.far ?? -999);
+      }
+
+      if (weaknessFilter) {
+        const aZ = zScoreMap.get(a.playerId);
+        const bZ = zScoreMap.get(b.playerId);
+        return (bZ?.zScores[weaknessFilter] ?? -999) - (aZ?.zScores[weaknessFilter] ?? -999);
       }
 
       const aStats = getStats(a);
@@ -223,6 +259,29 @@ export default function FreeAgentsPage() {
           ))}
         </div>
       </div>
+
+      {/* Weakness quick-filters */}
+      {weaknesses.length > 0 && (
+        <div className="mb-3 flex items-center gap-2 flex-wrap">
+          <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-500">Weak categories:</span>
+          {weaknesses.map(w => (
+            <button key={w.cat}
+              onClick={() => setWeaknessFilter(weaknessFilter === w.cat ? null : w.cat)}
+              className={`text-[10px] font-bold px-2 py-1 rounded border transition-colors ${
+                weaknessFilter === w.cat
+                  ? "bg-red-600 text-white border-red-600"
+                  : "bg-red-50 text-red-700 border-red-200 hover:bg-red-100"
+              }`}>
+              {w.cat} (#{w.rank})
+            </button>
+          ))}
+          {weaknessFilter && (
+            <button onClick={() => setWeaknessFilter(null)} className="text-[10px] text-slate-500 hover:text-slate-700 font-semibold">
+              Clear
+            </button>
+          )}
+        </div>
+      )}
 
       {/* Filters */}
       <div className="mb-4 flex flex-wrap gap-3 items-center">
