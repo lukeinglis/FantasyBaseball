@@ -167,7 +167,6 @@ interface GmAdvice {
 }
 
 const GM_CACHE_KEY = "gmAdviceV1";
-const GM_CACHE_TTL = 30 * 60 * 1000;
 
 const TABS: { key: keyof Omit<GmAdvice, "generatedAt">; label: string; accent: string; bullet: string }[] = [
   { key: "week",   label: "This Week",      accent: "border-orange-400 bg-orange-50 text-orange-700", bullet: "text-orange-500" },
@@ -186,9 +185,7 @@ function GmAdvisor() {
       const raw = localStorage.getItem(GM_CACHE_KEY);
       if (raw) {
         const parsed: GmAdvice = JSON.parse(raw);
-        if (parsed.generatedAt && Date.now() - new Date(parsed.generatedAt).getTime() < GM_CACHE_TTL) {
-          setAdvice(parsed);
-        }
+        if (parsed.generatedAt) setAdvice(parsed);
       }
     } catch { /* ignore */ }
   }, []);
