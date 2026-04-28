@@ -1,6 +1,23 @@
 {
-  "week": [],
-  "month": [],
-  "season": [],
-  "generatedAt": null
+  "week": [
+    "Activate Michael Wacha immediately — he has a 2.50 ERA and 0.927 WHIP rotting on your bench while Dustin May (5.28 ERA, 1.53 WHIP) starts and destroys your ERA/WHIP categories.",
+    "Target H to flip it — you're trailing by just 1 hit (4 vs 5) with 5 days left; get Harris II off the bench and into any available OF/utility slot to manufacture hits and protect the 7-4-5 lead.",
+    "Accept losing K this week — you're down 7 to 16 with no realistic path to close the gap; don't chase strikeouts by streaming arms that blow up your ERA and WHIP in the process.",
+    "A single quality start win from Lugo or Mize flips the W category from the current 0-0 tie — both are active and capable; let them work and don't yank them early."
+  ],
+  "month": [
+    "Drop Dustin May now — 5.28 ERA and 1.53 WHIP in 92 innings is not a slump, it is his season; Wacha (2.50 ERA, 0.927 WHIP) is the best pitcher on your roster and has been on the bench for no legitimate reason.",
+    "Cut Trevor Rogers — 4.74 ERA, 1.45 WHIP as a bench arm is wasted roster space; you already have 9 SPs, you do not need a mediocre 10th clogging the bench.",
+    "Trade or drop Pete Alonso immediately — .196 AVG and 3 HR in 107 AB at the 1B slot is catastrophic production; move him before his trade value collapses completely.",
+    "Acquire a closer by any means necessary — your team has 1 save total for the entire season, dead last (#10) by a huge margin against a league average of 11; Tony Santillan is a setup man with 0 saves and is not solving this; trade one of your surplus SPs (Kochanowicz, Ober, Rogers) for an actual closer.",
+    "Start Michael Harris II every day — he is hitting .323 with 6 HR and 20 RBI and sitting behind Laureano (.255) and Ward (.312, 1 HR); restructure the outfield and get him in the lineup immediately."
+  ],
+  "season": [
+    "Your roster is structurally broken — 9-10 SPs occupying spots while you sit dead last in saves and near-last in H, R, RBI, AVG, and W; QS #1 and WHIP #1 are real strengths but winning 2 categories while losing 8 every week is not a championship formula.",
+    "Trade at least 2 SPs for a closer and a power bat — Kochanowicz (3.08 ERA), Ober, and Rogers are legitimate trade chips right now; teams weak in QS and ERA will pay; use the return to fix saves (currently #10, 1 SV all season) and batting average.",
+    "Schwarber (.196) and Alonso (.196) occupying premium lineup spots is why you rank #8 in AVG — two of the worst averages in the league at 1B and UTIL; at minimum one of them must be replaced before the AVG hole becomes permanent.",
+    "The climb from #8 to playoffs in 13 weeks is hard but not impossible — you need roughly 60% category win rate the rest of the way; that requires fixing saves and AVG this week, not next month; every week you delay costs 16 more category losses.",
+    "Stop hoarding starting pitching — the surplus SPs on your bench (Rogers, Ober, Gallen, Wacha) are not helping you; they are blocking roster spots needed for closers, speed, and average; trade the excess now while the market still values them."
+  ],
+  "generatedAt": "2026-04-28T12:00:00.000Z"
 }
