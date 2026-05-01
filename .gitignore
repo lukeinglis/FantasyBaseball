@@ -34,3 +34,6 @@ web/.vercel/
 web/out/
 web/coverage/
 web/*.tsbuildinfo
+
+# Remote Factory
+.factory/

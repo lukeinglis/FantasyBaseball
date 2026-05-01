@@ -1,0 +1,148 @@
+#!/usr/bin/env python3
+"""Eval script for JS/TS Next.js project.
+
+Runs TypeScript type checking and observability analysis.
+
+Output format:
+    {"results": [{"name": str, "score": float, "weight": float, "passed": bool, "details": str}, ...]}
+"""
+
+import json
+import re
+import subprocess
+import sys
+from pathlib import Path
+
+
+def eval_syntax_check() -> dict:
+    """Run TypeScript compiler in noEmit mode to verify type safety."""
+    try:
+        result = subprocess.run(
+            ["npx", "tsc", "--noEmit"],
+            capture_output=True,
+            text=True,
+            timeout=120,
+            cwd="web",
+        )
+        passed = result.returncode == 0
+        if passed:
+            score = 1.0
+        else:
+            error_lines = [ln for ln in (result.stdout + result.stderr).splitlines() if ln.strip()]
+            if not error_lines:
+                score = 0.0
+            else:
+                score = max(0.0, 1.0 - len(error_lines) * 0.05)
+        return {
+            "name": "syntax_check",
+            "score": score,
+            "weight": 0.5,
+            "passed": passed,
+            "details": (result.stdout or result.stderr).strip()[-500:],
+        }
+    except subprocess.TimeoutExpired:
+        return {
+            "name": "syntax_check",
+            "score": 0.0,
+            "weight": 0.5,
+            "passed": False,
+            "details": "Timed out after 120s",
+        }
+
+
+def eval_observability() -> dict:
+    """Analyze observability coverage: logging, structured logging, request tracing."""
+    skip = {
+        "tests", "test", ".venv", "venv", "node_modules", "__pycache__",
+        ".git", ".factory", "eval", "dist", "build", ".mypy_cache", ".next",
+    }
+    log_pats = [
+        r"\blogger\.\w+\(",
+        r"\blogging\.\w+\(",
+        r"\blog\.\w+\(",
+        r"\bconsole\.\w+\(",
+    ]
+    struct_pats = [r"\bstructlog\b", r"\bpino\b", r"\bwinston\b",
+                   r"\bslog\.\w+\(", r"\btracing::"]
+    trace_pats = [r"request.id|req.id|trace.id", r"\bcontextvars\b|ContextVar",
+                  r"\bopentelemetry\b", r"trace.context|TraceContext|span"]
+
+    fn_pats = [
+        r"function\s+\w+",
+        r"const\s+\w+\s*=\s*(async\s+)?\(",
+        r"export\s+(default\s+)?(async\s+)?function",
+    ]
+
+    extensions = ("*.ts", "*.tsx", "*.js", "*.jsx")
+    sources = []
+    for ext in extensions:
+        sources.extend(
+            f for f in Path(".").rglob(ext)
+            if not any(p in f.parts for p in skip)
+        )
+
+    total_fn = logged_fn = total_log = 0
+    has_struct = has_trace = False
+
+    for src in sources:
+        try:
+            code = src.read_text(errors="replace")
+        except OSError:
+            continue
+
+        lines = code.splitlines()
+
+        fn_line_indices = []
+        for i, line in enumerate(lines):
+            for pat in fn_pats:
+                if re.search(pat, line):
+                    fn_line_indices.append(i)
+                    break
+
+        for fn_start in fn_line_indices:
+            total_fn += 1
+            end = min(fn_start + 50, len(lines))
+            body = "\n".join(lines[fn_start:end])
+            for pat in log_pats:
+                if re.search(pat, body):
+                    logged_fn += 1
+                    break
+
+        for pat in log_pats:
+            total_log += len(re.findall(pat, code))
+        for pat in struct_pats:
+            if re.search(pat, code):
+                has_struct = True
+        for pat in trace_pats:
+            if re.search(pat, code, re.IGNORECASE):
+                has_trace = True
+
+    if total_fn == 0:
+        return {"name": "observability", "score": 0.0, "weight": 0.5,
+                "passed": True, "details": "No functions found to analyze"}
+
+    cov = logged_fn / total_fn
+    density = min(1.0, total_log / max(total_fn, 1))
+    score = 0.40 * cov + 0.25 * float(has_struct) + 0.20 * float(has_trace) + 0.15 * density
+
+    details = (f"coverage={cov:.0%} ({logged_fn}/{total_fn}), "
+               f"structured={'yes' if has_struct else 'no'}, "
+               f"tracing={'yes' if has_trace else 'no'}, "
+               f"density={density:.0%}")
+
+    return {"name": "observability", "score": round(score, 3), "weight": 0.5,
+            "passed": score >= 0.3, "details": details}
+
+
+EVALS = [eval_syntax_check, eval_observability]
+
+
+def main() -> None:
+    results = [fn() for fn in EVALS]
+    output = {"results": results}
+    json.dump(output, sys.stdout, indent=2)
+    print()
+
+
+if __name__ == "__main__":
+    main()
