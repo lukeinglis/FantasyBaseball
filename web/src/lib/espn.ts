@@ -1,5 +1,6 @@
 // ESPN private league API client
 // Requires ESPN_S2 and ESPN_SWID environment variables (Vercel env vars)
+import logger from "@/lib/logger";
 
 const LEAGUE_ID = 4739;
 const SEASON = 2026;
@@ -17,6 +18,7 @@ export async function espnFetch(views: string[], extra: string = ""): Promise<un
   const viewParams = views.map((v) => `view=${v}`).join("&");
   const url = `${BASE}?${viewParams}${extra}`;
 
+  const t0 = Date.now();
   const res = await fetch(url, {
     headers: {
       Cookie: `espn_s2=${espnS2}; SWID=${swid}`,
@@ -25,8 +27,13 @@ export async function espnFetch(views: string[], extra: string = ""): Promise<un
     },
     cache: "no-store",
   });
+  const durationMs = Date.now() - t0;
 
-  if (!res.ok) throw new Error(`ESPN API ${res.status}`);
+  if (!res.ok) {
+    logger.error({ op: "espn_fetch", views, status: res.status, durationMs }, "ESPN API error");
+    throw new Error(`ESPN API ${res.status}`);
+  }
+  logger.info({ op: "espn_fetch", views, durationMs }, "ESPN fetch ok");
   return res.json();
 }
 

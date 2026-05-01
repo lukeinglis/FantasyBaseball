@@ -1,5 +1,6 @@
 export const dynamic = "force-dynamic";
 import { hasEspnCreds, STAT_ID_MAP, getProTeam } from "@/lib/espn";
+import logger from "@/lib/logger";
 
 // Fetch current season stats for all rostered players
 // Uses ESPN's kona_player_info view with season stats
@@ -34,6 +35,8 @@ export interface PlayerStats {
 }
 
 export async function GET(req: Request) {
+  const reqId = crypto.randomUUID();
+  const log = logger.child({ reqId, path: new URL(req.url).pathname });
   if (!hasEspnCreds()) {
     return Response.json({ error: "ESPN_CREDS_MISSING" }, { status: 401 });
   }
@@ -46,6 +49,7 @@ export async function GET(req: Request) {
   const statusFilter = searchParams.get("status") ?? "ONTEAM";
 
   try {
+    const t0 = Date.now();
     const filters = {
       players: {
         filterStatus: { value: statusFilter === "ALL" ? ["FREEAGENT", "ONTEAM", "WAIVERS"] : ["ONTEAM"] },
@@ -137,9 +141,11 @@ export async function GET(req: Request) {
       });
     }
 
+    log.info({ op: "player-stats", count: players.length, durationMs: Date.now() - t0 }, "ok");
     return Response.json({ players, count: players.length });
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
+    log.error({ op: "player-stats", err: msg }, "failed");
     return Response.json({ error: msg }, { status: 502 });
   }
 }

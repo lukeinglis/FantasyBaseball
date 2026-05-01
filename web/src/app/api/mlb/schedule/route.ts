@@ -1,5 +1,6 @@
 // MLB Stats API — public, no auth required
 // Returns today's games per team with opponent, time, probable pitcher, venue
+import logger from "@/lib/logger";
 
 export interface TeamSchedule {
   todayOpponent: string | null;       // e.g. "@NYY" or "vs LAD"
@@ -52,12 +53,15 @@ function addDays(date: Date, n: number): string {
 }
 
 export async function GET(req: Request) {
+  const reqId = crypto.randomUUID();
+  const log = logger.child({ reqId, path: new URL(req.url).pathname });
   const { searchParams } = new URL(req.url);
   const startDate = searchParams.get("startDate") ?? new Date().toISOString().slice(0, 10);
   const endDate = searchParams.get("endDate") ?? addDays(new Date(startDate), 13);
   const today = new Date().toISOString().slice(0, 10);
 
   try {
+    const t0 = Date.now();
     const url = `https://statsapi.mlb.com/api/v1/schedule?sportId=1&startDate=${startDate}&endDate=${endDate}&gameType=R&hydrate=probablePitcher,team,venue`;
     const res = await fetch(url, { next: { revalidate: 900 } });
     if (!res.ok) return Response.json({ error: "MLB_API_FAILED" }, { status: 502 });
@@ -98,8 +102,10 @@ export async function GET(req: Request) {
       }
     }
 
+    log.info({ op: "mlb-schedule", durationMs: Date.now() - t0 }, "ok");
     return Response.json(schedule);
   } catch (err) {
+    log.error({ op: "mlb-schedule", err: String(err) }, "failed");
     return Response.json({ error: String(err) }, { status: 502 });
   }
 }

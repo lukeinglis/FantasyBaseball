@@ -1,5 +1,6 @@
 import { hasEspnCreds, getProTeam } from "@/lib/espn";
 import { mean, stddev } from "@/lib/z-scores";
+import logger from "@/lib/logger";
 
 const LEAGUE_ID = 4739;
 const SEASON = 2026;
@@ -45,7 +46,9 @@ export interface ZScorePlayer {
   far: number;
 }
 
-export async function GET() {
+export async function GET(req: Request) {
+  const reqId = crypto.randomUUID();
+  const log = logger.child({ reqId, path: new URL(req.url).pathname });
   if (!hasEspnCreds()) {
     return Response.json({ error: "ESPN_CREDS_MISSING" }, { status: 401 });
   }
@@ -54,6 +57,7 @@ export async function GET() {
   const swid = process.env.ESPN_SWID!;
 
   try {
+    const t0 = Date.now();
     // Fetch all players (rostered + free agents) and category weights in parallel
     const filters = {
       players: {
@@ -220,6 +224,7 @@ export async function GET() {
     // Combine and sort by FAR descending
     const allPlayers = [...batterResults, ...pitcherResults].sort((a, b) => b.far - a.far);
 
+    log.info({ op: "z-scores", count: allPlayers.length, durationMs: Date.now() - t0 }, "ok");
     return Response.json({
       players: allPlayers,
       count: allPlayers.length,
@@ -229,6 +234,7 @@ export async function GET() {
     });
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
+    log.error({ op: "z-scores", err: msg }, "failed");
     return Response.json({ error: msg }, { status: 502 });
   }
 }

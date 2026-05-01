@@ -1,5 +1,6 @@
 export const dynamic = "force-dynamic";
 import { espnFetch, hasEspnCreds, POS_MAP, SLOT_MAP, INJURY_MAP, STAT_ID_MAP, getProTeam, getMatchupDates, getCurrentMatchupPeriod } from "@/lib/espn";
+import logger from "@/lib/logger";
 
 export interface MatchupCatResult {
   cat: string;
@@ -195,7 +196,9 @@ function parseMatchup(data: any, myTeamId: number): MatchupData | null {
   };
 }
 
-export async function GET() {
+export async function GET(req: Request) {
+  const reqId = crypto.randomUUID();
+  const log = logger.child({ reqId, path: new URL(req.url).pathname });
   if (!hasEspnCreds()) {
     return Response.json({ error: "ESPN_CREDS_MISSING" }, { status: 401 });
   }
@@ -203,14 +206,17 @@ export async function GET() {
     return Response.json({ error: "MY_ESPN_TEAM_ID_MISSING" }, { status: 401 });
   }
   try {
+    const t0 = Date.now();
     const data = await espnFetch(["mMatchup", "mMatchupScore", "mRoster", "mTeam", "mSettings", "mStatus"]);
     const matchup = parseMatchup(data, MY_TEAM_ID);
     if (!matchup) {
       return Response.json({ error: "NO_MATCHUP_FOUND" }, { status: 404 });
     }
+    log.info({ op: "matchup", durationMs: Date.now() - t0 }, "ok");
     return Response.json(matchup);
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
+    log.error({ op: "matchup", err: msg }, "failed");
     return Response.json({ error: msg }, { status: 502 });
   }
 }

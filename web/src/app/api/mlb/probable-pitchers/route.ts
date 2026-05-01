@@ -1,6 +1,7 @@
 // MLB Stats API — probable pitcher schedule
 // Returns scheduled starts per pitcher for a date range
 // Public API, no auth required
+import logger from "@/lib/logger";
 
 export interface ProbableStart {
   date: string;          // "2026-03-30"
@@ -57,6 +58,8 @@ function toET(utcDate: string): string {
 }
 
 export async function GET(req: Request) {
+  const reqId = crypto.randomUUID();
+  const log = logger.child({ reqId, path: new URL(req.url).pathname });
   const { searchParams } = new URL(req.url);
   const today = new Date().toISOString().slice(0, 10);
   const startDate = searchParams.get("startDate") ?? today;
@@ -65,6 +68,7 @@ export async function GET(req: Request) {
   const endDate = searchParams.get("endDate") ?? defaultEnd.toISOString().slice(0, 10);
 
   try {
+    const t0 = Date.now();
     const url = `https://statsapi.mlb.com/api/v1/schedule?sportId=1&startDate=${startDate}&endDate=${endDate}&gameType=R&hydrate=probablePitcher,team`;
     const res = await fetch(url, { next: { revalidate: 900 } }); // 15 min cache
     if (!res.ok) return Response.json({ error: "MLB_API_FAILED" }, { status: 502 });
@@ -108,8 +112,10 @@ export async function GET(req: Request) {
     // Sort all starts chronologically
     allStarts.sort((a, b) => a.date.localeCompare(b.date));
 
+    log.info({ op: "probable-pitchers", count: allStarts.length, durationMs: Date.now() - t0 }, "ok");
     return Response.json({ startDate, endDate, byPitcher, allStarts } as ProbablePitchersData);
   } catch (err) {
+    log.error({ op: "probable-pitchers", err: String(err) }, "failed");
     return Response.json({ error: String(err) }, { status: 502 });
   }
 }
