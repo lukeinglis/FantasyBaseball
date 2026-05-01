@@ -1,6 +1,6 @@
 const REPO_BASE = "https://raw.githubusercontent.com/lukeinglis/FantasyBaseball/main";
 
-function parseCsvLine(line: string): string[] {
+export function parseCsvLine(line: string): string[] {
   const result: string[] = [];
   let current = "";
   let inQuotes = false;
@@ -81,7 +81,7 @@ export async function getRankings(): Promise<Player[]> {
   }));
 }
 
-function num(v: string | undefined): number | undefined {
+export function num(v: string | undefined): number | undefined {
   if (!v || v === "" || v === "nan" || v === "NaN") return undefined;
   const n = parseFloat(v);
   return isNaN(n) ? undefined : n;

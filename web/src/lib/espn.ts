@@ -68,7 +68,7 @@ export const PRO_TEAM_MAP: Record<number, string> = {
 };
 
 export function getProTeam(player: any): string {
-  if (player.proTeamId && PRO_TEAM_MAP[player.proTeamId]) {
+  if (player.proTeamId != null && PRO_TEAM_MAP[player.proTeamId]) {
     return PRO_TEAM_MAP[player.proTeamId];
   }
   return player.proTeamAbbrev ?? "";

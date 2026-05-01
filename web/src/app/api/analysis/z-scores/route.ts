@@ -1,4 +1,5 @@
 import { hasEspnCreds, getProTeam } from "@/lib/espn";
+import { mean, stddev } from "@/lib/z-scores";
 
 const LEAGUE_ID = 4739;
 const SEASON = 2026;
@@ -42,17 +43,6 @@ export interface ZScorePlayer {
   zScores: Record<string, number>;
   zTotal: number;
   far: number;
-}
-
-function mean(vals: number[]): number {
-  if (vals.length === 0) return 0;
-  return vals.reduce((s, v) => s + v, 0) / vals.length;
-}
-
-function stddev(vals: number[], mu: number): number {
-  if (vals.length < 2) return 1;
-  const variance = vals.reduce((s, v) => s + (v - mu) ** 2, 0) / vals.length;
-  return Math.sqrt(variance) || 1;
 }
 
 export async function GET() {
