@@ -2,12 +2,7 @@
 
 import { useState, useEffect, useMemo, useCallback } from "react";
 import type { Player } from "@/lib/data";
-
-interface DraftSession {
-  drafted: string[];
-  myPicks: string[];
-  myRoster: Record<string, string>;
-}
+import { useDraft } from "@/lib/draft-context";
 
 const ROSTER_SLOTS = [
   "C", "1B", "2B", "3B", "SS", "OF1", "OF2", "OF3", "UTIL",
@@ -44,14 +39,11 @@ const PIT_STATS = ["K", "QS", "W", "L", "SV", "HD", "ERA", "WHIP"] as const;
 
 export default function TeamPage() {
   const [players, setPlayers] = useState<Player[]>([]);
-  const [session, setSession] = useState<DraftSession>({
-    drafted: [], myPicks: [], myRoster: {},
-  });
+  const { session, assignSlot: ctxAssign, unassignSlot: ctxUnassign } = useDraft();
   const [assigningSlot, setAssigningSlot] = useState<Slot | null>(null);
 
   useEffect(() => {
     fetch("/api/rankings").then((r) => r.json()).then(setPlayers);
-    fetch("/api/draft").then((r) => r.json()).then(setSession);
   }, []);
 
   const playerMap = useMemo(() => {
@@ -75,24 +67,14 @@ export default function TeamPage() {
     [myPickPlayers, assignedNames]
   );
 
-  const assignPlayer = useCallback(async (slot: Slot, playerName: string) => {
-    const res = await fetch("/api/draft", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ action: "assign", slot, player: playerName }),
-    });
-    setSession(await res.json());
+  const assignPlayer = useCallback((slot: Slot, playerName: string) => {
+    ctxAssign(slot, playerName);
     setAssigningSlot(null);
-  }, []);
+  }, [ctxAssign]);
 
-  const unassignSlot = useCallback(async (slot: Slot) => {
-    const res = await fetch("/api/draft", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ action: "unassign", slot }),
-    });
-    setSession(await res.json());
-  }, []);
+  const unassignSlot = useCallback((slot: Slot) => {
+    ctxUnassign(slot);
+  }, [ctxUnassign]);
 
   const rosteredPlayers = useMemo(() => {
     const list: Player[] = [];
