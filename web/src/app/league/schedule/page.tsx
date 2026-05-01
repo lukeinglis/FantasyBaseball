@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import { mean, stddev } from "@/lib/z-scores";
 
 interface MatchupWeek {
   period: number;
@@ -23,6 +24,49 @@ interface TeamRankInfo {
   compositeAvgRank: number;
 }
 
+const CATS = ["H", "R", "HR", "TB", "RBI", "BB", "SB", "AVG", "K", "QS", "W", "L", "SV", "HD", "ERA", "WHIP"] as const;
+const LOWER_IS_BETTER_CATS = new Set(["ERA", "WHIP", "L"]);
+
+export function buildZScoreMap(
+  teams: Array<{ teamId: number; categories: Record<string, number> }>,
+  averages: Record<string, number>,
+): Record<number, Record<string, number>> {
+  const zMap: Record<number, Record<string, number>> = {};
+  for (const cat of CATS) {
+    const vals = teams.map((t) => t.categories[cat] ?? 0);
+    const mu = averages[cat] ?? mean(vals);
+    const sd = stddev(vals, mu);
+    for (const team of teams) {
+      if (!zMap[team.teamId]) zMap[team.teamId] = {};
+      const raw = ((team.categories[cat] ?? 0) - mu) / sd;
+      zMap[team.teamId][cat] = LOWER_IS_BETTER_CATS.has(cat) ? -raw : raw;
+    }
+  }
+  return zMap;
+}
+
+export function computeMatchupStrength(
+  myZ: Record<string, number>,
+  oppZ: Record<string, number>,
+): { score: number; topCategories: string[] } {
+  const diffs = CATS.map((cat) => ({
+    cat,
+    diff: (oppZ[cat] ?? 0) - (myZ[cat] ?? 0),
+  }));
+  const score = mean(diffs.map((d) => d.diff));
+  const topCategories = [...diffs]
+    .sort((a, b) => Math.abs(b.diff) - Math.abs(a.diff))
+    .slice(0, 2)
+    .map((d) => d.cat);
+  return { score, topCategories };
+}
+
+function strengthStyle(score: number): { label: string; color: string } {
+  if (score < -0.3) return { label: "Favorable", color: "text-emerald-600 bg-emerald-50 border-emerald-200" };
+  if (score > 0.3) return { label: "Tough", color: "text-red-600 bg-red-50 border-red-200" };
+  return { label: "Even", color: "text-yellow-600 bg-yellow-50 border-yellow-200" };
+}
+
 function difficultyLabel(rank: number): { label: string; color: string } {
   if (rank <= 2) return { label: "Hard", color: "text-red-600 bg-red-50 border-red-200" };
   if (rank <= 4) return { label: "Tough", color: "text-orange-600 bg-orange-50 border-orange-200" };
@@ -34,10 +78,6 @@ function fmtDateRange(start: string, end: string): string {
   const s = new Date(start + "T12:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric" });
   const e = new Date(end + "T12:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric" });
   return `${s} – ${e}`;
-}
-
-function fmtDate(d: string): string {
-  return new Date(d + "T12:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric" });
 }
 
 function EspnSetupCard() {
@@ -52,6 +92,7 @@ function EspnSetupCard() {
 export default function SchedulePage() {
   const [data, setData] = useState<ScheduleData | null>(null);
   const [teamRanks, setTeamRanks] = useState<Record<number, TeamRankInfo>>({});
+  const [zScoreMap, setZScoreMap] = useState<Record<number, Record<string, number>>>({});
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const currentRef = useRef<HTMLDivElement>(null);
@@ -69,6 +110,9 @@ export default function SchedulePage() {
           ranks[t.teamId] = { powerRank: t.powerRank, compositeAvgRank: t.compositeAvgRank };
         }
         setTeamRanks(ranks);
+        if (leagueData.averages) {
+          setZScoreMap(buildZScoreMap(leagueData.teams, leagueData.averages));
+        }
       }
     })
     .catch(() => setError("FETCH_FAILED"))
@@ -97,8 +141,6 @@ export default function SchedulePage() {
 
   // Split into past, current, future
   const pastWeeks = data.weeks.filter((w) => w.period < data.currentMatchupPeriod);
-  const currentWeek = data.weeks.find((w) => w.isCurrent);
-  const futureWeeks = data.weeks.filter((w) => w.period > data.currentMatchupPeriod);
   const totalWeeks = data.weeks.length;
   const weeksCompleted = pastWeeks.length;
 
@@ -117,6 +159,11 @@ export default function SchedulePage() {
         {data.weeks.map((week) => {
           const isPast = week.period < data.currentMatchupPeriod;
           const isCurrent = week.isCurrent;
+
+          const myZ = zScoreMap[data.myTeamId];
+          const oppZ = week.myOpponentId != null ? zScoreMap[week.myOpponentId] : undefined;
+          const strength = myZ && oppZ ? computeMatchupStrength(myZ, oppZ) : null;
+          const style = strength ? strengthStyle(strength.score) : null;
 
           return (
             <div
@@ -149,6 +196,14 @@ export default function SchedulePage() {
                     {week.myOpponentId && teamRanks[week.myOpponentId] && (
                       <span className={`text-[9px] font-bold border rounded px-1.5 py-0.5 ${difficultyLabel(teamRanks[week.myOpponentId].powerRank).color}`}>
                         #{teamRanks[week.myOpponentId].powerRank} {difficultyLabel(teamRanks[week.myOpponentId].powerRank).label}
+                      </span>
+                    )}
+                    {strength && style && (
+                      <span
+                        title={`Top factors: ${strength.topCategories.join(", ")}`}
+                        className={`text-[9px] font-bold border rounded px-1.5 py-0.5 cursor-help ${style.color}`}
+                      >
+                        {style.label}
                       </span>
                     )}
                   </>
