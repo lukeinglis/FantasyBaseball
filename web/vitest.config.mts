@@ -9,5 +9,11 @@ export default defineConfig({
   test: {
     environment: "jsdom",
     setupFiles: "./src/tests/setup.ts",
+    coverage: {
+      provider: "v8",
+      reporter: ["text", "html", "lcov"],
+      exclude: ["src/app/**", "src/tests/**", "src/mocks/**", "**/*.config.*"],
+      thresholds: { lines: 50 },
+    },
   },
 });
