@@ -1,5 +1,6 @@
 export const dynamic = "force-dynamic";
 import { espnFetch, hasEspnCreds, STAT_ID_MAP } from "@/lib/espn";
+import logger from "@/lib/logger";
 
 export interface TeamCategoryStats {
   teamId: number;
@@ -200,6 +201,8 @@ function rankTeams(
 }
 
 export async function GET(request: Request) {
+  const reqId = crypto.randomUUID();
+  const log = logger.child({ reqId, path: new URL(request.url).pathname });
   const { searchParams } = new URL(request.url);
   const scope = (searchParams.get("scope") ?? "week") as "week" | "season";
 
@@ -211,6 +214,7 @@ export async function GET(request: Request) {
   }
 
   try {
+    const t0 = Date.now();
     const data: any = await espnFetch(["mMatchup", "mMatchupScore", "mTeam", "mStatus"]); // eslint-disable-line @typescript-eslint/no-explicit-any
     const currentMatchupPeriod = data.status?.currentMatchupPeriod ?? 1;
     const schedule: any[] = data.schedule ?? []; // eslint-disable-line @typescript-eslint/no-explicit-any
@@ -276,9 +280,11 @@ export async function GET(request: Request) {
 
     teams.sort((a, b) => b.wins - a.wins || a.losses - b.losses);
 
+    log.info({ op: "league-stats", scope, durationMs: Date.now() - t0 }, "ok");
     return Response.json({ scope, scoringPeriodId: currentMatchupPeriod, myTeamId: MY_TEAM_ID, teams, averages } as LeagueStatsData);
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
+    log.error({ op: "league-stats", err: msg }, "failed");
     return Response.json({ error: msg }, { status: 502 });
   }
 }

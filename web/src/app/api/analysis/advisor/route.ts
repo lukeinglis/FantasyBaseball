@@ -1,4 +1,5 @@
 import { espnFetch, hasEspnCreds, STAT_ID_MAP, POS_MAP, getProTeam, getCurrentMatchupPeriod, getMatchupDates } from "@/lib/espn";
+import logger from "@/lib/logger";
 
 interface Recommendation {
   type: "score" | "target" | "alert" | "stream" | "sit";
@@ -11,12 +12,15 @@ const MY_TEAM_ID = parseInt(process.env.MY_ESPN_TEAM_ID ?? "0");
 const CATS_ORDER = ["H", "R", "HR", "TB", "RBI", "BB", "SB", "AVG", "K", "QS", "W", "L", "SV", "HD", "ERA", "WHIP"];
 const LOWER_IS_BETTER = new Set(["ERA", "WHIP", "L"]);
 
-export async function GET() {
+export async function GET(req: Request) {
+  const reqId = crypto.randomUUID();
+  const log = logger.child({ reqId, path: new URL(req.url).pathname });
   if (!hasEspnCreds() || !MY_TEAM_ID) {
     return Response.json({ recommendations: [] });
   }
 
   try {
+    const t0 = Date.now();
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const data: any = await espnFetch(["mMatchup", "mMatchupScore", "mRoster", "mTeam", "mStatus", "mSettings"]);
     const currentPeriod = getCurrentMatchupPeriod(data);
@@ -174,8 +178,10 @@ export async function GET() {
       }
     }
 
+    log.info({ op: "advisor", count: recommendations.length, durationMs: Date.now() - t0 }, "ok");
     return Response.json({ recommendations });
   } catch (err) {
+    log.error({ op: "advisor", err: String(err) }, "failed");
     return Response.json({ recommendations: [{ type: "alert", title: "Error", description: String(err), priority: "low" }] });
   }
 }

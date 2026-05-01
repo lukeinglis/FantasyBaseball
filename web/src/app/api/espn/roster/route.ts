@@ -1,5 +1,6 @@
 export const dynamic = "force-dynamic";
 import { espnFetch, hasEspnCreds, SLOT_MAP, POS_MAP, INJURY_MAP, getProTeam } from "@/lib/espn";
+import logger from "@/lib/logger";
 
 export interface RosterPlayer {
   name: string;
@@ -63,16 +64,21 @@ function parseTeams(data: any): EspnTeam[] {
   return teams;
 }
 
-export async function GET() {
+export async function GET(req: Request) {
+  const reqId = crypto.randomUUID();
+  const log = logger.child({ reqId, path: new URL(req.url).pathname });
   if (!hasEspnCreds()) {
     return Response.json({ error: "ESPN_CREDS_MISSING" }, { status: 401 });
   }
   try {
+    const t0 = Date.now();
     const data = await espnFetch(["mRoster", "mTeam"]);
     const teams = parseTeams(data);
+    log.info({ op: "roster", durationMs: Date.now() - t0 }, "ok");
     return Response.json(teams);
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
+    log.error({ op: "roster", err: msg }, "failed");
     return Response.json({ error: msg }, { status: 502 });
   }
 }

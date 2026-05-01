@@ -1,5 +1,6 @@
 export const dynamic = "force-dynamic";
 import { espnFetch, hasEspnCreds, POS_MAP, getProTeam, getMatchupDates, getCurrentMatchupPeriod } from "@/lib/espn";
+import logger from "@/lib/logger";
 
 export interface StartsTeam {
   teamId: number;
@@ -52,7 +53,9 @@ async function buildGameIdDateMap(startDate: string, endDate: string): Promise<R
   }
 }
 
-export async function GET() {
+export async function GET(req: Request) {
+  const reqId = crypto.randomUUID();
+  const log = logger.child({ reqId, path: new URL(req.url).pathname });
   if (!hasEspnCreds()) {
     return Response.json({ error: "ESPN_CREDS_MISSING" }, { status: 401 });
   }
@@ -61,6 +64,7 @@ export async function GET() {
   }
 
   try {
+    const t0 = Date.now();
     const data: any = await espnFetch(["mRoster", "mTeam", "mStatus", "mSettings"]);
     const currentMatchupPeriod = getCurrentMatchupPeriod(data);
     const currentDates = getMatchupDates(data, currentMatchupPeriod);
@@ -123,6 +127,7 @@ export async function GET() {
       teams.push({ teamId: t.id, teamName: name, pitchers });
     }
 
+    log.info({ op: "starts", durationMs: Date.now() - t0 }, "ok");
     return Response.json({
       myTeamId: MY_TEAM_ID,
       currentMatchupPeriod,
@@ -133,6 +138,7 @@ export async function GET() {
     } as StartsData);
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
+    log.error({ op: "starts", err: msg }, "failed");
     return Response.json({ error: msg }, { status: 502 });
   }
 }

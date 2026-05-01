@@ -1,5 +1,6 @@
 export const dynamic = "force-dynamic";
 export const maxDuration = 30;
+import logger from "@/lib/logger";
 
 const CATS_ORDER = ["H", "R", "HR", "TB", "RBI", "BB", "SB", "AVG", "K", "QS", "W", "L", "SV", "HD", "ERA", "WHIP"];
 const LOWER_IS_BETTER = new Set(["ERA", "WHIP", "L"]);
@@ -181,6 +182,9 @@ function buildPrompt(matchup: any, league: any, standings: any, schedule: any, z
 }
 
 export async function GET(req: Request) {
+  const reqId = crypto.randomUUID();
+  const log = logger.child({ reqId, path: new URL(req.url).pathname });
+  const t0 = Date.now();
   const ANTHROPIC_KEY = process.env.ANTHROPIC_API_KEY;
   if (!ANTHROPIC_KEY) {
     return Response.json({ error: "ANTHROPIC_API_KEY_MISSING" }, { status: 503 });
@@ -247,5 +251,6 @@ Every bullet starts with an action verb. Name players. Quote their stats. Be blu
     return Response.json({ error: "Failed to parse AI response", raw: rawText }, { status: 500 });
   }
 
+  log.info({ op: "gm-advice", durationMs: Date.now() - t0 }, "ok");
   return Response.json({ ...advice, generatedAt: new Date().toISOString() });
 }

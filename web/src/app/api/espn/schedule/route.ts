@@ -1,5 +1,6 @@
 export const dynamic = "force-dynamic";
 import { espnFetch, hasEspnCreds, getCurrentMatchupPeriod, buildMatchupSchedule, SEASON_START } from "@/lib/espn";
+import logger from "@/lib/logger";
 
 // Returns the full season schedule with matchup periods, dates, and opponents
 
@@ -21,7 +22,9 @@ export interface ScheduleData {
 
 const MY_TEAM_ID = parseInt(process.env.MY_ESPN_TEAM_ID ?? "0");
 
-export async function GET() {
+export async function GET(req: Request) {
+  const reqId = crypto.randomUUID();
+  const log = logger.child({ reqId, path: new URL(req.url).pathname });
   if (!hasEspnCreds()) {
     return Response.json({ error: "ESPN_CREDS_MISSING" }, { status: 401 });
   }
@@ -30,6 +33,7 @@ export async function GET() {
   }
 
   try {
+    const t0 = Date.now();
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const data: any = await espnFetch(["mSettings", "mStatus", "mMatchup", "mTeam"]);
     const currentMatchupPeriod = getCurrentMatchupPeriod(data);
@@ -67,6 +71,7 @@ export async function GET() {
       };
     });
 
+    log.info({ op: "schedule", durationMs: Date.now() - t0 }, "ok");
     return Response.json({
       myTeamId: MY_TEAM_ID,
       currentMatchupPeriod,
@@ -75,6 +80,7 @@ export async function GET() {
     } as ScheduleData);
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
+    log.error({ op: "schedule", err: msg }, "failed");
     return Response.json({ error: msg }, { status: 502 });
   }
 }

@@ -54,8 +54,13 @@ export interface EspnPlayerData {
   espnRank: number | null;
 }
 
-export async function GET() {
+import logger from "@/lib/logger";
+
+export async function GET(req: Request) {
+  const reqId = crypto.randomUUID();
+  const log = logger.child({ reqId, path: new URL(req.url).pathname });
   try {
+    const t0 = Date.now();
     const res = await fetch(
       "https://lm-api-reads.fantasy.espn.com/apis/v3/games/flb/seasons/2026/segments/0/leaguedefaults/3?view=kona_player_info&scoringPeriodId=0",
       {
@@ -109,8 +114,10 @@ export async function GET() {
       };
     }
 
+    log.info({ op: "espn-adp", durationMs: Date.now() - t0 }, "ok");
     return Response.json(result);
   } catch (err) {
+    log.error({ op: "espn-adp", err: String(err) }, "failed");
     return Response.json({ error: String(err) }, { status: 502 });
   }
 }

@@ -1,5 +1,6 @@
 // MLB Stats API — per-day schedule grid
 // Returns opponent for each team on each day in the date range
+import logger from "@/lib/logger";
 
 const TEAM_MAP: Record<string, string> = {
   AZ: "ARI", ARI: "ARI", WSH: "WSH", WAS: "WSH",
@@ -18,6 +19,8 @@ function normalize(abbrev: string): string {
 export type ScheduleGrid = Record<string, Record<string, string>>;
 
 export async function GET(req: Request) {
+  const reqId = crypto.randomUUID();
+  const log = logger.child({ reqId, path: new URL(req.url).pathname });
   const { searchParams } = new URL(req.url);
   const startDate = searchParams.get("startDate");
   const endDate = searchParams.get("endDate");
@@ -27,6 +30,7 @@ export async function GET(req: Request) {
   }
 
   try {
+    const t0 = Date.now();
     const url = `https://statsapi.mlb.com/api/v1/schedule?sportId=1&startDate=${startDate}&endDate=${endDate}&gameType=R&hydrate=team`;
     const res = await fetch(url, { next: { revalidate: 900 } });
     if (!res.ok) return Response.json({ error: "MLB_API_FAILED" }, { status: 502 });
@@ -49,8 +53,10 @@ export async function GET(req: Request) {
       }
     }
 
+    log.info({ op: "schedule-grid", durationMs: Date.now() - t0 }, "ok");
     return Response.json(grid);
   } catch (err) {
+    log.error({ op: "schedule-grid", err: String(err) }, "failed");
     return Response.json({ error: String(err) }, { status: 502 });
   }
 }

@@ -1,5 +1,6 @@
 // MLB Stats API — batter vs pitcher career stats
 // Takes batter and pitcher names, looks up IDs, returns career matchup stats
+import logger from "@/lib/logger";
 
 export interface BvpStats {
   batter: string;
@@ -79,6 +80,8 @@ async function fetchBvp(batterId: number, pitcherId: number): Promise<any | null
 }
 
 export async function GET(req: Request) {
+  const reqId = crypto.randomUUID();
+  const log = logger.child({ reqId, path: new URL(req.url).pathname });
   const { searchParams } = new URL(req.url);
   const matchups = searchParams.get("matchups"); // JSON array of { batter, pitcher } pairs
 
@@ -87,6 +90,7 @@ export async function GET(req: Request) {
   }
 
   try {
+    const t0 = Date.now();
     const pairs: { batter: string; pitcher: string }[] = JSON.parse(matchups);
     if (!Array.isArray(pairs) || pairs.length === 0) {
       return Response.json({ error: "Invalid matchups" }, { status: 400 });
@@ -146,8 +150,10 @@ export async function GET(req: Request) {
       })
     );
 
+    log.info({ op: "bvp", count: results.length, durationMs: Date.now() - t0 }, "ok");
     return Response.json(results);
   } catch (err) {
+    log.error({ op: "bvp", err: String(err) }, "failed");
     return Response.json({ error: String(err) }, { status: 502 });
   }
 }

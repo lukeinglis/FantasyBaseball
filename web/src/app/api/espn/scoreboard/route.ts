@@ -1,5 +1,6 @@
 export const dynamic = "force-dynamic";
 import { espnFetch, hasEspnCreds, STAT_ID_MAP } from "@/lib/espn";
+import logger from "@/lib/logger";
 
 export interface ScoreboardCatResult {
   cat: string;
@@ -32,11 +33,14 @@ export interface ScoreboardData {
 const MY_TEAM_ID = parseInt(process.env.MY_ESPN_TEAM_ID ?? "0");
 const CATS_ORDER = ["H", "R", "HR", "TB", "RBI", "BB", "SB", "AVG", "K", "QS", "W", "L", "SV", "HD", "ERA", "WHIP"];
 
-export async function GET() {
+export async function GET(req: Request) {
+  const reqId = crypto.randomUUID();
+  const log = logger.child({ reqId, path: new URL(req.url).pathname });
   if (!hasEspnCreds()) {
     return Response.json({ error: "ESPN_CREDS_MISSING" }, { status: 401 });
   }
   try {
+    const t0 = Date.now();
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const data: any = await espnFetch(["mMatchup", "mMatchupScore", "mTeam", "mStatus"]);
     const currentMatchupPeriod = (data as any).status?.currentMatchupPeriod ?? 1;
@@ -96,9 +100,11 @@ export async function GET() {
       };
     });
 
+    log.info({ op: "scoreboard", durationMs: Date.now() - t0 }, "ok");
     return Response.json({ currentMatchupPeriod, myTeamId: MY_TEAM_ID, matchups } as ScoreboardData);
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
+    log.error({ op: "scoreboard", err: msg }, "failed");
     return Response.json({ error: msg }, { status: 502 });
   }
 }
