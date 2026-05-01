@@ -22,6 +22,7 @@ const CATS_ORDER = ["H", "R", "HR", "TB", "RBI", "BB", "SB", "AVG", "K", "QS", "
 const LOWER_IS_BETTER = new Set(["ERA", "WHIP", "L"]);
 
 function rankCellClasses(rank: number): string {
+  if (!Number.isFinite(rank) || rank <= 0) return "bg-slate-100 text-slate-400";
   if (rank <= 2) return "bg-emerald-600 text-white";
   if (rank <= 4) return "bg-emerald-200 text-emerald-800";
   if (rank <= 6) return "bg-slate-100 text-slate-600";
@@ -30,7 +31,7 @@ function rankCellClasses(rank: number): string {
 }
 
 function fmtValue(cat: string, val: number | null | undefined): string {
-  if (val === null || val === undefined) return "-";
+  if (val == null || !Number.isFinite(val)) return "-";
   if (cat === "AVG") return val.toFixed(3);
   if (cat === "ERA" || cat === "WHIP") return val.toFixed(2);
   return String(Math.round(val));

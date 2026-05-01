@@ -11,6 +11,7 @@ export interface TeamCategoryStats {
   categories: Record<string, number>;
   ranks: Record<string, number>;
   deltas: Record<string, number>;
+  rankDeltas: Record<string, number>;
   battingAvgRank: number;
   pitchingAvgRank: number;
   compositeAvgRank: number;
@@ -234,6 +235,28 @@ export async function GET(request: Request) {
     const { ranks, averages, deltas, composites, powerRanks } = rankTeams(teamStats);
     const allTeamIds = Object.keys(teamStats).map(Number);
 
+    // Compute prior-period ranks for week-over-week rank deltas
+    const priorPeriod = currentMatchupPeriod - 1;
+    let rankDeltas: Record<number, Record<string, number>> = {};
+    if (priorPeriod >= 1) {
+      const priorStats = scope === "season"
+        ? buildSeasonStats(schedule, priorPeriod)
+        : buildTeamStatsForWeek(schedule, priorPeriod);
+      if (Object.keys(priorStats).length > 0) {
+        const priorResult = rankTeams(priorStats);
+        for (const teamId of allTeamIds) {
+          rankDeltas[teamId] = {};
+          for (const cat of CATS_ORDER) {
+            const prevRank = priorResult.ranks[teamId]?.[cat];
+            const currRank = ranks[teamId]?.[cat];
+            if (prevRank != null && currRank != null) {
+              rankDeltas[teamId][cat] = prevRank - currRank;
+            }
+          }
+        }
+      }
+    }
+
     const teams: TeamCategoryStats[] = allTeamIds.map((teamId) => ({
       teamId,
       teamName: teamMeta[teamId]?.name ?? `Team ${teamId}`,
@@ -244,6 +267,7 @@ export async function GET(request: Request) {
       categories: teamStats[teamId] ?? {},
       ranks: ranks[teamId] ?? {},
       deltas: deltas[teamId] ?? {},
+      rankDeltas: rankDeltas[teamId] ?? {},
       battingAvgRank: composites[teamId]?.batting ?? 5.5,
       pitchingAvgRank: composites[teamId]?.pitching ?? 5.5,
       compositeAvgRank: composites[teamId]?.composite ?? 5.5,

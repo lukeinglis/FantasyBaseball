@@ -12,6 +12,7 @@ interface TeamCategoryStats {
   categories: Record<string, number>;
   ranks: Record<string, number>;
   deltas: Record<string, number>;
+  rankDeltas: Record<string, number>;
   battingAvgRank: number;
   pitchingAvgRank: number;
   compositeAvgRank: number;
@@ -30,6 +31,7 @@ const PIT_CATS = ["K", "QS", "W", "L", "SV", "HD", "ERA", "WHIP"];
 const LOWER_IS_BETTER = new Set(["ERA", "WHIP", "L"]);
 
 function rankColor(rank: number): string {
+  if (!Number.isFinite(rank) || rank <= 0) return "text-slate-400";
   if (rank <= 2) return "text-emerald-600 font-bold";
   if (rank <= 4) return "text-emerald-600/70";
   if (rank <= 6) return "text-slate-600";
@@ -38,6 +40,7 @@ function rankColor(rank: number): string {
 }
 
 function rankBg(rank: number): string {
+  if (!Number.isFinite(rank) || rank <= 0) return "bg-surface border-border";
   if (rank === 1) return "bg-emerald-100 border-emerald-300";
   if (rank <= 3) return "bg-emerald-50 border-emerald-200";
   if (rank <= 5) return "bg-surface border-border";
@@ -46,23 +49,33 @@ function rankBg(rank: number): string {
   return "bg-red-100 border-red-300";
 }
 
-function fmtValue(cat: string, val: number | undefined): string {
-  if (val === undefined) return "-";
+function fmtValue(cat: string, val: number | null | undefined): string {
+  if (val == null || !Number.isFinite(val)) return "-";
   if (cat === "AVG") return val.toFixed(3);
   if (cat === "ERA" || cat === "WHIP") return val.toFixed(2);
   return String(Math.round(val));
 }
 
 function fmtDelta(cat: string, delta: number | undefined): string {
-  if (delta === undefined) return "";
+  if (delta === undefined || !Number.isFinite(delta)) return "";
   if (cat === "AVG") return (delta >= 0 ? "+" : "") + delta.toFixed(3);
   if (cat === "ERA" || cat === "WHIP") return (delta >= 0 ? "+" : "") + delta.toFixed(2);
   return (delta >= 0 ? "+" : "") + delta.toFixed(1);
 }
 
 function deltaColor(delta: number | undefined): string {
-  if (delta === undefined || delta === 0) return "text-slate-400";
+  if (delta === undefined || !Number.isFinite(delta) || delta === 0) return "text-slate-400";
   return delta > 0 ? "text-emerald-600" : "text-red-500";
+}
+
+function TrendArrow({ delta }: { delta: number | undefined }) {
+  if (delta === undefined || !Number.isFinite(delta) || delta === 0) {
+    return <span className="text-slate-300 text-[10px]">&mdash;</span>;
+  }
+  if (delta > 0) {
+    return <span className="text-emerald-600 text-[10px] font-bold">{"▲"}{delta}</span>;
+  }
+  return <span className="text-red-500 text-[10px] font-bold">{"▼"}{Math.abs(delta)}</span>;
 }
 
 function EspnSetupCard() {
@@ -108,8 +121,10 @@ export default function CategoryRankPage() {
 
   const avgRank = useMemo(() => {
     if (!myTeam) return 0;
-    const allRanks = Object.values(myTeam.ranks);
-    return allRanks.length ? allRanks.reduce((a, b) => a + b, 0) / allRanks.length : 0;
+    const allRanks = Object.values(myTeam.ranks).filter(Number.isFinite);
+    if (allRanks.length === 0) return 0;
+    const avg = allRanks.reduce((a, b) => a + b, 0) / allRanks.length;
+    return Number.isFinite(avg) ? avg : 0;
   }, [myTeam]);
 
   const strengths = useMemo(() => {
@@ -193,11 +208,15 @@ export default function CategoryRankPage() {
                   const rank = myTeam.ranks[cat] ?? 0;
                   const val = myTeam.categories[cat];
                   const delta = myTeam.deltas?.[cat];
+                  const rankDelta = myTeam.rankDeltas?.[cat];
                   return (
                     <div key={cat} className={`rounded-lg border px-3 py-3 text-center ${rankBg(rank)}`}>
                       <div className="text-[10px] font-bold text-slate-500">{cat}</div>
                       <div className={`mt-1 text-[22px] font-bold tabular-nums ${rankColor(rank)}`}>
                         {rank > 0 ? `#${rank}` : "-"}
+                      </div>
+                      <div className="mt-0.5">
+                        <TrendArrow delta={rankDelta} />
                       </div>
                       <div className="mt-0.5 text-[11px] font-mono text-slate-500">
                         {fmtValue(cat, val)}
@@ -288,12 +307,15 @@ export default function CategoryRankPage() {
                             const rank = team.ranks[cat] ?? 0;
                             const val = team.categories[cat];
                             const delta = team.deltas?.[cat];
+                            const rankDelta = team.rankDeltas?.[cat];
                             return (
                               <td key={cat} className="px-2 py-2 text-right">
                                 <div className={`font-mono tabular-nums ${rankColor(rank)}`}>
                                   {fmtValue(cat, val)}
                                 </div>
-                                <div className={`text-[9px] ${rankColor(rank)}`}>#{rank}</div>
+                                <div className={`text-[9px] ${rankColor(rank)}`}>
+                                  #{rank} <TrendArrow delta={rankDelta} />
+                                </div>
                                 {delta !== undefined && (
                                   <div className={`text-[9px] font-mono tabular-nums ${deltaColor(delta)}`}>
                                     {fmtDelta(cat, delta)}
