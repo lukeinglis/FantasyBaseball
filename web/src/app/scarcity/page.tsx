@@ -3,12 +3,7 @@
 import { useState, useEffect, useMemo } from "react";
 import type { Player } from "@/lib/data";
 import type { EspnPlayerData } from "@/app/api/espn-adp/route";
-
-interface DraftSession {
-  drafted: string[];
-  myPicks: string[];
-  myRoster: Record<string, string>;
-}
+import { useDraft } from "@/lib/draft-context";
 
 const POSITIONS = ["C", "1B", "2B", "3B", "SS", "OF", "SP", "RP"] as const;
 
@@ -33,13 +28,12 @@ function urgencyTag(pct: number): { label: string; color: string; bar: string } 
 
 export default function ScarcityPage() {
   const [players, setPlayers] = useState<Player[]>([]);
-  const [session, setSession] = useState<DraftSession>({ drafted: [], myPicks: [], myRoster: {} });
+  const { session } = useDraft();
   const [espnData, setEspnData] = useState<Record<string, EspnPlayerData>>({});
   const [drillPos, setDrillPos] = useState<string>("");
 
   useEffect(() => {
     fetch("/api/rankings").then((r) => r.json()).then(setPlayers);
-    fetch("/api/draft").then((r) => r.json()).then(setSession);
     fetch("/api/espn-adp").then((r) => r.json()).then((data) => {
       if (!data.error) setEspnData(data);
     });

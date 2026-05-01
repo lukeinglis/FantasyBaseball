@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import type { Player, StandingsRow } from "@/lib/data";
+import { useDraft } from "@/lib/draft-context";
 
 // ── Draft order ───────────────────────────────────────────────────────────────
 
@@ -48,14 +49,6 @@ const STARTER_COUNTS: Record<string, number> = {
   OF: 30, SP: 50, RP: 20,
 };
 
-// ── Types ─────────────────────────────────────────────────────────────────────
-
-interface DraftSession {
-  drafted: string[];
-  myPicks: string[];
-  myRoster: Record<string, string>;
-}
-
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
 function zColor(z: number): string {
@@ -88,7 +81,7 @@ function urgencyTag(pct: number): { label: string; color: string; bar: string } 
 
 export default function DraftBoardPage() {
   const [players, setPlayers] = useState<Player[]>([]);
-  const [session, setSession] = useState<DraftSession>({ drafted: [], myPicks: [], myRoster: {} });
+  const { session, draftPlayer: ctxDraft, undoLast: ctxUndo, resetDraft: ctxReset } = useDraft();
   const [typeFilter, setTypeFilter] = useState<"All" | "BAT" | "PIT">("All");
   const [posFilter, setPosFilter] = useState<string[]>([]);
   const [search, setSearch] = useState("");
@@ -106,7 +99,6 @@ export default function DraftBoardPage() {
 
   useEffect(() => {
     fetch("/api/rankings").then((r) => r.json()).then(setPlayers);
-    fetch("/api/draft").then((r) => r.json()).then(setSession);
     fetch("/api/espn-adp").then((r) => r.json()).then((data) => {
       if (!data.error) setEspnData(data);
     });
@@ -309,37 +301,21 @@ export default function DraftBoardPage() {
 
   // ── Actions ────────────────────────────────────────────────────────────────
 
-  const draftPlayer = useCallback(async (name: string, mine: boolean) => {
-    const res = await fetch("/api/draft", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ action: "draft", player: name, isMine: mine }),
-    });
-    setSession(await res.json());
-    // Auto-advance: clear manual selection so next pick follows draft order
+  const draftPlayer = useCallback((name: string, mine: boolean) => {
+    ctxDraft(name, mine);
     setSelectedDrafter(null);
-  }, []);
+  }, [ctxDraft]);
 
-  const undoLast = useCallback(async () => {
-    const res = await fetch("/api/draft", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ action: "undo" }),
-    });
-    setSession(await res.json());
+  const undoLast = useCallback(() => {
+    ctxUndo();
     setSelectedDrafter(null);
-  }, []);
+  }, [ctxUndo]);
 
-  const resetDraft = useCallback(async () => {
+  const resetDraft = useCallback(() => {
     if (!confirm("Reset entire draft?")) return;
-    const res = await fetch("/api/draft", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ action: "reset" }),
-    });
-    setSession(await res.json());
+    ctxReset();
     setSelectedDrafter(null);
-  }, []);
+  }, [ctxReset]);
 
   const togglePos = (pos: string) =>
     setPosFilter((prev) =>
