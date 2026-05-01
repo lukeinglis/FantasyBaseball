@@ -5,6 +5,7 @@ function isOnIL(status: string): boolean { return IL_INJURY_STATUSES.has(status)
 
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { DataFreshness } from "@/components/DataFreshness";
+import { simulateCategoryWinProb } from "@/lib/monte-carlo";
 
 interface MatchupCat {
   cat: string;
@@ -113,49 +114,9 @@ const DAILY_SD: Record<string, number> = {
   WHIP: 0.06,   // team WHIP can swing ~0.06/day
 };
 
-/**
- * Estimate how "locked" a category is based on current gap and days remaining.
- * Returns 0-100 representing confidence the current result holds.
- */
-function lockPct(cat: string, myVal: number | null, oppVal: number | null, daysLeft: number): number | null {
-  if (myVal === null || oppVal === null || daysLeft <= 0) return null;
-
-  const lower = LOWER_IS_BETTER.has(cat);
-  const gap = lower ? oppVal - myVal : myVal - oppVal; // positive = I'm winning
-
-  // For rate stats, both teams' rates can move, so variance is higher
-  const isRate = cat === "AVG" || cat === "ERA" || cat === "WHIP";
-  const dailySd = DAILY_SD[cat] ?? 1;
-
-  // Combined variance: both teams can swing independently
-  // Rate stats swing less as the matchup progresses (more IP/AB stabilizes)
-  // but we use a simplified model
-  const sd = dailySd * Math.sqrt(daysLeft) * (isRate ? 1.4 : 1);
-  if (sd === 0) return gap > 0 ? 99 : gap < 0 ? 1 : 50;
-
-  // Simple normal approximation: how many SDs is the gap?
-  const zScore = gap / sd;
-
-  // Convert z-score to rough percentage
-  const pct = Math.round(50 + zScore * 20);
-  return Math.max(1, Math.min(99, pct));
-}
-
-function lockLabel(pct: number): string {
-  if (pct >= 90) return "Locked";
-  if (pct >= 75) return "Likely";
-  if (pct >= 55) return "Lean";
-  if (pct >= 45) return "Toss-up";
-  if (pct >= 25) return "Behind";
-  if (pct >= 10) return "Unlikely";
-  return "Lost";
-}
-
-function lockColor(pct: number): string {
-  if (pct >= 75) return "text-emerald-600";
-  if (pct >= 55) return "text-emerald-600/60";
-  if (pct >= 45) return "text-orange-600";
-  if (pct >= 25) return "text-red-600/60";
+function winProbColor(prob: number): string {
+  if (prob > 66) return "text-emerald-600";
+  if (prob >= 34) return "text-yellow-600";
   return "text-red-600";
 }
 
@@ -528,6 +489,22 @@ export default function MatchupPage() {
     return { wins, losses, ties, flips };
   }, [projections]);
 
+  const winProbs = useMemo(() => {
+    if (!projections) return null;
+    return Object.fromEntries(
+      projections.map(p => [
+        p.cat,
+        simulateCategoryWinProb(
+          p.myProj,
+          p.oppProj,
+          DAILY_SD[p.cat] ?? 1,
+          daysLeft,
+          LOWER_IS_BETTER.has(p.cat)
+        ),
+      ])
+    );
+  }, [projections, daysLeft]);
+
   // Count SP starts using ESPN's starterStatusByProGame PP data
   const startsCounts = useMemo(() => {
     if (!startsData || !data) return null;
@@ -689,7 +666,7 @@ export default function MatchupPage() {
             <div className="grid grid-cols-4 gap-3 sm:grid-cols-8">
               {cats.map((c) => {
                 const proj = projections?.find(p => p.cat === c.cat);
-                const pct = lockPct(c.cat, c.myValue, c.oppValue, daysLeft);
+                const winProb = winProbs?.[c.cat] ?? null;
                 const myVal = c.myValue ?? 0;
                 const oppVal = c.oppValue ?? 0;
                 const total = Math.abs(myVal) + Math.abs(oppVal);
@@ -704,10 +681,9 @@ export default function MatchupPage() {
                 const myColor = c.result === "WIN" ? "#059669" : c.result === "TIE" ? "#ea580c" : "#cbd5e1";
                 const oppColor = c.result === "LOSS" ? "#dc2626" : c.result === "TIE" ? "#ea580c" : "#cbd5e1";
 
-                // Danger flag logic: 25-55% lock means at-risk
-                const isDanger = pct !== null && daysLeft > 0 && pct >= 25 && pct <= 55;
-                const isWinningAtRisk = isDanger && c.result === "WIN";
-                const isLosingFlippable = isDanger && c.result === "LOSS";
+                // Danger flag logic: win probability in contested zone
+                const isWinningAtRisk = winProb !== null && daysLeft > 0 && c.result === "WIN" && winProb < 67;
+                const isLosingFlippable = winProb !== null && daysLeft > 0 && c.result === "LOSS" && winProb > 33;
                 const dangerRing = isWinningAtRisk
                   ? "ring-2 ring-orange-400 animate-pulse"
                   : isLosingFlippable
@@ -762,7 +738,7 @@ export default function MatchupPage() {
                       </div>
                     </div>
 
-                    {/* Result + projection */}
+                    {/* Result + projection + win probability */}
                     <div className="mt-1 flex flex-col items-center">
                       {c.result !== "PENDING" && (
                         <span className={`text-[9px] font-bold uppercase ${catResultColor(c.result)}`}>
@@ -774,6 +750,11 @@ export default function MatchupPage() {
                           proj.willFlip ? "text-orange-600" : proj.projResult === "WIN" ? "text-emerald-600" : proj.projResult === "LOSS" ? "text-red-500" : "text-slate-400"
                         }`}>
                           {fmtCat(c.cat, proj.myProj)}{proj.willFlip ? " !" : ""}
+                        </span>
+                      )}
+                      {winProb !== null && daysLeft > 0 && (
+                        <span className={`text-[8px] font-bold tabular-nums ${winProbColor(winProb)}`}>
+                          {winProb}%
                         </span>
                       )}
                     </div>
