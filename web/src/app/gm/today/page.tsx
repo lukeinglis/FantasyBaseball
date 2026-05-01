@@ -89,7 +89,34 @@ interface MatchupSnapshot {
   matchupEndDate: string | null;
 }
 
+interface MatchupPlayerLocal {
+  name: string;
+  stats: Record<string, number>;
+}
+
 const LOWER_IS_BETTER = new Set(["ERA", "WHIP", "L"]);
+
+export function sanitizeNum(val: unknown): number {
+  if (typeof val !== "number" || !Number.isFinite(val)) return 0;
+  return val;
+}
+
+export function scoreActionItem(
+  stats: Record<string, number>,
+  atRiskCats: string[],
+  lowerIsBetter: ReadonlySet<string> = LOWER_IS_BETTER,
+): number {
+  let total = 0;
+  for (const cat of atRiskCats) {
+    const val = sanitizeNum(stats[cat]);
+    if (lowerIsBetter.has(cat)) {
+      total -= val;
+    } else {
+      total += val;
+    }
+  }
+  return total;
+}
 
 function fmtCatVal(cat: string, val: number | null): string {
   if (typeof val !== "number" || !Number.isFinite(val)) return "-";
@@ -106,6 +133,7 @@ export default function TodayPage() {
   const [advisorRecs, setAdvisorRecs] = useState<AdvisorRec[]>([]);
   const [matchupSnapshot, setMatchupSnapshot] = useState<MatchupSnapshot | null>(null);
   const [myTeamId, setMyTeamId] = useState<number | null>(null);
+  const [matchupRoster, setMatchupRoster] = useState<MatchupPlayerLocal[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -133,6 +161,14 @@ export default function TodayPage() {
           categories: matchupData.categories,
           matchupEndDate: matchupData.matchupEndDate,
         });
+      }
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      if (Array.isArray(matchupData.myRoster)) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        setMatchupRoster((matchupData.myRoster as any[]).map((p: any) => ({
+          name: p.name ?? "",
+          stats: p.stats ?? {},
+        })));
       }
       if (probableData?.allStarts) {
         setProbableNames(new Set(probableData.allStarts.map((s: any) => s.pitcherName)));
@@ -224,6 +260,14 @@ export default function TodayPage() {
     });
     const score = `${matchupSnapshot.myWins}-${matchupSnapshot.myLosses}${matchupSnapshot.myTies > 0 ? `-${matchupSnapshot.myTies}` : ""}`;
     return { atRisk, targets, score };
+  }, [matchupSnapshot]);
+
+  // Categories we're currently losing — used to rank action items
+  const atRiskCats = useMemo(() => {
+    if (!matchupSnapshot) return [] as string[];
+    return matchupSnapshot.categories
+      .filter(c => c.result === "LOSS")
+      .map(c => c.cat);
   }, [matchupSnapshot]);
 
   const today = new Date().toLocaleDateString("en-US", { weekday: "long", month: "short", day: "numeric" });
@@ -353,6 +397,23 @@ export default function TodayPage() {
   const relieversToday = playingPitchers.filter((p) => p.pos === "RP" && !isProbableStarter(p.name));
   const spsNotStarting = playingPitchers.filter((p) => p.pos === "SP" && !isProbableStarter(p.name));
 
+  // Active starters with season stats (used in Today's Starters section)
+  const todayStartersWithStats = [...playingBatters, ...startingToday].map(p => {
+    const rosterData = matchupRoster.find(m => m.name === p.name);
+    return { player: p, stats: rosterData?.stats ?? {} };
+  });
+
+  // Bench players with games, ranked by impact on at-risk categories (used in Action Items)
+  const actionItems = benchWithGames
+    .filter(p => !isOnIL(p.injuryStatus))
+    .map(p => {
+      const rosterData = matchupRoster.find(m => m.name === p.name);
+      const stats = rosterData?.stats ?? {};
+      const score = scoreActionItem(stats, atRiskCats);
+      return { player: p, stats, score };
+    })
+    .sort((a, b) => b.score - a.score);
+
   return (
     <div className="mx-auto max-w-7xl px-4 py-6">
       <div className="grid gap-6 lg:grid-cols-[1fr_320px]">
@@ -384,34 +445,49 @@ export default function TodayPage() {
         </div>
       </div>
 
-      {/* Matchup scoreboard snapshot */}
+      {/* Category Status */}
       {matchupSnapshot && (
-        <div className="mb-4 rounded-lg border border-border bg-surface px-4 py-3">
-          <div className="flex items-center justify-between mb-2">
+        <div className="mb-4 rounded-lg border border-border bg-surface">
+          <div className="border-b border-border px-4 py-2 flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <span className="text-[10px] font-semibold uppercase tracking-widest text-slate-500">vs {matchupSnapshot.oppTeamName}</span>
-              <span className="text-[13px] font-bold tabular-nums">
-                <span className={matchupSnapshot.myWins > matchupSnapshot.myLosses ? "text-emerald-600" : "text-red-600"}>
-                  {categoryAlerts.score}
-                </span>
-              </span>
+              <span className="text-[10px] font-semibold uppercase tracking-widest text-slate-500">Category Status</span>
+              <span className="text-[10px] text-slate-400">vs {matchupSnapshot.oppTeamName}</span>
             </div>
+            <span className={`text-[13px] font-bold tabular-nums ${matchupSnapshot.myWins > matchupSnapshot.myLosses ? "text-emerald-600" : "text-red-600"}`}>
+              {categoryAlerts.score}
+            </span>
           </div>
-          <div className="flex gap-1 flex-wrap">
-            {matchupSnapshot.categories.map(c => (
-              <div key={c.cat} className={`px-1.5 py-1 rounded text-[10px] font-bold text-center min-w-[36px] ${
-                c.result === "WIN" ? "bg-emerald-100 text-emerald-700" :
-                c.result === "LOSS" ? "bg-red-100 text-red-700" :
-                c.result === "TIE" ? "bg-orange-100 text-orange-700" :
-                "bg-slate-100 text-slate-500"
-              }`}>
-                <div>{c.cat}</div>
-                <div className="font-mono tabular-nums">{fmtCatVal(c.cat, c.myValue)}</div>
-              </div>
-            ))}
+          <div className="flex flex-wrap gap-1 px-4 py-3">
+            {matchupSnapshot.categories.map(c => {
+              const margin = c.myValue !== null && c.oppValue !== null
+                ? sanitizeNum(LOWER_IS_BETTER.has(c.cat) ? c.oppValue - c.myValue : c.myValue - c.oppValue)
+                : null;
+              return (
+                <div key={c.cat} className={`flex flex-col items-center rounded px-2 py-1.5 min-w-[52px] ${
+                  c.result === "WIN" ? "bg-emerald-50 border border-emerald-200" :
+                  c.result === "LOSS" ? "bg-red-50 border border-red-200" :
+                  c.result === "TIE" ? "bg-orange-50 border border-orange-200" :
+                  "bg-slate-50 border border-border"
+                }`}>
+                  <span className={`text-[9px] font-bold mb-0.5 ${
+                    c.result === "WIN" ? "text-emerald-600" :
+                    c.result === "LOSS" ? "text-red-600" :
+                    c.result === "TIE" ? "text-orange-600" : "text-slate-400"
+                  }`}>{c.result === "PENDING" ? "-" : c.result}</span>
+                  <span className="text-[10px] font-bold text-slate-700">{c.cat}</span>
+                  <span className="text-[10px] font-mono tabular-nums text-slate-700">{fmtCatVal(c.cat, c.myValue)}</span>
+                  <span className="text-[9px] text-slate-400 font-mono">{fmtCatVal(c.cat, c.oppValue)}</span>
+                  {margin !== null && (
+                    <span className={`text-[9px] font-mono tabular-nums ${margin > 0 ? "text-emerald-600" : margin < 0 ? "text-red-600" : "text-slate-400"}`}>
+                      {margin > 0 ? "+" : ""}{fmtCatVal(c.cat, margin)}
+                    </span>
+                  )}
+                </div>
+              );
+            })}
           </div>
           {(categoryAlerts.atRisk.length > 0 || categoryAlerts.targets.length > 0) && (
-            <div className="mt-2 flex gap-3 text-[10px]">
+            <div className="border-t border-border px-4 py-2 flex gap-3 text-[10px]">
               {categoryAlerts.atRisk.length > 0 && (
                 <span className="text-orange-600 font-semibold">
                   At risk: {categoryAlerts.atRisk.map(c => c.cat).join(", ")}
@@ -424,6 +500,92 @@ export default function TodayPage() {
               )}
             </div>
           )}
+        </div>
+      )}
+
+      {/* Today's Starters */}
+      {todayStartersWithStats.length > 0 && (
+        <div className="mb-4 rounded-lg border border-border bg-surface">
+          <div className="border-b border-border px-4 py-2 flex items-center justify-between">
+            <span className="text-[10px] font-semibold uppercase tracking-widest text-slate-500">Today&apos;s Starters</span>
+            <span className="text-[10px] text-slate-400">{todayStartersWithStats.length} active</span>
+          </div>
+          {todayStartersWithStats.map(({ player, stats }, i) => {
+            const game = getGame(player);
+            const isBatter = BATTER_SLOTS.has(player.slotId);
+            return (
+              <div key={i} className="border-b border-border last:border-0 px-4 py-2 flex flex-wrap items-center gap-3">
+                <div className="min-w-0 w-[140px]">
+                  <div className="text-[12px] font-medium text-slate-700">{player.name}</div>
+                  <div className="text-[10px] text-slate-500">{player.pos} · {player.proTeam}</div>
+                </div>
+                <div className="w-[100px] text-[11px] text-slate-600">
+                  {game?.todayOpponent ?? ""} {game?.todayTime ?? ""}
+                </div>
+                {isBatter ? (
+                  <div className="flex gap-3 text-[10px] font-mono tabular-nums text-slate-600">
+                    <span>AVG {fmtCatVal("AVG", stats.AVG ?? null)}</span>
+                    <span>HR {sanitizeNum(stats.HR)}</span>
+                    <span>RBI {sanitizeNum(stats.RBI)}</span>
+                    <span>SB {sanitizeNum(stats.SB)}</span>
+                    <span>R {sanitizeNum(stats.R)}</span>
+                  </div>
+                ) : (
+                  <div className="flex gap-3 text-[10px] font-mono tabular-nums text-slate-600">
+                    <span>ERA {fmtCatVal("ERA", stats.ERA ?? null)}</span>
+                    <span>WHIP {fmtCatVal("WHIP", stats.WHIP ?? null)}</span>
+                    <span>K {sanitizeNum(stats.K)}</span>
+                    <span>W {sanitizeNum(stats.W)}</span>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* Action Items: ranked bench players with games today */}
+      {actionItems.length > 0 && (
+        <div className="mb-4 rounded-lg border border-orange-200 bg-orange-50">
+          <div className="border-b border-orange-200 px-4 py-2 flex items-center justify-between">
+            <span className="text-[10px] font-semibold uppercase tracking-widest text-orange-600">Action Items</span>
+            <span className="text-[10px] text-orange-400">{actionItems.length} eligible on bench</span>
+          </div>
+          {actionItems.map(({ player, stats, score }, i) => {
+            const game = getGame(player);
+            const isBatter = !["SP", "RP"].includes(player.pos);
+            return (
+              <div key={i} className="border-b border-orange-200 last:border-0 px-4 py-2 flex flex-wrap items-center gap-3">
+                <span className="w-4 text-[10px] font-bold text-orange-500 shrink-0">{i + 1}.</span>
+                <div className="min-w-0 w-[140px]">
+                  <div className="text-[12px] font-medium text-slate-700">{player.name}</div>
+                  <div className="text-[10px] text-slate-500">{player.pos} · {player.proTeam}</div>
+                </div>
+                <div className="w-[100px] text-[11px] text-slate-600">
+                  {game?.todayOpponent ?? ""} {game?.todayTime ?? ""}
+                </div>
+                {isBatter ? (
+                  <div className="flex gap-3 text-[10px] font-mono tabular-nums text-slate-600">
+                    <span>AVG {fmtCatVal("AVG", stats.AVG ?? null)}</span>
+                    <span>HR {sanitizeNum(stats.HR)}</span>
+                    <span>RBI {sanitizeNum(stats.RBI)}</span>
+                    <span>SB {sanitizeNum(stats.SB)}</span>
+                  </div>
+                ) : (
+                  <div className="flex gap-3 text-[10px] font-mono tabular-nums text-slate-600">
+                    <span>ERA {fmtCatVal("ERA", stats.ERA ?? null)}</span>
+                    <span>WHIP {fmtCatVal("WHIP", stats.WHIP ?? null)}</span>
+                    <span>K {sanitizeNum(stats.K)}</span>
+                  </div>
+                )}
+                {atRiskCats.length > 0 && (
+                  <span className="ml-auto text-[9px] font-semibold text-orange-600">
+                    score: {score > 0 ? "+" : ""}{Math.round(score)}
+                  </span>
+                )}
+              </div>
+            );
+          })}
         </div>
       )}
 
