@@ -77,6 +77,29 @@ function urgencyTag(pct: number): { label: string; color: string; bar: string } 
   return { label: "DEEP", color: "text-slate-500", bar: "bg-sky-600" };
 }
 
+// ── SortTh ────────────────────────────────────────────────────────────────────
+
+function SortTh({ col, label, className, sortCol, sortDir, onSort }: {
+  col: string;
+  label: string;
+  className?: string;
+  sortCol: string;
+  sortDir: "asc" | "desc";
+  onSort: (col: string) => void;
+}) {
+  return (
+    <th className={`cursor-pointer select-none px-2 py-2.5 font-medium hover:text-slate-700 ${className ?? ""}`}
+      onClick={() => onSort(col)}>
+      <span className="flex items-center gap-0.5">
+        {label}
+        {sortCol === col && (
+          <span className="text-orange-600">{sortDir === "asc" ? "↑" : "↓"}</span>
+        )}
+      </span>
+    </th>
+  );
+}
+
 // ── Component ─────────────────────────────────────────────────────────────────
 
 export default function DraftBoardPage() {
@@ -333,18 +356,6 @@ export default function DraftBoardPage() {
     }
   };
 
-  const SortTh = ({ col, label, className }: { col: string; label: string; className?: string }) => (
-    <th className={`cursor-pointer select-none px-2 py-2.5 font-medium hover:text-slate-700 ${className ?? ""}`}
-      onClick={() => handleSort(col)}>
-      <span className="flex items-center gap-0.5">
-        {label}
-        {sortCol === col && (
-          <span className="text-orange-600">{sortDir === "asc" ? "↑" : "↓"}</span>
-        )}
-      </span>
-    </th>
-  );
-
   // ── Render ─────────────────────────────────────────────────────────────────
 
   return (
@@ -521,18 +532,18 @@ export default function DraftBoardPage() {
             <table className="w-full text-left text-[13px]">
               <thead className="sticky top-0 z-10 border-b border-border bg-surface text-[11px] uppercase tracking-wider text-slate-500">
                 <tr>
-                  <SortTh col="espn" label="ESPN" className="w-12" />
-                  <SortTh col="adp" label="ADP" className="w-14" />
-                  <SortTh col="rank" label="#" className="w-10" />
+                  <SortTh col="espn" label="ESPN" className="w-12" sortCol={sortCol} sortDir={sortDir} onSort={handleSort} />
+                  <SortTh col="adp" label="ADP" className="w-14" sortCol={sortCol} sortDir={sortDir} onSort={handleSort} />
+                  <SortTh col="rank" label="#" className="w-10" sortCol={sortCol} sortDir={sortDir} onSort={handleSort} />
                   <th className="w-12 px-2 py-2.5 font-medium">POS#</th>
                   <th className="px-2 py-2.5 font-medium">Elig</th>
-                  <SortTh col="name" label="Player" className="min-w-[160px] px-3" />
-                  <SortTh col="team" label="Team" className="w-14" />
+                  <SortTh col="name" label="Player" className="min-w-[160px] px-3" sortCol={sortCol} sortDir={sortDir} onSort={handleSort} />
+                  <SortTh col="team" label="Team" className="w-14" sortCol={sortCol} sortDir={sortDir} onSort={handleSort} />
                   <th className="px-2 py-2.5"></th>
-                  <SortTh col="zTotal" label="zScore" className="w-16 text-right" />
-                  <SortTh col="far" label="FAR" className="w-16 text-right" />
+                  <SortTh col="zTotal" label="zScore" className="w-16 text-right" sortCol={sortCol} sortDir={sortDir} onSort={handleSort} />
+                  <SortTh col="far" label="FAR" className="w-16 text-right" sortCol={sortCol} sortDir={sortDir} onSort={handleSort} />
                   {statCols.map((c) => (
-                    <SortTh key={c} col={c} label={c} className="w-14 text-right" />
+                    <SortTh key={c} col={c} label={c} className="w-14 text-right" sortCol={sortCol} sortDir={sortDir} onSort={handleSort} />
                   ))}
                 </tr>
               </thead>
@@ -743,7 +754,7 @@ export default function DraftBoardPage() {
           </div>
           <div>
             <span className="font-semibold text-slate-500">FAR</span>
-            {" — "}Fantasy Above Replacement. Same as zScore but relative to the replacement-level player at the position — the first player you'd be forced to start if you skipped the position entirely (C/1B/2B/3B/SS: 11th best, OF: 31st, SP: 51st, RP: 21st). Positive means genuine starter value above what's freely available. Negative means replaceable. FAR adjusts for positional scarcity: a +0.4 catcher is worth more than a +0.4 outfielder because the catcher alternatives are worse.
+            {" — "}Fantasy Above Replacement. Same as zScore but relative to the replacement-level player at the position — the first player you&apos;d be forced to start if you skipped the position entirely (C/1B/2B/3B/SS: 11th best, OF: 31st, SP: 51st, RP: 21st). Positive means genuine starter value above what&apos;s freely available. Negative means replaceable. FAR adjusts for positional scarcity: a +0.4 catcher is worth more than a +0.4 outfielder because the catcher alternatives are worse.
           </div>
           <div>
             <span className="font-semibold text-slate-500">ADP</span>
