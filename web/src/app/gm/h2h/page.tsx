@@ -64,6 +64,11 @@ const PIT_CATS = ["K", "QS", "W", "L", "SV", "HD", "ERA", "WHIP"];
 const ALL_CATS = [...BAT_CATS, ...PIT_CATS];
 const LOWER_IS_BETTER = new Set(["ERA", "WHIP", "L"]);
 
+function safe(v: unknown): number {
+  if (typeof v !== "number" || !Number.isFinite(v)) return 0;
+  return v;
+}
+
 function resultColor(w: number, l: number): string {
   if (w > l) return "text-emerald-600";
   if (l > w) return "text-red-600";
@@ -78,10 +83,17 @@ function catCellColor(wins: number, losses: number): string {
 }
 
 function fmtValue(cat: string, val: number | null | undefined): string {
-  if (val === null || val === undefined) return "-";
+  if (val === null || val === undefined || !Number.isFinite(val)) return "-";
   if (cat === "AVG") return val.toFixed(3);
   if (cat === "ERA" || cat === "WHIP") return val.toFixed(2);
   return String(Math.round(val));
+}
+
+function fmtPct(numerator: number, denominator: number): string {
+  if (denominator <= 0) return ".000";
+  const pct = numerator / denominator;
+  if (!Number.isFinite(pct)) return ".000";
+  return pct.toFixed(3);
 }
 
 function EspnSetupCard() {
@@ -115,8 +127,8 @@ function compareTeams(
   const catResults: { cat: string; myValue: number; oppValue: number; result: "WIN" | "LOSS" | "TIE" }[] = [];
 
   for (const cat of ALL_CATS) {
-    const myVal = myStats[cat] ?? 0;
-    const oppVal = oppStats[cat] ?? 0;
+    const myVal = safe(myStats[cat]);
+    const oppVal = safe(oppStats[cat]);
     const lower = LOWER_IS_BETTER.has(cat);
     let result: "WIN" | "LOSS" | "TIE";
 
@@ -136,6 +148,10 @@ function compareTeams(
 
   return { wins, losses, ties, catResults };
 }
+
+/* ── Tab type ── */
+
+type Tab = "thisWeek" | "seasonH2H" | "allPlay";
 
 /* ── This Week Tab Component ── */
 
@@ -172,8 +188,8 @@ function ThisWeekView({ leagueData }: { leagueData: LeagueStatsData }) {
       let winsCount = 0;
       for (const opp of leagueData.teams) {
         if (opp.teamId === leagueData.myTeamId) continue;
-        const myVal = myTeam.categories[cat] ?? 0;
-        const oppVal = opp.categories[cat] ?? 0;
+        const myVal = safe(myTeam.categories[cat]);
+        const oppVal = safe(opp.categories[cat]);
         const lower = LOWER_IS_BETTER.has(cat);
         if (myVal === oppVal) continue;
         if (lower ? myVal < oppVal : myVal > oppVal) winsCount++;
@@ -244,7 +260,7 @@ function ThisWeekView({ leagueData }: { leagueData: LeagueStatsData }) {
                   <span className={`text-[15px] font-bold font-mono tabular-nums ${resultColor(h.wins, h.losses)}`}>
                     {h.wins}-{h.losses}{h.ties > 0 ? `-${h.ties}` : ""}
                   </span>
-                  <span className="text-slate-400 text-[11px]">{isExpanded ? "\u25B2" : "\u25BC"}</span>
+                  <span className="text-slate-400 text-[11px]">{isExpanded ? "▲" : "▼"}</span>
                 </div>
               </button>
 
@@ -277,15 +293,248 @@ function ThisWeekView({ leagueData }: { leagueData: LeagueStatsData }) {
   );
 }
 
+/* ── Season H2H Tab Component ── */
+
+function SeasonH2HView({ data }: { data: H2HData }) {
+  const [view, setView] = useState<"opponents" | "weekly">("opponents");
+
+  const sortedOpponents = useMemo(() => {
+    return Object.entries(data.opponents)
+      .map(([id, opp]) => ({ id: parseInt(id), ...opp }))
+      .sort((a, b) => safe(b.totalWins) - safe(a.totalWins));
+  }, [data]);
+
+  const seasonRecord = useMemo(() => {
+    return data.matchups.reduce(
+      (acc, m) => ({ w: acc.w + safe(m.myWins), l: acc.l + safe(m.myLosses), t: acc.t + safe(m.myTies) }),
+      { w: 0, l: 0, t: 0 }
+    );
+  }, [data]);
+
+  return (
+    <div className="space-y-4">
+      {/* Season record summary */}
+      <div className="rounded-lg border border-border bg-surface px-4 py-3">
+        <div className="text-[12px] text-slate-600">
+          <span className="font-semibold text-gray-900">Season Category Record:</span>{" "}
+          <span className={`font-bold tabular-nums ${resultColor(seasonRecord.w, seasonRecord.l)}`}>
+            {seasonRecord.w}-{seasonRecord.l}{seasonRecord.t > 0 ? `-${seasonRecord.t}` : ""}
+          </span>
+        </div>
+      </div>
+
+      {/* Sub-view toggle */}
+      <div className="flex gap-0.5 rounded bg-surface p-0.5 w-fit">
+        {(["opponents", "weekly"] as const).map((v) => (
+          <button key={v} onClick={() => setView(v)}
+            className={`rounded px-3 py-1 text-[11px] font-bold transition-colors ${
+              view === v ? "bg-black/10 text-gray-900" : "text-slate-500 hover:text-slate-700"
+            }`}>
+            {v === "opponents" ? "By Opponent" : "Week by Week"}
+          </button>
+        ))}
+      </div>
+
+      {view === "opponents" ? (
+        <>
+          <div className="space-y-3">
+            {sortedOpponents.map((opp) => {
+              const matchupResult = safe(opp.totalWins) > safe(opp.totalLosses) ? "winning"
+                : safe(opp.totalLosses) > safe(opp.totalWins) ? "losing" : "tied";
+              return (
+                <div key={opp.id} className="rounded-lg border border-border bg-surface">
+                  <div className="flex items-center justify-between border-b border-border px-4 py-3">
+                    <div>
+                      <span className="text-[14px] font-semibold text-slate-400">{opp.teamName}</span>
+                      <span className="ml-2 text-[11px] text-slate-600">
+                        ({safe(opp.matchupsPlayed)} matchup{safe(opp.matchupsPlayed) !== 1 ? "s" : ""})
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <span className={`text-[16px] font-bold tabular-nums ${resultColor(safe(opp.totalWins), safe(opp.totalLosses))}`}>
+                        {safe(opp.totalWins)}-{safe(opp.totalLosses)}
+                        {safe(opp.totalTies) > 0 ? `-${safe(opp.totalTies)}` : ""}
+                      </span>
+                      <span className={`text-[10px] font-semibold uppercase ${
+                        matchupResult === "winning" ? "text-emerald-600/60" :
+                        matchupResult === "losing" ? "text-red-600/60" : "text-orange-600/60"
+                      }`}>cats</span>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-8 sm:grid-cols-16 gap-0">
+                    {ALL_CATS.map((cat) => {
+                      const w = safe(opp.catWins[cat]);
+                      const l = safe(opp.catLosses[cat]);
+                      return (
+                        <div key={cat} className="px-2 py-2 text-center border-r border-border last:border-r-0">
+                          <div className="text-[9px] font-bold text-slate-600">{cat}</div>
+                          <div className={`text-[12px] font-mono tabular-nums font-semibold ${catCellColor(w, l)}`}>
+                            {w}-{l}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {sortedOpponents.length === 0 && (
+            <div className="rounded-lg border border-border bg-surface px-6 py-10 text-center text-slate-500">
+              No matchup data yet. Check back after the first scoring period.
+            </div>
+          )}
+        </>
+      ) : (
+        <div className="overflow-x-auto rounded-lg border border-border">
+          <table className="w-full text-left text-[12px]">
+            <thead className="border-b border-border bg-surface text-[10px] uppercase tracking-wider text-slate-500">
+              <tr>
+                <th className="px-3 py-2.5 sticky left-0 bg-surface">Wk</th>
+                <th className="px-2 py-2.5">Opponent</th>
+                <th className="px-2 py-2.5 text-center">Result</th>
+                {ALL_CATS.map((cat) => (
+                  <th key={cat} className="px-1.5 py-2.5 text-center w-8">{cat}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {data.matchups.map((m) => {
+                const isWin = safe(m.myWins) > safe(m.myLosses);
+                const isLoss = safe(m.myLosses) > safe(m.myWins);
+                return (
+                  <tr key={m.week} className={`border-b border-border/50 ${
+                    isWin ? "bg-emerald-50" : isLoss ? "bg-red-50" : ""
+                  }`}>
+                    <td className="px-3 py-2 font-bold text-slate-500 sticky left-0 bg-inherit">{m.week}</td>
+                    <td className="px-2 py-2 text-slate-400 whitespace-nowrap">{m.oppTeamName}</td>
+                    <td className="px-2 py-2 text-center">
+                      <span className={`font-bold font-mono tabular-nums ${resultColor(safe(m.myWins), safe(m.myLosses))}`}>
+                        {safe(m.myWins)}-{safe(m.myLosses)}{safe(m.myTies) > 0 ? `-${safe(m.myTies)}` : ""}
+                      </span>
+                    </td>
+                    {ALL_CATS.map((cat) => {
+                      const c = m.categories[cat];
+                      if (!c) return <td key={cat} className="px-1.5 py-2 text-center text-slate-400">-</td>;
+                      return (
+                        <td key={cat} className={`px-1.5 py-2 text-center text-[11px] font-bold ${
+                          c.result === "WIN" ? "text-emerald-600" :
+                          c.result === "LOSS" ? "text-red-600" : "text-orange-600"
+                        }`}>
+                          {c.result === "WIN" ? "W" : c.result === "LOSS" ? "L" : "T"}
+                        </td>
+                      );
+                    })}
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ── All-Play Record Tab Component ── */
+
+function AllPlayView({ allPlay }: { allPlay: NonNullable<H2HData["allPlay"]> }) {
+  const totalGames = safe(allPlay.totalWins) + safe(allPlay.totalLosses) + safe(allPlay.totalTies);
+  const winPct = fmtPct(safe(allPlay.totalWins), totalGames);
+
+  return (
+    <div className="space-y-5">
+      {/* Summary */}
+      <div className="rounded-lg border border-border bg-surface px-4 py-4">
+        <div className="flex flex-wrap items-center gap-6">
+          <div>
+            <div className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">All-Play Record</div>
+            <div className={`text-[22px] font-bold tabular-nums ${resultColor(safe(allPlay.totalWins), safe(allPlay.totalLosses))}`}>
+              {safe(allPlay.totalWins)}-{safe(allPlay.totalLosses)}{safe(allPlay.totalTies) > 0 ? `-${safe(allPlay.totalTies)}` : ""}
+            </div>
+          </div>
+          <div>
+            <div className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">Win %</div>
+            <div className="text-[22px] font-bold tabular-nums text-gray-900">{winPct}</div>
+          </div>
+          <div>
+            <div className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">Weeks Played</div>
+            <div className="text-[22px] font-bold tabular-nums text-gray-900">{allPlay.weeks.length}</div>
+          </div>
+        </div>
+      </div>
+
+      {/* Week-by-week table */}
+      <div className="overflow-x-auto rounded-lg border border-border">
+        <table className="w-full text-left text-[12px]">
+          <thead className="border-b border-border bg-surface text-[10px] uppercase tracking-wider text-slate-500">
+            <tr>
+              <th className="px-3 py-2.5">Week</th>
+              <th className="px-3 py-2.5 text-center">Record</th>
+              <th className="px-3 py-2.5 text-center">Win %</th>
+              <th className="px-3 py-2.5 text-right">Running Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            {allPlay.weeks.map((w, i) => {
+              const weekTotal = safe(w.wins) + safe(w.losses) + safe(w.ties);
+              const weekPct = fmtPct(safe(w.wins), weekTotal);
+
+              const runW = allPlay.weeks.slice(0, i + 1).reduce((s, wk) => s + safe(wk.wins), 0);
+              const runL = allPlay.weeks.slice(0, i + 1).reduce((s, wk) => s + safe(wk.losses), 0);
+              const runT = allPlay.weeks.slice(0, i + 1).reduce((s, wk) => s + safe(wk.ties), 0);
+
+              const isGood = safe(w.wins) > safe(w.losses);
+              const isBad = safe(w.losses) > safe(w.wins);
+
+              return (
+                <tr key={w.week} className={`border-b border-border/50 ${
+                  isGood ? "bg-emerald-50" : isBad ? "bg-red-50" : ""
+                }`}>
+                  <td className="px-3 py-2 font-bold text-slate-500">{w.week}</td>
+                  <td className="px-3 py-2 text-center">
+                    <span className={`font-bold font-mono tabular-nums ${resultColor(safe(w.wins), safe(w.losses))}`}>
+                      {safe(w.wins)}-{safe(w.losses)}{safe(w.ties) > 0 ? `-${safe(w.ties)}` : ""}
+                    </span>
+                  </td>
+                  <td className="px-3 py-2 text-center font-mono tabular-nums text-slate-600">{weekPct}</td>
+                  <td className="px-3 py-2 text-right">
+                    <span className={`font-mono tabular-nums ${resultColor(runW, runL)}`}>
+                      {runW}-{runL}{runT > 0 ? `-${runT}` : ""}
+                    </span>
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+
+      {allPlay.weeks.length === 0 && (
+        <div className="rounded-lg border border-border bg-surface px-6 py-10 text-center text-slate-500">
+          No scoring periods completed yet. All-play records will appear after the first week.
+        </div>
+      )}
+    </div>
+  );
+}
+
 /* ── Main Page ── */
+
+const TAB_CONFIG: { key: Tab; label: string }[] = [
+  { key: "thisWeek", label: "This Week" },
+  { key: "seasonH2H", label: "Season H2H" },
+  { key: "allPlay", label: "All-Play Record" },
+];
 
 export default function TeamH2HPage() {
   const [data, setData] = useState<H2HData | null>(null);
   const [leagueData, setLeagueData] = useState<LeagueStatsData | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
-  const [tab, setTab] = useState<"thisWeek" | "seasonHistory">("thisWeek");
-  const [view, setView] = useState<"opponents" | "weekly">("opponents");
+  const [tab, setTab] = useState<Tab>("thisWeek");
 
   useEffect(() => {
     Promise.all([
@@ -300,23 +549,6 @@ export default function TeamH2HPage() {
       .catch(() => setError("FETCH_FAILED"))
       .finally(() => setLoading(false));
   }, []);
-
-  // Sort opponents by total category wins desc
-  const sortedOpponents = useMemo(() => {
-    if (!data) return [];
-    return Object.entries(data.opponents)
-      .map(([id, opp]) => ({ id: parseInt(id), ...opp }))
-      .sort((a, b) => b.totalWins - a.totalWins);
-  }, [data]);
-
-  // Overall season record
-  const seasonRecord = useMemo(() => {
-    if (!data) return { w: 0, l: 0, t: 0 };
-    return data.matchups.reduce(
-      (acc, m) => ({ w: acc.w + m.myWins, l: acc.l + m.myLosses, t: acc.t + m.myTies }),
-      { w: 0, l: 0, t: 0 }
-    );
-  }, [data]);
 
   if (loading) return <div className="flex h-64 items-center justify-center text-slate-500">Loading...</div>;
   if (error === "ESPN_CREDS_MISSING" || error === "MY_ESPN_TEAM_ID_MISSING") {
@@ -338,29 +570,24 @@ export default function TeamH2HPage() {
         <div>
           <h1 className="text-lg font-bold text-gray-900">Head-to-Head</h1>
           <div className="flex items-center gap-3 text-[12px]">
-            <span className="text-slate-500">Season Record:</span>
-            <span className={`font-bold tabular-nums ${resultColor(seasonRecord.w, seasonRecord.l)}`}>
-              {seasonRecord.w}-{seasonRecord.l}{seasonRecord.t > 0 ? `-${seasonRecord.t}` : ""}
-            </span>
-            {data?.allPlay && (
+            {data.allPlay && (
               <>
-                <span className="text-slate-300">|</span>
                 <span className="text-slate-500">All-Play:</span>
-                <span className={`font-bold tabular-nums ${resultColor(data.allPlay.totalWins, data.allPlay.totalLosses)}`}>
-                  {data.allPlay.totalWins}-{data.allPlay.totalLosses}{data.allPlay.totalTies > 0 ? `-${data.allPlay.totalTies}` : ""}
+                <span className={`font-bold tabular-nums ${resultColor(safe(data.allPlay.totalWins), safe(data.allPlay.totalLosses))}`}>
+                  {safe(data.allPlay.totalWins)}-{safe(data.allPlay.totalLosses)}{safe(data.allPlay.totalTies) > 0 ? `-${safe(data.allPlay.totalTies)}` : ""}
                 </span>
               </>
             )}
           </div>
         </div>
-        {/* Top-level tab toggle */}
+        {/* Tab toggle */}
         <div className="flex gap-0.5 rounded bg-surface p-0.5">
-          {(["thisWeek", "seasonHistory"] as const).map((t) => (
-            <button key={t} onClick={() => setTab(t)}
+          {TAB_CONFIG.map((t) => (
+            <button key={t.key} onClick={() => setTab(t.key)}
               className={`rounded px-3 py-1 text-[11px] font-bold transition-colors ${
-                tab === t ? "bg-black/10 text-gray-900" : "text-slate-500 hover:text-slate-700"
+                tab === t.key ? "bg-black/10 text-gray-900" : "text-slate-500 hover:text-slate-700"
               }`}>
-              {t === "thisWeek" ? "This Week" : "Season History"}
+              {t.label}
             </button>
           ))}
         </div>
@@ -374,125 +601,16 @@ export default function TeamH2HPage() {
             League stats unavailable. Cannot compute hypothetical matchups.
           </div>
         )
+      ) : tab === "seasonH2H" ? (
+        <SeasonH2HView data={data} />
       ) : (
-        /* Season History */
-        <>
-          {/* Sub-view toggle */}
-          <div className="mb-4 flex gap-0.5 rounded bg-surface p-0.5 w-fit">
-            {(["opponents", "weekly"] as const).map((v) => (
-              <button key={v} onClick={() => setView(v)}
-                className={`rounded px-3 py-1 text-[11px] font-bold transition-colors ${
-                  view === v ? "bg-black/10 text-gray-900" : "text-slate-500 hover:text-slate-700"
-                }`}>
-                {v === "opponents" ? "By Opponent" : "Week by Week"}
-              </button>
-            ))}
+        data.allPlay ? (
+          <AllPlayView allPlay={data.allPlay} />
+        ) : (
+          <div className="rounded-lg border border-border bg-surface px-6 py-10 text-center text-slate-500">
+            All-play data is not available yet. Check back after the first scoring period.
           </div>
-
-          {view === "opponents" ? (
-            <>
-              {/* Opponent summary cards */}
-              <div className="space-y-3">
-                {sortedOpponents.map((opp) => {
-                  const matchupResult = opp.totalWins > opp.totalLosses ? "winning"
-                    : opp.totalLosses > opp.totalWins ? "losing" : "tied";
-                  return (
-                    <div key={opp.id} className="rounded-lg border border-border bg-surface">
-                      {/* Opponent header */}
-                      <div className="flex items-center justify-between border-b border-border px-4 py-3">
-                        <div>
-                          <span className="text-[14px] font-semibold text-slate-400">{opp.teamName}</span>
-                          <span className="ml-2 text-[11px] text-slate-600">
-                            ({opp.matchupsPlayed} matchup{opp.matchupsPlayed !== 1 ? "s" : ""})
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-3">
-                          <span className={`text-[16px] font-bold tabular-nums ${resultColor(opp.totalWins, opp.totalLosses)}`}>
-                            {opp.totalWins}-{opp.totalLosses}
-                            {opp.totalTies > 0 ? `-${opp.totalTies}` : ""}
-                          </span>
-                          <span className={`text-[10px] font-semibold uppercase ${
-                            matchupResult === "winning" ? "text-emerald-600/60" :
-                            matchupResult === "losing" ? "text-red-600/60" : "text-orange-600/60"
-                          }`}>cats</span>
-                        </div>
-                      </div>
-
-                      {/* Per-category W-L */}
-                      <div className="grid grid-cols-8 sm:grid-cols-16 gap-0">
-                        {ALL_CATS.map((cat) => {
-                          const w = opp.catWins[cat] ?? 0;
-                          const l = opp.catLosses[cat] ?? 0;
-                          return (
-                            <div key={cat} className="px-2 py-2 text-center border-r border-border last:border-r-0">
-                              <div className="text-[9px] font-bold text-slate-600">{cat}</div>
-                              <div className={`text-[12px] font-mono tabular-nums font-semibold ${catCellColor(w, l)}`}>
-                                {w}-{l}
-                              </div>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-
-              {sortedOpponents.length === 0 && (
-                <div className="rounded-lg border border-border bg-surface px-6 py-10 text-center text-slate-500">
-                  No matchup data yet. Check back after the first scoring period.
-                </div>
-              )}
-            </>
-          ) : (
-            /* Week-by-week view */
-            <div className="overflow-x-auto rounded-lg border border-border">
-              <table className="w-full text-left text-[12px]">
-                <thead className="border-b border-border bg-surface text-[10px] uppercase tracking-wider text-slate-500">
-                  <tr>
-                    <th className="px-3 py-2.5 sticky left-0 bg-surface">Wk</th>
-                    <th className="px-2 py-2.5">Opponent</th>
-                    <th className="px-2 py-2.5 text-center">Result</th>
-                    {ALL_CATS.map((cat) => (
-                      <th key={cat} className="px-1.5 py-2.5 text-center w-8">{cat}</th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {data.matchups.map((m) => {
-                    const isWin = m.myWins > m.myLosses;
-                    const isLoss = m.myLosses > m.myWins;
-                    return (
-                      <tr key={m.week} className={`border-b border-border/50 ${
-                        isWin ? "bg-emerald-50" : isLoss ? "bg-red-50" : ""
-                      }`}>
-                        <td className="px-3 py-2 font-bold text-slate-500 sticky left-0 bg-inherit">{m.week}</td>
-                        <td className="px-2 py-2 text-slate-400 whitespace-nowrap">{m.oppTeamName}</td>
-                        <td className="px-2 py-2 text-center">
-                          <span className={`font-bold font-mono tabular-nums ${resultColor(m.myWins, m.myLosses)}`}>
-                            {m.myWins}-{m.myLosses}{m.myTies > 0 ? `-${m.myTies}` : ""}
-                          </span>
-                        </td>
-                        {ALL_CATS.map((cat) => {
-                          const c = m.categories[cat];
-                          if (!c) return <td key={cat} className="px-1.5 py-2 text-center text-slate-400">-</td>;
-                          return (
-                            <td key={cat} className={`px-1.5 py-2 text-center text-[11px] font-bold ${
-                              c.result === "WIN" ? "text-emerald-600" :
-                              c.result === "LOSS" ? "text-red-600" : "text-orange-600"
-                            }`}>
-                              {c.result === "WIN" ? "W" : c.result === "LOSS" ? "L" : "T"}
-                            </td>
-                          );
-                        })}
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </>
+        )
       )}
     </div>
   );
