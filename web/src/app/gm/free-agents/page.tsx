@@ -134,7 +134,7 @@ export default function FreeAgentsPage() {
 
       // Extract team weaknesses from league stats
       if (leagueStats?.teams && leagueStats.myTeamId) {
-        const myTeam = leagueStats.teams.find((t: any) => t.teamId === leagueStats.myTeamId);
+        const myTeam = leagueStats.teams.find((t: { teamId: number }) => t.teamId === leagueStats.myTeamId);
         if (myTeam?.ranks) {
           const weak: WeaknessInfo[] = [];
           for (const [cat, rank] of Object.entries(myTeam.ranks as Record<string, number>)) {

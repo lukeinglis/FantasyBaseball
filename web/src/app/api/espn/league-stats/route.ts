@@ -1,5 +1,6 @@
 export const dynamic = "force-dynamic";
 import { espnFetch, hasEspnCreds, STAT_ID_MAP } from "@/lib/espn";
+import type { EspnLeagueData, EspnScoreByStat, EspnScheduleRecord } from "@/types/espn";
 import logger from "@/lib/logger";
 
 export interface TeamCategoryStats {
@@ -44,7 +45,7 @@ const cleanScore = (v: unknown): number => {
 };
 
 function buildTeamStatsForWeek(
-  schedule: any[], // eslint-disable-line @typescript-eslint/no-explicit-any
+  schedule: EspnScheduleRecord[],
   matchupPeriodId: number,
 ): Record<number, Record<string, number>> {
   const stats: Record<number, Record<string, number>> = {};
@@ -57,7 +58,7 @@ function buildTeamStatsForWeek(
       for (const [statId, statData] of Object.entries(scoreByStat)) {
         const cat = STAT_ID_MAP[parseInt(statId)];
         if (!cat) continue;
-        stats[side.teamId][cat] = cleanScore((statData as any).score); // eslint-disable-line @typescript-eslint/no-explicit-any
+        stats[side.teamId][cat] = cleanScore((statData as EspnScoreByStat).score);
       }
     }
   }
@@ -65,13 +66,13 @@ function buildTeamStatsForWeek(
 }
 
 function buildSeasonStats(
-  schedule: any[], // eslint-disable-line @typescript-eslint/no-explicit-any
+  schedule: EspnScheduleRecord[],
   currentMatchupPeriod: number,
 ): Record<number, Record<string, number>> {
   // Accumulate ALL stat IDs (including unmapped components) across every completed week
   const rawById: Record<number, Record<number, number>> = {};
   for (const matchup of schedule) {
-    if (matchup.matchupPeriodId > currentMatchupPeriod) continue;
+    if ((matchup.matchupPeriodId ?? 0) > currentMatchupPeriod) continue;
     for (const side of [matchup.home, matchup.away]) {
       if (!side?.teamId) continue;
       const teamId = side.teamId;
@@ -79,7 +80,7 @@ function buildSeasonStats(
       const scoreByStat = side.cumulativeScore?.scoreByStat ?? {};
       for (const [statId, statData] of Object.entries(scoreByStat)) {
         const id = parseInt(statId);
-        const val = cleanScore((statData as any).score); // eslint-disable-line @typescript-eslint/no-explicit-any
+        const val = cleanScore((statData as EspnScoreByStat).score);
         rawById[teamId][id] = (rawById[teamId][id] ?? 0) + val;
       }
     }
@@ -215,16 +216,16 @@ export async function GET(request: Request) {
 
   try {
     const t0 = Date.now();
-    const data: any = await espnFetch(["mMatchup", "mMatchupScore", "mTeam", "mStatus"]); // eslint-disable-line @typescript-eslint/no-explicit-any
+    const data = await espnFetch(["mMatchup", "mMatchupScore", "mTeam", "mStatus"]) as EspnLeagueData;
     const currentMatchupPeriod = data.status?.currentMatchupPeriod ?? 1;
-    const schedule: any[] = data.schedule ?? []; // eslint-disable-line @typescript-eslint/no-explicit-any
+    const schedule: EspnScheduleRecord[] = data.schedule ?? [];
 
     // Build team name lookup
     const teamMeta: Record<number, { name: string; abbrev: string; wins: number; losses: number; ties: number }> = {};
     for (const t of data.teams ?? []) {
       const record = t.record?.overall ?? {};
       teamMeta[t.id] = {
-        name: `${t.location ?? ""} ${t.nickname ?? ""}`.trim() || t.abbrev,
+        name: `${t.location ?? ""} ${t.nickname ?? ""}`.trim() || (t.abbrev ?? ""),
         abbrev: t.abbrev ?? "",
         wins: record.wins ?? 0,
         losses: record.losses ?? 0,
@@ -241,7 +242,7 @@ export async function GET(request: Request) {
 
     // Compute prior-period ranks for week-over-week rank deltas
     const priorPeriod = currentMatchupPeriod - 1;
-    let rankDeltas: Record<number, Record<string, number>> = {};
+    const rankDeltas: Record<number, Record<string, number>> = {};
     if (priorPeriod >= 1) {
       const priorStats = scope === "season"
         ? buildSeasonStats(schedule, priorPeriod)

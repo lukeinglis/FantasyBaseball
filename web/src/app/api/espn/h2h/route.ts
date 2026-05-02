@@ -1,5 +1,6 @@
 export const dynamic = "force-dynamic";
 import { espnFetch, hasEspnCreds, STAT_ID_MAP } from "@/lib/espn";
+import type { EspnLeagueData, EspnScoreByStat, EspnScheduleRecord } from "@/types/espn";
 import logger from "@/lib/logger";
 
 export interface H2HMatchup {
@@ -58,24 +59,22 @@ export async function GET(req: Request) {
 
   try {
     const t0 = Date.now();
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const data: any = await espnFetch(["mMatchup", "mMatchupScore", "mTeam", "mStatus"]);
+    const data = await espnFetch(["mMatchup", "mMatchupScore", "mTeam", "mStatus"]) as EspnLeagueData;
 
     // Determine current matchup period (week number)
     // scoringPeriodId is DAILY, matchupPeriodId is WEEKLY in ESPN baseball
-    const currentMatchupPeriod = (data as any).status?.currentMatchupPeriod ?? 1;
+    const currentMatchupPeriod = data.status?.currentMatchupPeriod ?? 1;
 
     // Build team name lookup
     const teamNames: Record<number, string> = {};
     for (const t of data.teams ?? []) {
-      teamNames[t.id] = `${t.location ?? ""} ${t.nickname ?? ""}`.trim() || t.abbrev;
+      teamNames[t.id] = `${t.location ?? ""} ${t.nickname ?? ""}`.trim() || (t.abbrev ?? "");
     }
 
     const matchups: H2HMatchup[] = [];
     const opponents: H2HData["opponents"] = {};
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const schedule: any[] = data.schedule ?? [];
+    const schedule: EspnScheduleRecord[] = data.schedule ?? [];
 
     for (const m of schedule) {
       // Only look at my matchups that have scores
@@ -85,14 +84,14 @@ export async function GET(req: Request) {
 
       const mySide = iAmHome ? m.home : m.away;
       const oppSide = iAmHome ? m.away : m.home;
-      const oppTeamId: number = oppSide?.teamId;
+      const oppTeamId = oppSide?.teamId;
       if (!oppTeamId) continue;
 
       const myCumulative = mySide?.cumulativeScore ?? {};
       const oppCumulative = oppSide?.cumulativeScore ?? {};
 
       // Skip future matchups (beyond current matchup period) with no scores
-      if (!myCumulative.scoreByStat && m.matchupPeriodId > currentMatchupPeriod) continue;
+      if (!myCumulative.scoreByStat && (m.matchupPeriodId ?? 0) > currentMatchupPeriod) continue;
 
       const categories: H2HMatchup["categories"] = {};
       let myWins = 0, myLosses = 0, myTies = 0;
@@ -100,13 +99,13 @@ export async function GET(req: Request) {
       // Build value lookups with ESPN's result field
       const myStatData: Record<string, { score: number; result: string | null }> = {};
       const oppStatData: Record<string, { score: number }> = {};
-      for (const [statId, statData] of Object.entries(myCumulative.scoreByStat ?? {})) {
+      for (const [statId, statData] of Object.entries(myCumulative.scoreByStat ?? {} as Record<string, EspnScoreByStat>)) {
         const cat = STAT_ID_MAP[parseInt(statId)];
-        if (cat) myStatData[cat] = { score: (statData as any).score ?? 0, result: (statData as any).result ?? null };
+        if (cat) myStatData[cat] = { score: statData.score ?? 0, result: statData.result ?? null };
       }
-      for (const [statId, statData] of Object.entries(oppCumulative.scoreByStat ?? {})) {
+      for (const [statId, statData] of Object.entries(oppCumulative.scoreByStat ?? {} as Record<string, EspnScoreByStat>)) {
         const cat = STAT_ID_MAP[parseInt(statId)];
-        if (cat) oppStatData[cat] = { score: (statData as any).score ?? 0 };
+        if (cat) oppStatData[cat] = { score: statData.score ?? 0 };
       }
 
       for (const cat of CATS_ORDER) {
@@ -124,7 +123,7 @@ export async function GET(req: Request) {
       }
 
       matchups.push({
-        week: m.matchupPeriodId,
+        week: m.matchupPeriodId ?? 0,
         oppTeamId,
         oppTeamName: teamNames[oppTeamId] ?? `Team ${oppTeamId}`,
         myWins,
@@ -180,10 +179,10 @@ export async function GET(req: Request) {
           if (!side?.teamId) continue;
           weekTeamStats[side.teamId] = {};
           const scoreByStat = side.cumulativeScore?.scoreByStat ?? {};
-          for (const [statId, statData] of Object.entries(scoreByStat)) {
+          for (const [statId, statData] of Object.entries(scoreByStat as Record<string, EspnScoreByStat>)) {
             const cat = STAT_ID_MAP[parseInt(statId)];
             if (!cat) continue;
-            weekTeamStats[side.teamId][cat] = cleanScore((statData as any).score);
+            weekTeamStats[side.teamId][cat] = cleanScore(statData.score);
           }
         }
       }

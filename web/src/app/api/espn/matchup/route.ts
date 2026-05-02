@@ -1,5 +1,6 @@
 export const dynamic = "force-dynamic";
 import { espnFetch, hasEspnCreds, POS_MAP, SLOT_MAP, INJURY_MAP, STAT_ID_MAP, getProTeam, getMatchupDates, getCurrentMatchupPeriod } from "@/lib/espn";
+import type { EspnLeagueData, EspnRosterEntry, EspnStatBlock, EspnScoreByStat, EspnScheduleRecord } from "@/types/espn";
 import logger from "@/lib/logger";
 
 export interface MatchupCatResult {
@@ -52,23 +53,22 @@ const PLAYER_STAT_MAP: Record<string, string> = {
   "34": "IP",
 };
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function parsePlayers(entries: any[], scoringPeriodId: number): MatchupPlayer[] {
-  return (entries ?? []).map((e: any) => {
-    const player = e.playerPoolEntry?.player ?? {};
-    const injuryStatus = player.injuryStatus ?? "ACTIVE";
+function parsePlayers(entries: EspnRosterEntry[], scoringPeriodId: number): MatchupPlayer[] {
+  return (entries ?? []).map((e) => {
+    const player = e.playerPoolEntry?.player;
+    const injuryStatus = player?.injuryStatus ?? "ACTIVE";
     const injuryInfo = INJURY_MAP[injuryStatus] ?? { label: injuryStatus, color: "text-slate-500" };
 
-    const isPitcher = player.defaultPositionId === 1 || player.defaultPositionId === 11;
+    const isPitcher = player?.defaultPositionId === 1 || player?.defaultPositionId === 11;
 
     // Extract stats from player.stats[]
     // statSplitTypeId: 0=season, 1=last7, 2=last15, 3=last30, 5=current matchup period
-    const statBlocks: any[] = player.stats ?? [];
+    const statBlocks: EspnStatBlock[] = player?.stats ?? [];
     const stats: Record<string, number> = {};
 
     // Use season stats (id "002026") — most reliable and matches ESPN's display
     // Note: statSplitTypeId 5 is the current day only, not the full matchup period
-    const seasonBlock = statBlocks.find((s: any) => s.id === "002026");
+    const seasonBlock = statBlocks.find((s) => s.id === "002026");
     const sourceBlock = seasonBlock;
 
     if (sourceBlock?.stats) {
@@ -84,27 +84,26 @@ function parsePlayers(entries: any[], scoringPeriodId: number): MatchupPlayer[] 
     }
 
     return {
-      name: player.fullName ?? "Unknown",
-      pos: POS_MAP[player.defaultPositionId] ?? "?",
-      slotLabel: SLOT_MAP[e.lineupSlotId] ?? "BN",
+      name: player?.fullName ?? "Unknown",
+      pos: POS_MAP[player?.defaultPositionId ?? 0] ?? "?",
+      slotLabel: SLOT_MAP[e.lineupSlotId ?? 0] ?? "BN",
       slotId: e.lineupSlotId ?? 16,
       injuryStatus,
       injuryLabel: injuryInfo.label,
       injuryColor: injuryInfo.color,
-      proTeam: getProTeam(player),
+      proTeam: getProTeam(player ?? {}),
       stats,
     };
   });
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function parseMatchup(data: any, myTeamId: number): MatchupData | null {
+function parseMatchup(data: EspnLeagueData, myTeamId: number): MatchupData | null {
   const currentMatchupPeriod = getCurrentMatchupPeriod(data);
 
   // Build team name lookup
   const teamNames: Record<number, string> = {};
   for (const t of data.teams ?? []) {
-    teamNames[t.id] = `${t.location ?? ""} ${t.nickname ?? ""}`.trim() || t.abbrev;
+    teamNames[t.id] = `${t.location ?? ""} ${t.nickname ?? ""}`.trim() || (t.abbrev ?? "");
   }
 
   // Build roster lookup by teamId
@@ -114,9 +113,9 @@ function parseMatchup(data: any, myTeamId: number): MatchupData | null {
   }
 
   // Find my matchup for the current period
-  const schedule: any[] = data.schedule ?? [];
+  const schedule: EspnScheduleRecord[] = data.schedule ?? [];
   const myMatchup = schedule.find(
-    (m: any) =>
+    (m) =>
       m.matchupPeriodId === currentMatchupPeriod &&
       (m.home?.teamId === myTeamId || m.away?.teamId === myTeamId)
   );
@@ -128,7 +127,7 @@ function parseMatchup(data: any, myTeamId: number): MatchupData | null {
   const iAmHome = myMatchup.home?.teamId === myTeamId;
   const mySide = iAmHome ? myMatchup.home : myMatchup.away;
   const oppSide = iAmHome ? myMatchup.away : myMatchup.home;
-  const oppTeamId: number = oppSide?.teamId;
+  const oppTeamId = oppSide?.teamId ?? 0;
 
   const myCumulative = mySide?.cumulativeScore ?? {};
   const oppCumulative = oppSide?.cumulativeScore ?? {};
@@ -142,19 +141,19 @@ function parseMatchup(data: any, myTeamId: number): MatchupData | null {
     if (typeof v === "number" && Number.isFinite(v)) return v;
     return null;
   };
-  for (const [statId, statData] of Object.entries(myCumulative.scoreByStat ?? {})) {
+  for (const [statId, statData] of Object.entries((myCumulative.scoreByStat ?? {}) as Record<string, EspnScoreByStat>)) {
     const cat = STAT_ID_MAP[parseInt(statId)];
     if (cat) {
       myStats[cat] = {
-        score: cleanNumber((statData as any).score) ?? 0,
-        result: (statData as any).result ?? null,
+        score: cleanNumber(statData.score) ?? 0,
+        result: statData.result ?? null,
       };
     }
   }
-  for (const [statId, statData] of Object.entries(oppCumulative.scoreByStat ?? {})) {
+  for (const [statId, statData] of Object.entries((oppCumulative.scoreByStat ?? {}) as Record<string, EspnScoreByStat>)) {
     const cat = STAT_ID_MAP[parseInt(statId)];
     if (cat) {
-      oppStats[cat] = { score: cleanNumber((statData as any).score) ?? 0 };
+      oppStats[cat] = { score: cleanNumber(statData.score) ?? 0 };
     }
   }
 
@@ -207,7 +206,7 @@ export async function GET(req: Request) {
   }
   try {
     const t0 = Date.now();
-    const data = await espnFetch(["mMatchup", "mMatchupScore", "mRoster", "mTeam", "mSettings", "mStatus"]);
+    const data = await espnFetch(["mMatchup", "mMatchupScore", "mRoster", "mTeam", "mSettings", "mStatus"]) as EspnLeagueData;
     const matchup = parseMatchup(data, MY_TEAM_ID);
     if (!matchup) {
       return Response.json({ error: "NO_MATCHUP_FOUND" }, { status: 404 });

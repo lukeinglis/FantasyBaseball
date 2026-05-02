@@ -1,6 +1,7 @@
 // ESPN private league API client
 // Requires ESPN_S2 and ESPN_SWID environment variables (Vercel env vars)
 import logger from "@/lib/logger";
+import type { EspnLeagueData } from "@/types/espn";
 
 const LEAGUE_ID = 4739;
 const SEASON = 2026;
@@ -74,7 +75,7 @@ export const PRO_TEAM_MAP: Record<number, string> = {
   26: "TB", 27: "TEX", 28: "TOR", 29: "WSH", 30: "ARI",
 };
 
-export function getProTeam(player: any): string {
+export function getProTeam(player: { proTeamId?: number; proTeamAbbrev?: string }): string {
   if (player.proTeamId != null && PRO_TEAM_MAP[player.proTeamId]) {
     return PRO_TEAM_MAP[player.proTeamId];
   }
@@ -142,8 +143,7 @@ export function buildMatchupSchedule(matchupCount: number): { start: string; end
 }
 
 /** Get start/end dates for a specific matchup period */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function getMatchupDates(data: any, matchupPeriod: number): { start: string; end: string } | null {
+export function getMatchupDates(data: EspnLeagueData, matchupPeriod: number): { start: string; end: string } | null {
   const count: number = data.settings?.scheduleSettings?.matchupPeriodCount ?? 21;
   const schedule = buildMatchupSchedule(count);
   const idx = matchupPeriod - 1;
@@ -151,8 +151,7 @@ export function getMatchupDates(data: any, matchupPeriod: number): { start: stri
 }
 
 /** Get the current matchup period number from ESPN data */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function getCurrentMatchupPeriod(data: any): number {
+export function getCurrentMatchupPeriod(data: EspnLeagueData): number {
   return data.status?.currentMatchupPeriod ?? 1;
 }
 

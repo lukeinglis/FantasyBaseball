@@ -164,16 +164,14 @@ export default function TodayPage() {
           matchupEndDate: matchupData.matchupEndDate,
         });
       }
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       if (Array.isArray(matchupData.myRoster)) {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        setMatchupRoster((matchupData.myRoster as any[]).map((p: any) => ({
+        setMatchupRoster((matchupData.myRoster as Array<{ name: string; stats: Record<string, number> }>).map((p) => ({
           name: p.name ?? "",
           stats: p.stats ?? {},
         })));
       }
       if (probableData?.allStarts) {
-        setProbableNames(new Set(probableData.allStarts.map((s: any) => s.pitcherName)));
+        setProbableNames(new Set(probableData.allStarts.map((s: { pitcherName: string }) => s.pitcherName)));
       }
     })
     .catch(() => setError("FETCH_FAILED"));
@@ -240,9 +238,9 @@ export default function TodayPage() {
 
   // Split by game status
   const allActive = useMemo(() => [...activeBatters, ...activePitchers], [activeBatters, activePitchers]);
-  const playing = useMemo(() => allActive.filter((p) => getGame(p)?.todayOpponent), [allActive, schedule]);
-  const off = useMemo(() => allActive.filter((p) => !getGame(p)?.todayOpponent), [allActive, schedule]);
-  const benchWithGames = useMemo(() => benchPlayers.filter((p) => getGame(p)?.todayOpponent), [benchPlayers, schedule]);
+  const playing = allActive.filter((p) => getGame(p)?.todayOpponent);
+  const off = allActive.filter((p) => !getGame(p)?.todayOpponent);
+  const benchWithGames = benchPlayers.filter((p) => getGame(p)?.todayOpponent);
 
   // Identify at-risk and targetable categories
   const categoryAlerts = useMemo(() => {

@@ -103,7 +103,7 @@ export default function StartsPage() {
         setStartsData(data);
 
         // Fetch probable pitchers for current and next week
-        const fetches: Promise<any>[] = [];
+        const fetches: Promise<unknown>[] = [];
 
         if (data.currentDates) {
           fetches.push(
@@ -128,9 +128,13 @@ export default function StartsPage() {
         );
 
         return Promise.all(fetches).then(([curr, next, mup]) => {
-          if (curr && !curr.error) setCurrentProbables(curr);
-          if (next && !next.error) setNextProbables(next);
-          if (mup && !mup.error) setMatchup(mup);
+          type WithError = { error?: string };
+          const c = curr as (ProbablePitchersData & WithError) | null;
+          const n = next as (ProbablePitchersData & WithError) | null;
+          const m = mup as (MatchupData & WithError) | null;
+          if (c && !c.error) setCurrentProbables(c);
+          if (n && !n.error) setNextProbables(n);
+          if (m && !m.error) setMatchup(m);
         });
       })
       .catch(() => setError("FETCH_FAILED"))
@@ -159,8 +163,8 @@ export default function StartsPage() {
       .sort((a, b) => b.startCount - a.startCount);
   }
 
-  const myPitchers = useMemo(() => myTeam ? enrichPitchers(myTeam.pitchers) : [], [myTeam, probables]);
-  const oppPitchers = useMemo(() => oppTeam ? enrichPitchers(oppTeam.pitchers) : [], [oppTeam, probables]);
+  const myPitchers = myTeam ? enrichPitchers(myTeam.pitchers) : [];
+  const oppPitchers = oppTeam ? enrichPitchers(oppTeam.pitchers) : [];
 
   const myTotalStarts = useMemo(() => myPitchers.reduce((s, p) => s + p.startCount, 0), [myPitchers]);
   const oppTotalStarts = useMemo(() => oppPitchers.reduce((s, p) => s + p.startCount, 0), [oppPitchers]);

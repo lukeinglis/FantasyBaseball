@@ -58,15 +58,17 @@ export default function CategoryBreakdownPage() {
   const [scope, setScope] = useState<"season" | "week">("season");
 
   useEffect(() => {
-    setLoading(true);
+    let cancelled = false;
     fetch(`/api/espn/league-stats?scope=${scope}`)
       .then((r) => r.json())
       .then((d) => {
+        if (cancelled) return;
         if (d.error) { setError(d.error); return; }
         setData(d);
       })
-      .catch(() => setError("FETCH_FAILED"))
-      .finally(() => setLoading(false));
+      .catch(() => { if (!cancelled) setError("FETCH_FAILED"); })
+      .finally(() => { if (!cancelled) setLoading(false); });
+    return () => { cancelled = true; };
   }, [scope]);
 
   const sortedTeams = useMemo(() => {

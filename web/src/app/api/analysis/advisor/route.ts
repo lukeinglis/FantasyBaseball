@@ -1,4 +1,5 @@
-import { espnFetch, hasEspnCreds, STAT_ID_MAP, POS_MAP, getProTeam, getCurrentMatchupPeriod, getMatchupDates } from "@/lib/espn";
+import { espnFetch, hasEspnCreds, STAT_ID_MAP, getCurrentMatchupPeriod, getMatchupDates } from "@/lib/espn";
+import type { EspnLeagueData, EspnScoreByStat, EspnScheduleRecord } from "@/types/espn";
 import logger from "@/lib/logger";
 import { isPunt, categoryWeight } from "@/lib/category-weights";
 
@@ -22,16 +23,15 @@ export async function GET(req: Request) {
 
   try {
     const t0 = Date.now();
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const data: any = await espnFetch(["mMatchup", "mMatchupScore", "mRoster", "mTeam", "mStatus", "mSettings"]);
+    const data = await espnFetch(["mMatchup", "mMatchupScore", "mRoster", "mTeam", "mStatus", "mSettings"]) as EspnLeagueData;
     const currentPeriod = getCurrentMatchupPeriod(data);
     const dates = getMatchupDates(data, currentPeriod);
     const recommendations: Recommendation[] = [];
 
     // Find my matchup
-    const schedule: any[] = data.schedule ?? [];
+    const schedule: EspnScheduleRecord[] = data.schedule ?? [];
     const myMatchup = schedule.find(
-      (m: any) => m.matchupPeriodId === currentPeriod &&
+      (m) => m.matchupPeriodId === currentPeriod &&
         (m.home?.teamId === MY_TEAM_ID || m.away?.teamId === MY_TEAM_ID)
     );
 
@@ -46,13 +46,13 @@ export async function GET(req: Request) {
     // Parse category scores
     const myStats: Record<string, { score: number; result: string | null }> = {};
     const oppStats: Record<string, number> = {};
-    for (const [statId, statData] of Object.entries(mySide?.cumulativeScore?.scoreByStat ?? {})) {
+    for (const [statId, statData] of Object.entries((mySide?.cumulativeScore?.scoreByStat ?? {}) as Record<string, EspnScoreByStat>)) {
       const cat = STAT_ID_MAP[parseInt(statId)];
-      if (cat) myStats[cat] = { score: (statData as any).score ?? 0, result: (statData as any).result ?? null };
+      if (cat) myStats[cat] = { score: statData.score ?? 0, result: statData.result ?? null };
     }
-    for (const [statId, statData] of Object.entries(oppSide?.cumulativeScore?.scoreByStat ?? {})) {
+    for (const [statId, statData] of Object.entries((oppSide?.cumulativeScore?.scoreByStat ?? {}) as Record<string, EspnScoreByStat>)) {
       const cat = STAT_ID_MAP[parseInt(statId)];
-      if (cat) oppStats[cat] = (statData as any).score ?? 0;
+      if (cat) oppStats[cat] = statData.score ?? 0;
     }
 
     // Count W/L/T
@@ -147,7 +147,7 @@ export async function GET(req: Request) {
     }
 
     // 3. Injury watch
-    const myTeam = (data.teams ?? []).find((t: any) => t.id === MY_TEAM_ID);
+    const myTeam = (data.teams ?? []).find((t) => t.id === MY_TEAM_ID);
     const injuredPlayers: string[] = [];
     for (const e of myTeam?.roster?.entries ?? []) {
       const player = e.playerPoolEntry?.player ?? {};
