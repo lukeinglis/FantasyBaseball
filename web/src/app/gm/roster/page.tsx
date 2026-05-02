@@ -234,10 +234,10 @@ function AccordionSection({
           {result.data ? (
             <>
               <ul className="space-y-3">
-                {result.data.bullets.map((bullet, i) => (
+                {(Array.isArray(result.data.bullets) ? result.data.bullets : []).map((bullet, i) => (
                   <li key={i} className="flex gap-2.5 leading-snug">
                     <span className={`mt-0.5 shrink-0 text-[18px] leading-none ${tier.bulletColor}`}>›</span>
-                    <span className="text-[13px] text-slate-700">{bullet}</span>
+                    <span className="text-[13px] text-slate-700">{String(bullet ?? '')}</span>
                   </li>
                 ))}
               </ul>
@@ -262,6 +262,7 @@ function GmAdvisor() {
   const [openTiers, setOpenTiers] = useState<Set<TierKey>>(new Set(["week"]));
 
   useEffect(() => {
+    let mounted = true;
     Promise.all(
       TIERS.map(async (tier): Promise<GmTierResult> => {
         try {
@@ -275,10 +276,12 @@ function GmAdvisor() {
         }
       })
     ).then(results => {
+      if (!mounted) return;
       setTiers(results);
       const firstWithData = results.find(r => r.data !== null);
       if (firstWithData) setOpenTiers(new Set([firstWithData.key]));
-    }).finally(() => setLoading(false));
+    }).catch(() => {}).finally(() => { if (mounted) setLoading(false); });
+    return () => { mounted = false; };
   }, []);
 
   const toggleTier = (key: TierKey) => {
@@ -290,7 +293,7 @@ function GmAdvisor() {
     });
   };
 
-  const hasAnyAdvice = tiers.some(t => t.data !== null);
+  const hasAnyAdvice = tiers.some(t => t.data !== null && Array.isArray(t.data.bullets) && t.data.bullets.length > 0);
 
   return (
     <div className="mt-6 rounded-xl border border-border bg-surface overflow-hidden">
