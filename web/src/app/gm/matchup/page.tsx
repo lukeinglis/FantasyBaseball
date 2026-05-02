@@ -49,7 +49,7 @@ interface MatchupData {
 interface StartsTeamData {
   teamId: number;
   teamName: string;
-  pitchers: { name: string; pos: string; proTeam: string; onIL: boolean }[];
+  pitchers: { name: string; pos: string; proTeam: string; onIL: boolean; ppCount: number; ppNextCount: number }[];
 }
 
 interface StartsData {
@@ -226,6 +226,31 @@ function PlayerRow({
   );
 }
 
+function RosterSection({ label, players, showStarts, totalStarts, schedule, isMine, getStarts, selectedCat }: {
+  label: string;
+  players: MatchupPlayer[];
+  showStarts?: boolean;
+  totalStarts: number;
+  schedule: Record<string, TeamSchedule>;
+  isMine: boolean;
+  getStarts: (name: string) => number;
+  selectedCat: string | null;
+}) {
+  return (
+    <>
+      <div className="px-2 py-1 text-[9px] font-bold uppercase tracking-widest text-slate-400 bg-black/[0.03] flex justify-between">
+        <span>{label}</span>
+        {showStarts && totalStarts > 0 && (
+          <span className="text-orange-600/60">{totalStarts} starts</span>
+        )}
+      </div>
+      {players.map((p, i) => (
+        <PlayerRow key={i} player={p} schedule={schedule[p.proTeam] ?? null} isMine={isMine} starts={getStarts(p.name)} selectedCat={selectedCat} />
+      ))}
+    </>
+  );
+}
+
 function RosterPanel({
   teamName,
   roster,
@@ -259,29 +284,15 @@ function RosterPanel({
     .filter((p) => p.pos === "SP")
     .reduce((sum, p) => sum + getStarts(p.name), 0);
 
-  const Section = ({ label, players, showStarts }: { label: string; players: MatchupPlayer[]; showStarts?: boolean }) => (
-    <>
-      <div className="px-2 py-1 text-[9px] font-bold uppercase tracking-widest text-slate-400 bg-black/[0.03] flex justify-between">
-        <span>{label}</span>
-        {showStarts && totalStarts > 0 && (
-          <span className="text-orange-600/60">{totalStarts} starts</span>
-        )}
-      </div>
-      {players.map((p, i) => (
-        <PlayerRow key={i} player={p} schedule={schedule[p.proTeam] ?? null} isMine={isMine} starts={getStarts(p.name)} selectedCat={selectedCat} />
-      ))}
-    </>
-  );
-
   return (
     <div className={`rounded-lg border ${borderColor} bg-surface flex-1 min-w-0`}>
       <div className={`border-b ${headerColor} px-3 py-2`}>
         <span className="text-[12px] font-semibold">{teamName}</span>
       </div>
-      <Section label="Batters" players={batters} />
-      <Section label="Pitchers" players={pitchers} showStarts />
-      {bench.length > 0 && <Section label="Bench" players={bench} />}
-      {il.length > 0 && <Section label="IL" players={il} />}
+      <RosterSection label="Batters" players={batters} totalStarts={totalStarts} schedule={schedule} isMine={isMine} getStarts={getStarts} selectedCat={selectedCat} />
+      <RosterSection label="Pitchers" players={pitchers} showStarts totalStarts={totalStarts} schedule={schedule} isMine={isMine} getStarts={getStarts} selectedCat={selectedCat} />
+      {bench.length > 0 && <RosterSection label="Bench" players={bench} totalStarts={totalStarts} schedule={schedule} isMine={isMine} getStarts={getStarts} selectedCat={selectedCat} />}
+      {il.length > 0 && <RosterSection label="IL" players={il} totalStarts={totalStarts} schedule={schedule} isMine={isMine} getStarts={getStarts} selectedCat={selectedCat} />}
     </div>
   );
 }
@@ -318,7 +329,6 @@ export default function MatchupPage() {
   const [selectedCat, setSelectedCat] = useState<string | null>(null);
 
   const fetchData = useCallback(() => {
-    setLoading(true);
     fetch("/api/espn/matchup")
       .then((r) => r.json())
       .then((d: MatchupData & { error?: string }) => {
@@ -509,14 +519,14 @@ export default function MatchupPage() {
   // Count SP starts using ESPN's starterStatusByProGame PP data
   const startsCounts = useMemo(() => {
     if (!startsData || !data) return null;
-    const myTeam = startsData.teams.find((t: any) => t.teamId === data.myTeamId);
-    const oppTeam = startsData.teams.find((t: any) => t.teamId === data.oppTeamId);
+    const myTeam = startsData.teams.find((t) => t.teamId === data.myTeamId);
+    const oppTeam = startsData.teams.find((t) => t.teamId === data.oppTeamId);
     if (!myTeam || !oppTeam) return null;
 
-    function countPPStarts(pitchers: any[]): number {
+    function countPPStarts(pitchers: StartsTeamData["pitchers"]): number {
       return pitchers
-        .filter((p: any) => p.pos === "SP" && !p.onIL)
-        .reduce((sum: number, p: any) => sum + (p.ppCount ?? 0), 0);
+        .filter((p) => p.pos === "SP" && !p.onIL)
+        .reduce((sum, p) => sum + (p.ppCount ?? 0), 0);
     }
 
     return { my: countPPStarts(myTeam.pitchers), opp: countPPStarts(oppTeam.pitchers) };

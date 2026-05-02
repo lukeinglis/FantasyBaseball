@@ -49,7 +49,7 @@ interface ProbablePitchersData {
 interface StartsTeamData {
   teamId: number;
   teamName: string;
-  pitchers: { name: string; pos: string; proTeam: string; onIL: boolean }[];
+  pitchers: { name: string; pos: string; proTeam: string; onIL: boolean; ppCount: number; ppNextCount: number }[];
 }
 
 interface StartsApiData {
@@ -201,6 +201,116 @@ function PitchingStatsTable({
           </tbody>
         </table>
       </div>
+    </div>
+  );
+}
+
+function BullpenPitcherCard({ player, sched, starts }: {
+  player: RosterPlayer;
+  sched: TeamSchedule | undefined;
+  starts: ProbableStart[];
+}) {
+  const hasGame = !!sched?.todayOpponent;
+  const isActive = !isOnIL(player.injuryStatus) && player.slotId !== BENCH_SLOT_ID;
+  const isInjured = player.injuryStatus !== "ACTIVE";
+  const today = new Date().toISOString().slice(0, 10);
+  const isStartingToday = starts.some((s) => s.date === today);
+
+  return (
+    <div className={`border-b border-border px-3 py-2.5 ${!isActive ? "opacity-60" : ""}`}>
+      <div className="flex items-center gap-3">
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center gap-2">
+            {isStartingToday && (
+              <span className="shrink-0 w-1.5 h-1.5 rounded-full bg-emerald-400" title="Starting today" />
+            )}
+            <span className={`text-[13px] font-medium ${isInjured ? "text-slate-500" : "text-slate-800"}`}>
+              {player.name}
+            </span>
+            {isInjured && (
+              <span className={`text-[10px] font-bold ${player.injuryColor}`}>{player.injuryLabel}</span>
+            )}
+          </div>
+          <div className="flex items-center gap-2 mt-0.5">
+            <span className="text-[10px] text-slate-600">{player.proTeam}</span>
+            <span className="text-[10px] text-slate-400">{player.slotLabel}</span>
+            {player.acquisitionType && player.acquisitionType !== "DRAFT" && (
+              <span className="text-[9px] font-bold text-violet-600/60">
+                {player.acquisitionType === "ADD" ? "FA" : player.acquisitionType}
+              </span>
+            )}
+          </div>
+        </div>
+        <div className="text-right shrink-0">
+          {hasGame ? (
+            <div>
+              <div className="text-[11px] text-slate-600">{sched!.todayOpponent}</div>
+              {sched!.todayTime && <div className="text-[10px] text-slate-600">{sched!.todayTime}</div>}
+            </div>
+          ) : (
+            <span className="text-[10px] text-slate-400">Off today</span>
+          )}
+        </div>
+        {player.pos === "SP" && (
+          <div className={`shrink-0 text-center min-w-[32px] ${
+            starts.length >= 2 ? "text-emerald-600" : starts.length === 1 ? "text-orange-600" : "text-slate-400"
+          }`}>
+            <div className="text-[14px] font-bold tabular-nums">{starts.length}</div>
+            <div className="text-[8px] uppercase">
+              {starts.length === 1 ? "start" : "starts"}
+            </div>
+          </div>
+        )}
+        {sched && (
+          <span className={`shrink-0 text-[10px] tabular-nums font-semibold ${
+            sched.weekGames >= 5 ? "text-emerald-600" :
+            sched.weekGames >= 3 ? "text-orange-600" : "text-slate-600"
+          }`}>{sched.weekGames}G</span>
+        )}
+      </div>
+      {starts.length > 0 && player.pos === "SP" && (
+        <div className="mt-1.5 flex flex-wrap gap-1.5 ml-3.5">
+          {starts.map((s, i) => (
+            <span key={i} className={`inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-[10px] ${
+              s.date === today
+                ? "bg-emerald-100 text-emerald-600 border border-emerald-300"
+                : "bg-black/[0.03] text-slate-500 border border-border"
+            }`}>
+              <span className="font-semibold">{fmtShortDate(s.date)}</span>
+              <span className="text-slate-600">{s.opponent}</span>
+              {s.date === today && s.gameTime && (
+                <span className="text-slate-500">{s.gameTime}</span>
+              )}
+            </span>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function BullpenPitcherSection({ label, players, borderColor = "border-border", pitcherStarts, view, schedule }: {
+  label: string;
+  players: RosterPlayer[];
+  borderColor?: string;
+  pitcherStarts: Map<string, ProbableStart[]>;
+  view: "SP" | "RP";
+  schedule: Record<string, TeamSchedule>;
+}) {
+  if (players.length === 0) return null;
+  const sectionStarts = players.reduce((sum, p) => sum + (pitcherStarts.get(p.name)?.length ?? 0), 0);
+  return (
+    <div className={`rounded-lg border ${borderColor} bg-surface`}>
+      <div className={`border-b ${borderColor} px-3 py-2 flex items-center justify-between`}>
+        <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-600">{label}</span>
+        <div className="flex items-center gap-2">
+          {view === "SP" && sectionStarts > 0 && (
+            <span className="text-[10px] tabular-nums text-orange-600/70">{sectionStarts} starts</span>
+          )}
+          <span className="text-[10px] tabular-nums text-slate-400">{players.length}</span>
+        </div>
+      </div>
+      {players.map((p, i) => <BullpenPitcherCard key={i} player={p} sched={schedule[p.proTeam]} starts={pitcherStarts.get(p.name) ?? []} />)}
     </div>
   );
 }
@@ -383,8 +493,8 @@ export default function BullpenPage() {
       const team = startsApiData!.teams.find((t) => t.teamId === teamId);
       if (!team) return 0;
       return team.pitchers
-        .filter((p: any) => p.pos === "SP" && !p.onIL)
-        .reduce((sum: number, p: any) => sum + (p.ppCount ?? 0), 0);
+        .filter((p) => p.pos === "SP" && !p.onIL)
+        .reduce((sum, p) => sum + (p.ppCount ?? 0), 0);
     }
 
     const myThis = countPPStarts(matchupApiData.myTeamId);
@@ -393,14 +503,14 @@ export default function BullpenPage() {
     const myNext = nextProbables ? (() => {
       const team = startsApiData!.teams.find((t) => t.teamId === matchupApiData.myTeamId);
       if (!team) return 0;
-      return team.pitchers.filter((p: any) => p.pos === "SP" && !p.onIL)
-        .reduce((sum: number, p: any) => sum + findPitcherStarts(p.name, p.proTeam, nextProbables!).length, 0);
+      return team.pitchers.filter((p) => p.pos === "SP" && !p.onIL)
+        .reduce((sum, p) => sum + findPitcherStarts(p.name, p.proTeam, nextProbables!).length, 0);
     })() : null;
     const oppNext = nextProbables ? (() => {
       const team = startsApiData!.teams.find((t) => t.teamId === matchupApiData.oppTeamId);
       if (!team) return 0;
-      return team.pitchers.filter((p: any) => p.pos === "SP" && !p.onIL)
-        .reduce((sum: number, p: any) => sum + findPitcherStarts(p.name, p.proTeam, nextProbables!).length, 0);
+      return team.pitchers.filter((p) => p.pos === "SP" && !p.onIL)
+        .reduce((sum, p) => sum + findPitcherStarts(p.name, p.proTeam, nextProbables!).length, 0);
     })() : null;
 
     return { myThis, oppThis, myNext, oppNext };
@@ -419,118 +529,8 @@ export default function BullpenPage() {
     );
   }
 
-  const PitcherCard = ({ player }: { player: RosterPlayer }) => {
-    const sched = schedule[player.proTeam];
-    const starts = pitcherStarts.get(player.name) ?? [];
-    const hasGame = !!sched?.todayOpponent;
-    const isActive = !isOnIL(player.injuryStatus) && player.slotId !== BENCH_SLOT_ID;
-    const isInjured = player.injuryStatus !== "ACTIVE";
-    const today = new Date().toISOString().slice(0, 10);
-    const isStartingToday = starts.some((s) => s.date === today);
-
-    return (
-      <div className={`border-b border-border px-3 py-2.5 ${!isActive ? "opacity-60" : ""}`}>
-        <div className="flex items-center gap-3">
-          <div className="min-w-0 flex-1">
-            <div className="flex items-center gap-2">
-              {isStartingToday && (
-                <span className="shrink-0 w-1.5 h-1.5 rounded-full bg-emerald-400" title="Starting today" />
-              )}
-              <span className={`text-[13px] font-medium ${isInjured ? "text-slate-500" : "text-slate-800"}`}>
-                {player.name}
-              </span>
-              {isInjured && (
-                <span className={`text-[10px] font-bold ${player.injuryColor}`}>{player.injuryLabel}</span>
-              )}
-            </div>
-            <div className="flex items-center gap-2 mt-0.5">
-              <span className="text-[10px] text-slate-600">{player.proTeam}</span>
-              <span className="text-[10px] text-slate-400">{player.slotLabel}</span>
-              {player.acquisitionType && player.acquisitionType !== "DRAFT" && (
-                <span className="text-[9px] font-bold text-violet-600/60">
-                  {player.acquisitionType === "ADD" ? "FA" : player.acquisitionType}
-                </span>
-              )}
-            </div>
-          </div>
-
-          {/* Today's game */}
-          <div className="text-right shrink-0">
-            {hasGame ? (
-              <div>
-                <div className="text-[11px] text-slate-600">{sched!.todayOpponent}</div>
-                {sched!.todayTime && <div className="text-[10px] text-slate-600">{sched!.todayTime}</div>}
-              </div>
-            ) : (
-              <span className="text-[10px] text-slate-400">Off today</span>
-            )}
-          </div>
-
-          {/* Starts this week */}
-          {player.pos === "SP" && (
-            <div className={`shrink-0 text-center min-w-[32px] ${
-              starts.length >= 2 ? "text-emerald-600" : starts.length === 1 ? "text-orange-600" : "text-slate-400"
-            }`}>
-              <div className="text-[14px] font-bold tabular-nums">{starts.length}</div>
-              <div className="text-[8px] uppercase">
-                {starts.length === 1 ? "start" : "starts"}
-              </div>
-            </div>
-          )}
-
-          {/* Team games this week */}
-          {sched && (
-            <span className={`shrink-0 text-[10px] tabular-nums font-semibold ${
-              sched.weekGames >= 5 ? "text-emerald-600" :
-              sched.weekGames >= 3 ? "text-orange-600" : "text-slate-600"
-            }`}>{sched.weekGames}G</span>
-          )}
-        </div>
-
-        {/* Upcoming starts detail */}
-        {starts.length > 0 && player.pos === "SP" && (
-          <div className="mt-1.5 flex flex-wrap gap-1.5 ml-3.5">
-            {starts.map((s, i) => (
-              <span key={i} className={`inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-[10px] ${
-                s.date === today
-                  ? "bg-emerald-100 text-emerald-600 border border-emerald-300"
-                  : "bg-black/[0.03] text-slate-500 border border-border"
-              }`}>
-                <span className="font-semibold">{fmtShortDate(s.date)}</span>
-                <span className="text-slate-600">{s.opponent}</span>
-                {s.date === today && s.gameTime && (
-                  <span className="text-slate-500">{s.gameTime}</span>
-                )}
-              </span>
-            ))}
-          </div>
-        )}
-      </div>
-    );
-  };
-
-  const PitcherSection = ({ label, players, borderColor = "border-border" }: {
-    label: string;
-    players: RosterPlayer[];
-    borderColor?: string;
-  }) => {
-    if (players.length === 0) return null;
-    const sectionStarts = players.reduce((sum, p) => sum + (pitcherStarts.get(p.name)?.length ?? 0), 0);
-    return (
-      <div className={`rounded-lg border ${borderColor} bg-surface`}>
-        <div className={`border-b ${borderColor} px-3 py-2 flex items-center justify-between`}>
-          <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-600">{label}</span>
-          <div className="flex items-center gap-2">
-            {view === "SP" && sectionStarts > 0 && (
-              <span className="text-[10px] tabular-nums text-orange-600/70">{sectionStarts} starts</span>
-            )}
-            <span className="text-[10px] tabular-nums text-slate-400">{players.length}</span>
-          </div>
-        </div>
-        {players.map((p, i) => <PitcherCard key={i} player={p} />)}
-      </div>
-    );
-  };
+  const pitcherCardProps = { schedule, pitcherStarts };
+  const pitcherSectionProps = { pitcherStarts, view, schedule };
 
   // Count pitchers with games today
   const pitchersWithGames = shown.filter((p) =>
@@ -642,10 +642,10 @@ export default function BullpenPage() {
 
       {/* Pitcher lists */}
       <div className="space-y-4">
-        <PitcherSection label="Active" players={active} borderColor="border-emerald-300" />
-        <PitcherSection label="Day-to-Day" players={dtd} borderColor="border-orange-300" />
-        <PitcherSection label="Bench" players={benched} />
-        <PitcherSection label="Injured List" players={injured} borderColor="border-red-300" />
+        <BullpenPitcherSection label="Active" players={active} borderColor="border-emerald-300" {...pitcherSectionProps} />
+        <BullpenPitcherSection label="Day-to-Day" players={dtd} borderColor="border-orange-300" {...pitcherSectionProps} />
+        <BullpenPitcherSection label="Bench" players={benched} {...pitcherSectionProps} />
+        <BullpenPitcherSection label="Injured List" players={injured} borderColor="border-red-300" {...pitcherSectionProps} />
       </div>
 
       {/* No probable data notice */}

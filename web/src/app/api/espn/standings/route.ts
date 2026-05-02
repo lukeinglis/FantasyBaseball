@@ -1,5 +1,6 @@
 export const dynamic = "force-dynamic";
 import { espnFetch, hasEspnCreds } from "@/lib/espn";
+import type { EspnLeagueData } from "@/types/espn";
 import logger from "@/lib/logger";
 
 export interface StandingsTeam {
@@ -39,9 +40,8 @@ export async function GET(req: Request) {
 
   try {
     const t0 = Date.now();
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const data: any = await espnFetch(["mTeam", "mStatus", "mSettings", "mMatchup", "mMatchupScore"]);
-    const currentMatchupPeriod = (data as any).status?.currentMatchupPeriod ?? 1;
+    const data = await espnFetch(["mTeam", "mStatus", "mSettings", "mMatchup", "mMatchupScore"]) as EspnLeagueData;
+    const currentMatchupPeriod = data.status?.currentMatchupPeriod ?? 1;
     const totalMatchupPeriods: number = data.settings?.scheduleSettings?.matchupPeriodCount ?? 21;
 
     // Build standings from team records
@@ -61,7 +61,7 @@ export async function GET(req: Request) {
 
       teams.push({
         teamId: t.id,
-        teamName: `${t.location ?? ""} ${t.nickname ?? ""}`.trim() || t.abbrev,
+        teamName: `${t.location ?? ""} ${t.nickname ?? ""}`.trim() || (t.abbrev ?? ""),
         abbrev: t.abbrev ?? "",
         wins,
         losses,

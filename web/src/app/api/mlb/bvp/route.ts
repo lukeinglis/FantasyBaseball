@@ -1,6 +1,7 @@
 // MLB Stats API — batter vs pitcher career stats
 // Takes batter and pitcher names, looks up IDs, returns career matchup stats
 import logger from "@/lib/logger";
+import type { MlbPerson, MlbBvpSplit, BvpTotals } from "@/types/espn";
 
 export interface BvpStats {
   batter: string;
@@ -36,7 +37,7 @@ async function lookupPlayerId(name: string): Promise<number | null> {
     const people = data.people ?? [];
 
     // Try exact match first, then partial
-    const exact = people.find((p: any) => p.fullName === name);
+    const exact = people.find((p: MlbPerson) => p.fullName === name);
     const match = exact ?? people[0];
 
     const id = match?.id ?? null;
@@ -48,7 +49,7 @@ async function lookupPlayerId(name: string): Promise<number | null> {
   }
 }
 
-async function fetchBvp(batterId: number, pitcherId: number): Promise<any | null> {
+async function fetchBvp(batterId: number, pitcherId: number): Promise<BvpTotals | null> {
   try {
     const url = `https://statsapi.mlb.com/api/v1/people/${batterId}/stats?stats=vsPlayer&opposingPlayerId=${pitcherId}&group=hitting`;
     const res = await fetch(url, { next: { revalidate: 3600 } }); // cache 1 hour
@@ -60,7 +61,7 @@ async function fetchBvp(batterId: number, pitcherId: number): Promise<any | null
 
     // Aggregate all career stats vs this pitcher
     const totals = splits.reduce(
-      (acc: any, s: any) => {
+      (acc: BvpTotals, s: MlbBvpSplit) => {
         const stat = s.stat ?? {};
         acc.atBats += stat.atBats ?? 0;
         acc.hits += stat.hits ?? 0;

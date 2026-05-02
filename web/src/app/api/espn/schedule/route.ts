@@ -1,5 +1,6 @@
 export const dynamic = "force-dynamic";
 import { espnFetch, hasEspnCreds, getCurrentMatchupPeriod, buildMatchupSchedule, SEASON_START } from "@/lib/espn";
+import type { EspnLeagueData, EspnScheduleRecord } from "@/types/espn";
 import logger from "@/lib/logger";
 
 // Returns the full season schedule with matchup periods, dates, and opponents
@@ -34,26 +35,25 @@ export async function GET(req: Request) {
 
   try {
     const t0 = Date.now();
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const data: any = await espnFetch(["mSettings", "mStatus", "mMatchup", "mTeam"]);
+    const data = await espnFetch(["mSettings", "mStatus", "mMatchup", "mTeam"]) as EspnLeagueData;
     const currentMatchupPeriod = getCurrentMatchupPeriod(data);
     const matchupCount: number = data.settings?.scheduleSettings?.matchupPeriodCount ?? 21;
 
     // Build team name lookup
     const teamNames: Record<number, string> = {};
     for (const t of data.teams ?? []) {
-      teamNames[t.id] = `${t.location ?? ""} ${t.nickname ?? ""}`.trim() || t.abbrev;
+      teamNames[t.id] = `${t.location ?? ""} ${t.nickname ?? ""}`.trim() || (t.abbrev ?? "");
     }
 
     // Build schedule for my team — opponent per matchup period
-    const schedule: any[] = data.schedule ?? [];
+    const schedule: EspnScheduleRecord[] = data.schedule ?? [];
     const myMatchups: Record<number, { oppId: number }> = {};
     for (const m of schedule) {
       const isHome = m.home?.teamId === MY_TEAM_ID;
       const isAway = m.away?.teamId === MY_TEAM_ID;
       if (!isHome && !isAway) continue;
-      const oppId = isHome ? m.away?.teamId : m.home?.teamId;
-      myMatchups[m.matchupPeriodId] = { oppId };
+      const oppId = isHome ? m.away?.teamId ?? 0 : m.home?.teamId ?? 0;
+      if (m.matchupPeriodId != null) myMatchups[m.matchupPeriodId] = { oppId };
     }
 
     // Build weeks with correct date ranges

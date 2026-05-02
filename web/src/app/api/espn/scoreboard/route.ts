@@ -1,5 +1,6 @@
 export const dynamic = "force-dynamic";
 import { espnFetch, hasEspnCreds, STAT_ID_MAP } from "@/lib/espn";
+import type { EspnLeagueData, EspnScoreByStat, EspnScheduleRecord } from "@/types/espn";
 import logger from "@/lib/logger";
 
 export interface ScoreboardCatResult {
@@ -41,24 +42,23 @@ export async function GET(req: Request) {
   }
   try {
     const t0 = Date.now();
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const data: any = await espnFetch(["mMatchup", "mMatchupScore", "mTeam", "mStatus"]);
-    const currentMatchupPeriod = (data as any).status?.currentMatchupPeriod ?? 1;
+    const data = await espnFetch(["mMatchup", "mMatchupScore", "mTeam", "mStatus"]) as EspnLeagueData;
+    const currentMatchupPeriod = data.status?.currentMatchupPeriod ?? 1;
 
     const teamNames: Record<number, string> = {};
     for (const t of data.teams ?? []) {
-      teamNames[t.id] = `${t.location ?? ""} ${t.nickname ?? ""}`.trim() || t.abbrev;
+      teamNames[t.id] = `${t.location ?? ""} ${t.nickname ?? ""}`.trim() || (t.abbrev ?? "");
     }
 
-    const schedule: any[] = data.schedule ?? [];
-    const currentMatchups = schedule.filter((m: any) => m.matchupPeriodId === currentMatchupPeriod);
+    const schedule: EspnScheduleRecord[] = data.schedule ?? [];
+    const currentMatchups = schedule.filter((m) => m.matchupPeriodId === currentMatchupPeriod);
 
     const cleanScore = (v: unknown): number => {
       if (typeof v === "number" && Number.isFinite(v)) return v;
       return 0;
     };
 
-    const matchups: ScoreboardMatchup[] = currentMatchups.map((m: any) => {
+    const matchups: ScoreboardMatchup[] = currentMatchups.map((m) => {
       const homeStats = m.home?.cumulativeScore?.scoreByStat ?? {};
       const awayStats = m.away?.cumulativeScore?.scoreByStat ?? {};
       let homeW = 0, homeL = 0, homeT = 0;
@@ -67,8 +67,8 @@ export async function GET(req: Request) {
       for (const cat of CATS_ORDER) {
         const statId = Object.entries(STAT_ID_MAP).find(([, c]) => c === cat)?.[0];
         if (!statId) continue;
-        const homeData = homeStats[statId] as any;
-        const awayData = awayStats[statId] as any;
+        const homeData = homeStats[statId] as EspnScoreByStat | undefined;
+        const awayData = awayStats[statId] as EspnScoreByStat | undefined;
         const homeValue = cleanScore(homeData?.score);
         const awayValue = cleanScore(awayData?.score);
         const result = homeData?.result;
@@ -85,14 +85,14 @@ export async function GET(req: Request) {
       }
 
       return {
-        matchupPeriodId: m.matchupPeriodId,
+        matchupPeriodId: m.matchupPeriodId ?? 0,
         homeTeamId: m.home?.teamId ?? 0,
-        homeTeamName: teamNames[m.home?.teamId] ?? "?",
+        homeTeamName: teamNames[m.home?.teamId ?? 0] ?? "?",
         homeWins: homeW,
         homeLosses: homeL,
         homeTies: homeT,
         awayTeamId: m.away?.teamId ?? 0,
-        awayTeamName: teamNames[m.away?.teamId] ?? "?",
+        awayTeamName: teamNames[m.away?.teamId ?? 0] ?? "?",
         awayWins: homeL,
         awayLosses: homeW,
         awayTies: homeT,
