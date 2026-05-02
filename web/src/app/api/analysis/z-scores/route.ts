@@ -44,6 +44,7 @@ export interface ZScorePlayer {
   zScores: Record<string, number>;
   zTotal: number;
   far: number;
+  espnRank: number;
 }
 
 export async function GET(req: Request) {
@@ -107,11 +108,13 @@ export async function GET(req: Request) {
       isPitcher: boolean;
       onTeamId: number;
       seasonStats: Record<string, number>;
+      espnRank: number;
     }
 
     const batters: RawPlayer[] = [];
     const pitchers: RawPlayer[] = [];
 
+    let espnIdx = 0;
     for (const entry of data.players ?? []) {
       const player = entry.player ?? {};
       const name: string = player.fullName ?? "";
@@ -134,6 +137,7 @@ export async function GET(req: Request) {
         if (cat) seasonStats[cat] = val as number;
       }
 
+      espnIdx++;
       const raw: RawPlayer = {
         name,
         playerId: player.id ?? 0,
@@ -142,6 +146,7 @@ export async function GET(req: Request) {
         isPitcher,
         onTeamId: entry.onTeamId ?? 0,
         seasonStats,
+        espnRank: espnIdx,
       };
 
       if (isPitcher) {
@@ -184,6 +189,10 @@ export async function GET(req: Request) {
             continue;
           }
           const { mu, sd } = catStats[cat];
+          if (sd === 0) {
+            zScores[cat] = 0;
+            continue;
+          }
           let z = (val - mu) / sd;
 
           // Invert for categories where lower is better
@@ -214,6 +223,7 @@ export async function GET(req: Request) {
           zScores,
           zTotal,
           far,
+          espnRank: p.espnRank,
         };
       });
     }

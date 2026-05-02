@@ -1,6 +1,18 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
+import {
+  findSurplusCategories,
+  computeGapAnalysis,
+  findSellHighCandidates,
+  findMetricArbitrage,
+  safeNum,
+  type SurplusCategory,
+  type GapPartner,
+  type SellHighCandidate,
+  type ArbitrageCandidate,
+  type PlayerStats as TradePlayerStats,
+} from "@/lib/trade-analysis";
 
 interface RosterPlayer {
   name: string;
@@ -40,6 +52,7 @@ interface ZScorePlayer {
   zScores: Record<string, number>;
   zTotal: number;
   far: number;
+  espnRank?: number;
 }
 
 interface StandingsTeam {
@@ -277,8 +290,8 @@ export default function TradeRoomPage() {
     const impact: Record<string, { sending: number; receiving: number; net: number }> = {};
 
     for (const cat of ALL_CATS) {
-      const sendTotal = sending.reduce((sum, name) => sum + (getStats(name)[cat] ?? 0), 0);
-      const recvTotal = receiving.reduce((sum, name) => sum + (getStats(name)[cat] ?? 0), 0);
+      const sendTotal = sending.reduce((sum, name) => { const v = getStats(name)[cat] ?? 0; return sum + (Number.isFinite(v) ? v : 0); }, 0);
+      const recvTotal = receiving.reduce((sum, name) => { const v = getStats(name)[cat] ?? 0; return sum + (Number.isFinite(v) ? v : 0); }, 0);
       impact[cat] = { sending: sendTotal, receiving: recvTotal, net: recvTotal - sendTotal };
     }
 
@@ -288,39 +301,50 @@ export default function TradeRoomPage() {
 
   // Z-score trade impact
   const zTradeImpact = useMemo(() => {
-    const sendFar = sending.reduce((sum, name) => sum + (zScoreByName.get(name)?.far ?? 0), 0);
-    const recvFar = receiving.reduce((sum, name) => sum + (zScoreByName.get(name)?.far ?? 0), 0);
+    const sendFar = sending.reduce((sum, name) => { const v = zScoreByName.get(name)?.far ?? 0; return sum + (Number.isFinite(v) ? v : 0); }, 0);
+    const recvFar = receiving.reduce((sum, name) => { const v = zScoreByName.get(name)?.far ?? 0; return sum + (Number.isFinite(v) ? v : 0); }, 0);
     return { sendFar, recvFar, netFar: recvFar - sendFar };
   }, [sending, receiving, zScoreByName]);
 
-  // Sell-high candidates: my players performing above their projected level
-  // Identify players with high recent stats (last 7/15) relative to season
-  const sellHighCandidates = useMemo(() => {
-    if (!myTeam) return [];
-    const candidates: { name: string; pos: string; reason: string; far: number }[] = [];
-    for (const p of myTeam.roster) {
-      const ps = statsMap.get(p.name);
-      const zp = zScoreByName.get(p.name);
-      if (!ps || !zp) continue;
-      const isPitcher = p.pos === "SP" || p.pos === "RP";
+  // Surplus Detector: categories where my team ranks top-3 in the league
+  const surplusCategories = useMemo((): SurplusCategory[] => {
+    if (!myTeam || !zScorePlayers.length) return [];
+    return findSurplusCategories(zScorePlayers, ALL_CATS, myTeam.id, teamNameMap);
+  }, [myTeam, zScorePlayers, teamNameMap]);
 
-      // Sell high if last 7 day stats are significantly better than season
-      if (!isPitcher) {
-        const seasonAvg = ps.seasonStats.AVG ?? 0;
-        const recent = ps.last7Stats.AVG ?? 0;
-        if (recent > seasonAvg + 0.050 && seasonAvg > 0 && recent > 0.300) {
-          candidates.push({ name: p.name, pos: p.pos, reason: `.${(recent * 1000).toFixed(0)} last 7D vs .${(seasonAvg * 1000).toFixed(0)} season`, far: zp.far });
-        }
-      } else {
-        const seasonEra = ps.seasonStats.ERA ?? 99;
-        const recent = ps.last7Stats.ERA ?? 99;
-        if (recent < seasonEra - 1.5 && recent < 3.0 && seasonEra > 0) {
-          candidates.push({ name: p.name, pos: p.pos, reason: `${recent.toFixed(2)} ERA last 7D vs ${seasonEra.toFixed(2)} season`, far: zp.far });
-        }
-      }
+  // Gap Analysis: per-opponent category differentials for trade matching
+  const gapPartners = useMemo((): GapPartner[] => {
+    if (!myTeam || !zScorePlayers.length) return [];
+    return computeGapAnalysis(zScorePlayers, ALL_CATS, myTeam.id, teamNameMap);
+  }, [myTeam, zScorePlayers, teamNameMap]);
+
+  // Sell-High Candidates: players whose 30-day z-scores exceed season z-scores by >0.5 SD
+  const sellHighCandidates = useMemo((): SellHighCandidate[] => {
+    if (!myTeam || !zScorePlayers.length) return [];
+    const tradeStatsMap = new Map<string, TradePlayerStats>();
+    for (const ps of playerStats) {
+      tradeStatsMap.set(ps.name, {
+        name: ps.name,
+        pos: ps.pos,
+        seasonStats: ps.seasonStats,
+        last30Stats: ps.last30Stats,
+      });
     }
-    return candidates.sort((a, b) => b.far - a.far);
-  }, [myTeam, statsMap, zScoreByName]);
+    return findSellHighCandidates(
+      myTeam.roster.map((p) => ({ name: p.name, pos: p.pos })),
+      zScorePlayers,
+      tradeStatsMap,
+      myTeam.id,
+      BAT_CATS,
+      PIT_CATS,
+    );
+  }, [myTeam, zScorePlayers, playerStats]);
+
+  // Metric Arbitrage: players where z-score rank differs from ESPN default rank
+  const arbitrageCandidates = useMemo((): ArbitrageCandidate[] => {
+    if (!myTeam || !zScorePlayers.length) return [];
+    return findMetricArbitrage(zScorePlayers, myTeam.id, teamNameMap);
+  }, [myTeam, zScorePlayers, teamNameMap]);
 
   // Position surplus: positions where we have 2+ starters
   const positionSurplus = useMemo(() => {
@@ -434,34 +458,124 @@ export default function TradeRoomPage() {
         </div>
       </div>
 
-      {/* Sell High + Position Surplus */}
-      {(sellHighCandidates.length > 0 || positionSurplus.length > 0) && (
+      {/* Surplus Detector + Sell-High Candidates */}
+      {(surplusCategories.length > 0 || sellHighCandidates.length > 0) && (
         <div className="mb-4 grid gap-4 sm:grid-cols-2">
+          {surplusCategories.length > 0 && (
+            <div className="rounded-lg border border-teal-300 bg-teal-50/50 px-4 py-3">
+              <div className="text-[10px] font-semibold uppercase tracking-wider text-teal-700 mb-2">Category Surplus (Top 3)</div>
+              {surplusCategories.map((s) => (
+                <div key={s.cat} className="py-1.5 border-b border-teal-200/50 last:border-0">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[12px] font-bold text-teal-700">{s.cat} <span className="text-[10px] font-normal text-teal-600">#{s.rank}</span></span>
+                    <span className="text-[10px] text-slate-400">Trade chips:</span>
+                  </div>
+                  <div className="mt-0.5 flex flex-wrap gap-1">
+                    {s.players.map((p) => (
+                      <span key={p.name} className="text-[10px] text-slate-600">
+                        {p.name} <span className="text-teal-600">(+{safeNum(p.zScore).toFixed(1)})</span>
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
           {sellHighCandidates.length > 0 && (
             <div className="rounded-lg border border-purple-300 bg-purple-50/50 px-4 py-3">
-              <div className="text-[10px] font-semibold uppercase tracking-wider text-purple-700 mb-2">Sell High</div>
-              {sellHighCandidates.map((c, i) => (
-                <div key={i} className="flex items-center justify-between py-1 border-b border-purple-200/50 last:border-0">
-                  <div>
-                    <span className="text-[12px] font-medium text-slate-700">{c.name}</span>
-                    <span className="text-[10px] text-slate-500 ml-1">{c.pos}</span>
+              <div className="text-[10px] font-semibold uppercase tracking-wider text-purple-700 mb-2">Sell High (30D z vs Season z)</div>
+              {sellHighCandidates.map((c) => (
+                <div key={c.name} className="py-1 border-b border-purple-200/50 last:border-0">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <span className="text-[12px] font-medium text-slate-700">{c.name}</span>
+                      <span className="text-[10px] text-slate-500 ml-1">{c.pos}</span>
+                    </div>
+                    <span className="text-[10px] font-mono text-purple-600">+{safeNum(c.avgDiff).toFixed(2)} avg</span>
                   </div>
-                  <span className="text-[10px] text-purple-600">{c.reason}</span>
+                  <div className="mt-0.5 flex flex-wrap gap-1.5">
+                    {c.cats.map((cat) => (
+                      <span key={cat.cat} className="text-[9px] text-purple-500">
+                        {cat.cat} +{safeNum(cat.diff).toFixed(1)}
+                      </span>
+                    ))}
+                  </div>
                 </div>
               ))}
             </div>
           )}
-          {positionSurplus.length > 0 && (
-            <div className="rounded-lg border border-blue-300 bg-blue-50/50 px-4 py-3">
-              <div className="text-[10px] font-semibold uppercase tracking-wider text-blue-700 mb-2">Position Surplus</div>
-              {positionSurplus.map((s, i) => (
-                <div key={i} className="flex items-center justify-between py-1 border-b border-blue-200/50 last:border-0">
-                  <span className="text-[12px] font-bold text-blue-700">{s.pos} x{s.count}</span>
-                  <span className="text-[10px] text-slate-500">{s.players.join(", ")}</span>
+        </div>
+      )}
+
+      {/* Gap Analysis */}
+      {gapPartners.length > 0 && (
+        <div className="mb-4 rounded-lg border border-indigo-300 bg-indigo-50/50">
+          <div className="border-b border-indigo-300 px-4 py-2.5">
+            <span className="text-[10px] font-semibold uppercase tracking-wider text-indigo-700">Gap Analysis</span>
+            <span className="ml-2 text-[10px] text-indigo-500">Complementary trade partners</span>
+          </div>
+          <div className="grid gap-0 sm:grid-cols-2 lg:grid-cols-3">
+            {gapPartners.map((partner) => (
+              <div key={partner.teamId} className="border-b border-r border-indigo-200 px-3 py-2.5 last:border-r-0">
+                <div className="text-[12px] font-medium text-slate-700">{partner.teamName}</div>
+                <div className="mt-1 text-[10px]">
+                  <span className="text-emerald-600">They need: </span>
+                  <span className="text-slate-600">{partner.theyNeed.join(", ")}</span>
                 </div>
-              ))}
-            </div>
-          )}
+                <div className="text-[10px]">
+                  <span className="text-blue-600">You need: </span>
+                  <span className="text-slate-600">{partner.youNeed.join(", ")}</span>
+                </div>
+                <div className="mt-0.5 text-[9px] text-indigo-400">
+                  Match score: {safeNum(partner.complementScore).toFixed(1)}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Metric Arbitrage */}
+      {arbitrageCandidates.length > 0 && (
+        <div className="mb-4 rounded-lg border border-orange-300 bg-orange-50/50">
+          <div className="border-b border-orange-300 px-4 py-2.5">
+            <span className="text-[10px] font-semibold uppercase tracking-wider text-orange-700">Metric Arbitrage</span>
+            <span className="ml-2 text-[10px] text-orange-500">Z-score rank exceeds ESPN rank (undervalued)</span>
+          </div>
+          <div className="grid gap-0 sm:grid-cols-2 lg:grid-cols-3">
+            {arbitrageCandidates.map((c) => (
+              <div key={c.name} className="border-b border-r border-orange-200 px-3 py-2.5 last:border-r-0">
+                <div className="flex items-start justify-between gap-1">
+                  <div>
+                    <div className="text-[12px] font-medium text-slate-700">{c.name}</div>
+                    <div className="text-[10px] text-slate-500">{c.pos} · {c.teamName}</div>
+                  </div>
+                  <div className="text-right shrink-0">
+                    <div className="text-[11px] font-mono font-bold text-orange-600">FAR {safeNum(c.far).toFixed(1)}</div>
+                  </div>
+                </div>
+                <div className="mt-1 text-[10px] text-slate-500">
+                  Z-rank #{c.farRank} vs ESPN #{c.espnRank}
+                  <span className="ml-1 text-orange-600 font-medium">(+{c.rankDiff} spots)</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Position Surplus */}
+      {positionSurplus.length > 0 && (
+        <div className="mb-4">
+          <div className="rounded-lg border border-blue-300 bg-blue-50/50 px-4 py-3">
+            <div className="text-[10px] font-semibold uppercase tracking-wider text-blue-700 mb-2">Position Surplus</div>
+            {positionSurplus.map((s, i) => (
+              <div key={i} className="flex items-center justify-between py-1 border-b border-blue-200/50 last:border-0">
+                <span className="text-[12px] font-bold text-blue-700">{s.pos} x{s.count}</span>
+                <span className="text-[10px] text-slate-500">{s.players.join(", ")}</span>
+              </div>
+            ))}
+          </div>
         </div>
       )}
 
