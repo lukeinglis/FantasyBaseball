@@ -159,34 +159,138 @@ function PlayerRow({
 
 // ── GM Advisor ────────────────────────────────────────────────────────────────
 
-interface GmAdvice {
-  week: string[];
-  month: string[];
-  season: string[];
+export interface GmTierAdvice {
+  bullets: string[];
   generatedAt: string | null;
 }
 
-const TABS: { key: keyof Omit<GmAdvice, "generatedAt">; label: string; accent: string; bullet: string }[] = [
-  { key: "week",   label: "This Week",      accent: "border-orange-400 bg-orange-50 text-orange-700", bullet: "text-orange-500" },
-  { key: "month",  label: "Next 30 Days",   accent: "border-blue-400 bg-blue-50 text-blue-700",       bullet: "text-blue-500"   },
-  { key: "season", label: "Win the League", accent: "border-purple-400 bg-purple-50 text-purple-700", bullet: "text-purple-500" },
+export type TierKey = "week" | "month" | "season";
+
+export interface GmTierResult {
+  key: TierKey;
+  data: GmTierAdvice | null;
+  error: boolean;
+}
+
+const TIERS: { key: TierKey; label: string; file: string; borderColor: string; bgColor: string; textColor: string; bulletColor: string }[] = [
+  { key: "week",   label: "This Week",     file: "/gm-advice-week.json",   borderColor: "border-orange-400", bgColor: "bg-orange-50",  textColor: "text-orange-700", bulletColor: "text-orange-500" },
+  { key: "month",  label: "Next 30 Days",  file: "/gm-advice-month.json",  borderColor: "border-blue-400",   bgColor: "bg-blue-50",    textColor: "text-blue-700",   bulletColor: "text-blue-500"   },
+  { key: "season", label: "Win the League", file: "/gm-advice-season.json", borderColor: "border-purple-400", bgColor: "bg-purple-50",  textColor: "text-purple-700", bulletColor: "text-purple-500" },
 ];
 
+export function parseGmTierJson(raw: unknown): GmTierAdvice | null {
+  if (raw === null || raw === undefined || typeof raw !== "object") return null;
+  const obj = raw as Record<string, unknown>;
+  if (!Array.isArray(obj.bullets)) return null;
+  const bullets = obj.bullets.filter((b): b is string => typeof b === "string" && b.length > 0);
+  if (bullets.length === 0) return null;
+  const generatedAt = typeof obj.generatedAt === "string" ? obj.generatedAt : null;
+  return { bullets, generatedAt };
+}
+
+function TierFallback() {
+  return (
+    <div className="px-5 py-4 text-center">
+      <div className="text-[12px] text-slate-500">No analysis available for this tier.</div>
+      <div className="mt-1 text-[11px] text-slate-400">
+        Run <code className="rounded bg-slate-100 px-1.5 py-0.5 font-mono text-slate-600">/gm-advice</code> in Claude Code to generate.
+      </div>
+    </div>
+  );
+}
+
+function AccordionSection({
+  tier,
+  result,
+  isOpen,
+  onToggle,
+}: {
+  tier: typeof TIERS[number];
+  result: GmTierResult;
+  isOpen: boolean;
+  onToggle: () => void;
+}) {
+  return (
+    <div className="border-b border-border last:border-b-0">
+      <button
+        onClick={onToggle}
+        className={`flex w-full items-center justify-between px-4 py-3 text-left transition-colors hover:bg-slate-50 ${isOpen ? tier.bgColor : ""}`}
+      >
+        <div className="flex items-center gap-2">
+          <span className={`text-[12px] font-semibold ${isOpen ? tier.textColor : "text-slate-700"}`}>
+            {tier.label}
+          </span>
+          {result.data && (
+            <span className="text-[10px] text-slate-400">{result.data.bullets.length} items</span>
+          )}
+          {result.error && (
+            <span className="text-[10px] text-amber-500">unavailable</span>
+          )}
+        </div>
+        <span className={`text-[14px] text-slate-400 transition-transform ${isOpen ? "rotate-90" : ""}`}>›</span>
+      </button>
+      {isOpen && (
+        <div className="px-5 pb-4">
+          {result.data ? (
+            <>
+              <ul className="space-y-3">
+                {result.data.bullets.map((bullet, i) => (
+                  <li key={i} className="flex gap-2.5 leading-snug">
+                    <span className={`mt-0.5 shrink-0 text-[18px] leading-none ${tier.bulletColor}`}>›</span>
+                    <span className="text-[13px] text-slate-700">{bullet}</span>
+                  </li>
+                ))}
+              </ul>
+              {result.data.generatedAt && (
+                <div className="mt-3 text-[10px] text-slate-400">
+                  Updated {new Date(result.data.generatedAt).toLocaleDateString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })}
+                </div>
+              )}
+            </>
+          ) : (
+            <TierFallback />
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function GmAdvisor() {
-  const [advice, setAdvice] = useState<GmAdvice | null>(null);
+  const [tiers, setTiers] = useState<GmTierResult[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<keyof Omit<GmAdvice, "generatedAt">>("week");
+  const [openTiers, setOpenTiers] = useState<Set<TierKey>>(new Set(["week"]));
 
   useEffect(() => {
-    fetch("/gm-advice.json")
-      .then(r => r.ok ? r.json() : null)
-      .then((d: GmAdvice | null) => { if (d?.generatedAt) setAdvice(d); })
-      .catch(() => {})
-      .finally(() => setLoading(false));
+    Promise.all(
+      TIERS.map(async (tier): Promise<GmTierResult> => {
+        try {
+          const r = await fetch(tier.file);
+          if (!r.ok) return { key: tier.key, data: null, error: true };
+          const raw = await r.json();
+          const parsed = parseGmTierJson(raw);
+          return { key: tier.key, data: parsed, error: parsed === null };
+        } catch {
+          return { key: tier.key, data: null, error: true };
+        }
+      })
+    ).then(results => {
+      setTiers(results);
+      const firstWithData = results.find(r => r.data !== null);
+      if (firstWithData) setOpenTiers(new Set([firstWithData.key]));
+    }).finally(() => setLoading(false));
   }, []);
 
-  const activeStyle = TABS.find(t => t.key === activeTab)!;
-  const hasAdvice = advice && advice.week.length > 0;
+  const toggleTier = (key: TierKey) => {
+    setOpenTiers(prev => {
+      const next = new Set(prev);
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
+      return next;
+    });
+  };
+
+  const hasAnyAdvice = tiers.some(t => t.data !== null);
 
   return (
     <div className="mt-6 rounded-xl border border-border bg-surface overflow-hidden">
@@ -196,11 +300,6 @@ function GmAdvisor() {
           <div className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">AI · Claude Opus</div>
           <div className="text-[14px] font-bold text-slate-800">GM Advisor</div>
         </div>
-        {advice?.generatedAt && (
-          <span className="text-[10px] text-slate-400">
-            Updated {new Date(advice.generatedAt).toLocaleDateString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })}
-          </span>
-        )}
       </div>
 
       {/* Loading */}
@@ -210,8 +309,8 @@ function GmAdvisor() {
         </div>
       )}
 
-      {/* Empty state */}
-      {!loading && !hasAdvice && (
+      {/* Empty state: all tiers failed */}
+      {!loading && !hasAnyAdvice && (
         <div className="px-6 py-10 text-center">
           <div className="text-[13px] text-slate-500">No analysis yet.</div>
           <div className="mt-2 text-[12px] text-slate-400">
@@ -220,41 +319,25 @@ function GmAdvisor() {
         </div>
       )}
 
-      {/* Advice */}
-      {!loading && hasAdvice && (
-        <>
-          {/* Tab bar */}
-          <div className="flex border-b border-border text-[11px] font-semibold">
-            {TABS.map(t => (
-              <button
-                key={t.key}
-                onClick={() => setActiveTab(t.key)}
-                className={`flex-1 px-3 py-2.5 transition-colors ${
-                  activeTab === t.key
-                    ? `border-b-2 ${t.accent}`
-                    : "text-slate-500 hover:text-slate-700"
-                }`}
-              >
-                {t.label}
-              </button>
-            ))}
+      {/* Accordion sections */}
+      {!loading && hasAnyAdvice && (
+        <div>
+          {TIERS.map(tier => {
+            const result = tiers.find(t => t.key === tier.key) ?? { key: tier.key, data: null, error: true };
+            return (
+              <AccordionSection
+                key={tier.key}
+                tier={tier}
+                result={result}
+                isOpen={openTiers.has(tier.key)}
+                onToggle={() => toggleTier(tier.key)}
+              />
+            );
+          })}
+          <div className="px-5 py-3 text-[10px] text-slate-400 border-t border-border">
+            Run <code className="font-mono">/gm-advice</code> in Claude Code to refresh
           </div>
-
-          {/* Bullets */}
-          <div className="px-5 py-5">
-            <ul className="space-y-3">
-              {(advice![activeTab] ?? []).map((bullet, i) => (
-                <li key={i} className="flex gap-2.5 leading-snug">
-                  <span className={`mt-0.5 shrink-0 text-[18px] leading-none ${activeStyle.bullet}`}>›</span>
-                  <span className="text-[13px] text-slate-700">{bullet}</span>
-                </li>
-              ))}
-            </ul>
-            <div className="mt-4 text-[10px] text-slate-400">
-              Run <code className="font-mono">/gm-advice</code> in Claude Code to refresh
-            </div>
-          </div>
-        </>
+        </div>
       )}
     </div>
   );
