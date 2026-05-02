@@ -46,10 +46,19 @@ interface ProbablePitchersData {
   allStarts: ProbableStart[];
 }
 
+interface StartsPitcher {
+  name: string;
+  pos: string;
+  proTeam: string;
+  onIL: boolean;
+  ppCount: number;
+  ppNextCount: number;
+}
+
 interface StartsTeamData {
   teamId: number;
   teamName: string;
-  pitchers: { name: string; pos: string; proTeam: string; onIL: boolean; ppCount: number; ppNextCount: number }[];
+  pitchers: StartsPitcher[];
 }
 
 interface StartsApiData {
@@ -135,21 +144,23 @@ function PitchingStatsTable({
 }) {
   const sorted = useMemo(() => {
     return [...stats].sort((a, b) => {
-      const aVal = a.seasonStats[sortColumn] ?? 9999;
-      const bVal = b.seasonStats[sortColumn] ?? 9999;
+      let aVal = a.seasonStats[sortColumn] ?? 9999;
+      let bVal = b.seasonStats[sortColumn] ?? 9999;
+      if (!isFinite(aVal)) aVal = 9999;
+      if (!isFinite(bVal)) bVal = 9999;
       return sortAsc ? aVal - bVal : bVal - aVal;
     });
   }, [stats, sortColumn, sortAsc]);
 
   function fmtStat(col: string, val: number | undefined): string {
-    if (val === undefined || val === null) return "-";
+    if (val === undefined || val === null || !Number.isFinite(val)) return "-";
     if (col === "ERA" || col === "WHIP") return val.toFixed(2);
     if (col === "IP") return val.toFixed(1);
     return String(Math.round(val));
   }
 
   function statColor(col: string, val: number | undefined): string {
-    if (val === undefined || val === null) return "";
+    if (val === undefined || val === null || !Number.isFinite(val)) return "";
     if (col === "ERA") return val < 3.5 ? "text-emerald-600" : val > 4.5 ? "text-red-600" : "";
     if (col === "WHIP") return val < 1.2 ? "text-emerald-600" : val > 1.4 ? "text-red-600" : "";
     return "";
@@ -494,7 +505,10 @@ export default function BullpenPage() {
       if (!team) return 0;
       return team.pitchers
         .filter((p) => p.pos === "SP" && !p.onIL)
-        .reduce((sum, p) => sum + (p.ppCount ?? 0), 0);
+        .reduce((sum, p) => {
+          const count = p.ppCount ?? 0;
+          return sum + (Number.isFinite(count) ? count : 0);
+        }, 0);
     }
 
     const myThis = countPPStarts(matchupApiData.myTeamId);
