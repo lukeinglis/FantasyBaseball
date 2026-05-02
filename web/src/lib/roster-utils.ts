@@ -1,3 +1,8 @@
+/**
+ * Exclusive percentile rank: percentage of values strictly below playerZ.
+ * Returns 0 for the lowest value, 100 when playerZ exceeds all values.
+ * Callers should guard against empty arrays before calling.
+ */
 export function computePercentile(
   playerZ: number,
   allZValues: number[],
