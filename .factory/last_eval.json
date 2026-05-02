@@ -1,5 +1,5 @@
 {
-  "total": 0.5996440000000001,
+  "total": 0.636578,
   "results": [
     {
       "name": "tests",
@@ -52,10 +52,10 @@
     },
     {
       "name": "experiment_diversity",
-      "score": 0.6429,
+      "score": 0.9429,
       "weight": 0.11,
       "passed": true,
-      "details": "6 distinct categories in last 10 experiments; dominant=feature (30%); last 3: ['performance', 'performance', 'performance']"
+      "details": "6 distinct categories in last 10 experiments; dominant=performance (30%); last 3: ['performance', 'performance', 'bugfix']"
     },
     {
       "name": "observability",
@@ -73,10 +73,10 @@
     },
     {
       "name": "factory_effectiveness",
-      "score": 0.4875,
+      "score": 0.5437,
       "weight": 0.07,
-      "passed": false,
-      "details": "keep_rate=0.75 (6/8), delta_score=0.50, managed_projects=0"
+      "passed": true,
+      "details": "keep_rate=0.88 (7/8), delta_score=0.50, managed_projects=0"
     }
   ],
   "guard_violations": [],

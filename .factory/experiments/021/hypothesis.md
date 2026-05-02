@@ -1,0 +1,1 @@
+Rewrite eval/score.py for JS/TS scanning and fix 74 lint errors (issues #26 and #41)
