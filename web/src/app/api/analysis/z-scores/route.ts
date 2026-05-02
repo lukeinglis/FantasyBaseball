@@ -189,6 +189,10 @@ export async function GET(req: Request) {
             continue;
           }
           const { mu, sd } = catStats[cat];
+          if (sd === 0) {
+            zScores[cat] = 0;
+            continue;
+          }
           let z = (val - mu) / sd;
 
           // Invert for categories where lower is better

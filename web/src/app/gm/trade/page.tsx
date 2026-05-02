@@ -290,8 +290,8 @@ export default function TradeRoomPage() {
     const impact: Record<string, { sending: number; receiving: number; net: number }> = {};
 
     for (const cat of ALL_CATS) {
-      const sendTotal = sending.reduce((sum, name) => sum + (getStats(name)[cat] ?? 0), 0);
-      const recvTotal = receiving.reduce((sum, name) => sum + (getStats(name)[cat] ?? 0), 0);
+      const sendTotal = sending.reduce((sum, name) => { const v = getStats(name)[cat] ?? 0; return sum + (Number.isFinite(v) ? v : 0); }, 0);
+      const recvTotal = receiving.reduce((sum, name) => { const v = getStats(name)[cat] ?? 0; return sum + (Number.isFinite(v) ? v : 0); }, 0);
       impact[cat] = { sending: sendTotal, receiving: recvTotal, net: recvTotal - sendTotal };
     }
 
@@ -301,8 +301,8 @@ export default function TradeRoomPage() {
 
   // Z-score trade impact
   const zTradeImpact = useMemo(() => {
-    const sendFar = sending.reduce((sum, name) => sum + (zScoreByName.get(name)?.far ?? 0), 0);
-    const recvFar = receiving.reduce((sum, name) => sum + (zScoreByName.get(name)?.far ?? 0), 0);
+    const sendFar = sending.reduce((sum, name) => { const v = zScoreByName.get(name)?.far ?? 0; return sum + (Number.isFinite(v) ? v : 0); }, 0);
+    const recvFar = receiving.reduce((sum, name) => { const v = zScoreByName.get(name)?.far ?? 0; return sum + (Number.isFinite(v) ? v : 0); }, 0);
     return { sendFar, recvFar, netFar: recvFar - sendFar };
   }, [sending, receiving, zScoreByName]);
 
