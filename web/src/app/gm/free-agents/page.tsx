@@ -61,7 +61,7 @@ const PIT_SORT_OPTIONS = [
 const LOWER_IS_BETTER = new Set(["ERA", "WHIP", "L"]);
 
 function fmtStat(cat: string, val: number | undefined): string {
-  if (val === undefined || val === null) return "-";
+  if (val === undefined || val === null || !Number.isFinite(val)) return "-";
   if (cat === "AVG") return val.toFixed(3);
   if (cat === "ERA" || cat === "WHIP") return val.toFixed(2);
   if (cat === "IP") return val.toFixed(1);
@@ -69,6 +69,7 @@ function fmtStat(cat: string, val: number | undefined): string {
 }
 
 function zColorClass(z: number): string {
+  if (!Number.isFinite(z)) return "text-slate-400";
   if (z >= 1.5) return "text-emerald-700 font-bold";
   if (z >= 0.5) return "text-emerald-600";
   if (z >= 0) return "text-slate-600";
@@ -137,7 +138,7 @@ export default function FreeAgentsPage() {
         if (myTeam?.ranks) {
           const weak: WeaknessInfo[] = [];
           for (const [cat, rank] of Object.entries(myTeam.ranks as Record<string, number>)) {
-            if (rank >= 7) weak.push({ cat, rank });
+            if (typeof rank === 'number' && Number.isFinite(rank) && rank >= 7) weak.push({ cat, rank });
           }
           weak.sort((a, b) => b.rank - a.rank);
           setWeaknesses(weak);
@@ -208,8 +209,7 @@ export default function FreeAgentsPage() {
     });
 
     return list.slice(0, 50); // Top 50
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [freeAgents, posFilter, search, sortBy, statPeriod, zScoreMap]);
+  }, [freeAgents, posFilter, search, sortBy, statPeriod, zScoreMap, weaknessFilter]);
 
   const sortOptions = isPitcherFilter ? PIT_SORT_OPTIONS : BAT_SORT_OPTIONS;
 
