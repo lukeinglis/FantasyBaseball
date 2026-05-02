@@ -3,7 +3,7 @@ tags:
   - factory
   - patterns
 source: factory-archivist
-updated: 2026-05-01T23:00:00
+updated: 2026-05-02T15:30:00
 ---
 
 # Factory Patterns
@@ -27,3 +27,11 @@ When remaining score levers are limited or uncertain (e.g., factory detection of
 ## Z-Score Analysis as a Reusable Analytical Primitive
 Discovered in [[FantasyBaseball]] cycle 3 (experiments #015-017).
 Z-score comparison against league averages proved to be a versatile pattern across three distinct features: weakness-aware free agent recommendations (Exp 15), trade surplus/gap detection (Exp 16), and roster deep stat breakdown (Exp 17). When building analytical features for fantasy sports or similar competitive contexts, z-scores provide a consistent, interpretable framework for "how does X compare to the field." Consider z-scores as a first-pass analytical tool when adding comparative features.
+
+## Scope Lint Fixes by Category, Not All At Once
+Discovered in [[FantasyBaseball]] experiments #013 and #020.
+Attempting to fix all 74 lint errors in a single experiment timed out at 600s (Exp 13). Scoping into 4 batches by error category (A: 51 no-explicit-any via typed interfaces, B: 18 React Compiler via component extraction, C: 4 setState-in-effect, D: 1 minor) with 1800s timeout succeeded (Exp 20). Batch size directly correlates with builder timeout risk. The typed interface approach (creating `espn.ts`) eliminated the largest single error category at its root.
+
+## Typed Interfaces Eliminate Whole Error Categories
+Discovered in [[FantasyBaseball]] experiment #020.
+When a large number of lint errors share a common root cause (e.g., 51 `no-explicit-any` errors from untyped API responses), creating a shared type definition file eliminates the entire category at once. In Exp 20, `web/src/types/espn.ts` (110 lines) replaced `any` across 15+ files. This is more maintainable than fixing each `any` individually and prevents recurrence.

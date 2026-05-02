@@ -1,7 +1,7 @@
 {
   "project_name": "FantasyBaseball",
-  "generated_at": "2026-05-02 18:00:52.288327+00:00",
-  "mode": "unknown",
+  "generated_at": "2026-05-02 19:44:32.216280+00:00",
+  "mode": "improve",
   "experiments_kept": [
     {
       "id": 1,
@@ -256,6 +256,21 @@
       "verdict": "keep",
       "cost_usd": null,
       "notes": "ceo:keep score_delta=+0.0000 precheck=structural_threshold_gap agents_spawned=R,S,B,R,E pr_status=open_for_review hypothesis_type=code execution_artifacts=na e2e=pass backlog_cleared=yes",
+      "research_citations": []
+    },
+    {
+      "id": 20,
+      "timestamp": "2026-05-02 15:16:55.798150",
+      "hypothesis": "Close resolved issues and fix 74 lint errors in scoped batches",
+      "change_summary": "Fixed all 74 lint errors: created web/src/types/espn.ts with ESPN API interfaces replacing 51 any types, extracted React Compiler nested components to module scope, fixed setState-in-effect patterns, cleaned minor issues. Closed 7 GitHub issues (#28, #29, #31, #33, #35, #37, #39).",
+      "issue_number": 41,
+      "pr_number": 42,
+      "score_before": null,
+      "score_after": null,
+      "delta": null,
+      "verdict": "keep",
+      "cost_usd": null,
+      "notes": "ceo:keep score_delta=+0.0000 precheck=structural_threshold_gap agents_spawned=R,S,B,R,E pr_status=open_for_review hypothesis_type=mixed execution_artifacts=present e2e=pass backlog_cleared=yes ceo_override=true override_reason=structural_threshold_gap_no_regression lint_fixed=74_to_0 issues_closed=7",
       "research_citations": []
     }
   ],

@@ -1,11 +1,11 @@
 # Session Summary — FantasyBaseball
 
-_Generated: 2026-05-02 18:00 UTC_
+_Generated: 2026-05-02 19:44 UTC_
 
 ## Overview
 
-- **Mode:** unknown
-- **Experiments:** 19 total (17 kept, 1 reverted, 1 errors)
+- **Mode:** improve
+- **Experiments:** 20 total (18 kept, 1 reverted, 1 errors)
 
 ## What Was Built
 
@@ -28,6 +28,7 @@ _Generated: 2026-05-02 18:00 UTC_
 | 17 | My Roster deep stat breakdown with z-score detail and perfor | EXPLORE | — | #36 |
 | 18 | GM Advisor three-tier cached analysis with week, month, and  | EXPLORE | — | #38 |
 | 19 | GM Advisor three-tier cached analysis with accessible accord | EXPLORE | — | #40 |
+| 20 | Close resolved issues and fix 74 lint errors in scoped batch | FIX | — | #42 |
 
 ## What Was Deferred
 

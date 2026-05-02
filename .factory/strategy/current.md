@@ -1,39 +1,107 @@
-## Strategy — 2026-05-02 (Cycle 4, Targeted: Issue #37)
+## Strategy — 2026-05-02 (Cycle 5, Targeted: Fix Open Issues)
 
 ### Observations
-- Current composite score: 0.6279 (threshold: 0.7, gap: 0.0721)
-- Experiment history: 18 total, 16 kept, 1 reverted, 1 error (89% keep rate)
-- Last 3 experiments: 16 (Trade Room, keep), 17 (My Roster, keep), 18 (GM Advisor, keep)
-- PR #38 (experiment 18) is OPEN but never merged despite KEEP verdict. CLEAN merge state, no conflicts.
-- Current GM Advisor on main (`web/src/app/gm/roster/page.tsx` lines 160-261): single-file loading (`gm-advice.json`), tab-based UI with three tabs (This Week, Next 30 Days, Win the League), no tests, no ARIA attributes
-- PR #38 delivers: three-file loading via `Promise.all`, accordion UI replacing tabs, exported `parseGmTierJson(raw: unknown)` parser, 12 Vitest tests, unmount cleanup, NaN/Infinity sanitization in other pages
-- PR #38 gaps: (1) no ARIA accessibility attributes on accordion, (2) no backward compatibility with existing `gm-advice.json`, (3) skill file not updated (outside scope)
-- CEO directive: close PR #38 and implement fresh on a new branch to avoid conflicts
-- Feature category has 100% keep rate across 5 experiments (cross-project insights)
-- Research confirms all three gaps are low complexity and additive
+- Current composite score: 0.5996 (threshold: 0.7, gap: 0.1004)
+- Weakest eval dimensions: research_grounding (0.0), capability_surface (0.28), observability (0.41)
+- Last 3 experiments: 17 (keep), 18 (keep), 19 (keep)
+- Factory effectiveness: 0.4875 (keep rate 75%, dragged down by exp 12 revert + exp 13 timeout)
+- 9 open issues. 5 have kept experiments with open PRs awaiting human merge. 1 superseded. 1 timed out (lint). 1 reverted (eval). 1 not factory-actionable.
+- Experiment 13 (lint fix) timed out at 600s trying all 74 errors at once. Must be split into smaller batches.
+- Lint breakdown: 51 `no-explicit-any` across ~15 files (API routes + pages), 12 React Compiler nested component errors, 6 memoization warnings, 4 setState-in-effect, 1 unescaped entity, 1 prefer-const, misc unused vars.
+
+### Issue Triage
+| Issue | Status | Action |
+|---|---|---|
+| #39 | Resolved (exp 19, PR #40 open) | Comment and close |
+| #37 | Superseded by #39 | Comment and close |
+| #35 | Resolved (exp 17, PR #36 open) | Comment and close |
+| #33 | Resolved (exp 16, PR #34 open) | Comment and close |
+| #31 | Resolved (exp 15, PR #32 open) | Comment and close |
+| #29 | Resolved (exp 14, PR #30 open) | Comment and close |
+| #28 | Failed (exp 13 timeout) | Fix: lint errors in scoped batches |
+| #26 | Failed (exp 12 reverted) | Out of scope this cycle |
+| #2 | Manual data entry needed | Not factory-actionable |
 
 ### Hypotheses
 
-#### H1: GM Advisor three-tier cached analysis with accessible accordion and backward compatibility
-- **Category:** EXPLOIT
-- **Type:** code
-- **Backlog item:** Please fix issue 37
-- **Addresses:** #37
-- **What:** Close PR #38, then implement the full three-tier GM Advisor on a fresh branch using PR #38's diff as reference. Five deliverables in a single PR:
-  1. **Three-file JSON loading:** Replace single `gm-advice.json` fetch with `Promise.all` for `gm-advice-week.json`, `gm-advice-month.json`, `gm-advice-season.json`. Each file schema: `{ bullets: string[], generatedAt: string }`. Export a `parseGmTierJson(raw: unknown)` parser with null/undefined/type guards for every field, filtering non-string bullets and defaulting missing `generatedAt` to null.
-  2. **Accessible accordion UI:** Replace the existing tab bar (lines 227-241 in `page.tsx`) with collapsible `AccordionSection` components. WAI-ARIA pattern required: `<h3>` wrapping a `<button>` with `id="btn-{tier}"`, `aria-expanded={isOpen}`, `aria-controls="panel-{tier}"`; panel `<div>` with `id="panel-{tier}"`, `role="region"`, `aria-labelledby="btn-{tier}"`, `hidden={!isOpen}`. Multiple sections can be open simultaneously. Keep existing tier color scheme (orange for week, blue for month, purple for season). Keyboard: native button handling covers Enter/Space.
-  3. **Backward compatibility:** If all three tier files return 404 but legacy `gm-advice.json` exists, fall back to loading and splitting its `week[]`, `month[]`, `season[]` arrays into the three-tier structure. This ensures the advisor displays content immediately after merge without requiring a skill re-run.
-  4. **Unmount safety:** Use a `mounted` ref flag (via `useRef`) to guard all `setState` calls in the async fetch chain, preventing React state updates after component unmount.
-  5. **Vitest tests:** Create `web/src/tests/gm-advisor.test.ts` with tests covering: `parseGmTierJson` with null input, undefined input, non-object input (string, number, array), missing `bullets` field, empty `bullets` array, mixed valid/invalid bullets, missing `generatedAt`, extra unrecognized fields. Test accordion rendering with valid multi-tier data, empty state (no files), and loading spinner. Verify ARIA attributes are present on rendered accordion.
-- **Why:** Experiment 18 proved the three-tier approach works (KEPT) but PR #38 was never merged. The existing tab UI on main loads a single JSON file. Three gaps need filling: ARIA accessibility (per WAI-ARIA accordion pattern for screen reader support with 3 panels), backward compatibility (graceful degradation so current `/gm-advice` skill output still works), and comprehensive tests. The `.claude/commands/gm-advice.md` skill file is outside factory scope and must not be modified by the Builder. All required data structures already exist; this is a contained component rewrite within a single file plus a new test file.
-- **Expected impact:** capability_surface +0.03 (new AccordionSection component, parseGmTierJson export), test_coverage +0.01 (12+ new Vitest tests), edge_case_handling +0.01 (parser null guards, backward compat fallback, unmount safety)
+#### H1: Close resolved issues and fix 74 lint errors in scoped batches
+- **Category:** FIX
+- **Type:** mixed
+- **Backlog item:** Please fix open issues
+- **Addresses:** #28, #29, #31, #33, #35, #37, #39
+- **What:** Two-part hypothesis covering operational cleanup and code fixes.
+
+  **Part 1: Operational cleanup (close 6 issues)**
+  Comment on and close issues whose work is already done:
+  - #29 (Bullpen streaming): done in exp 14, PR #30 open awaiting merge
+  - #31 (FA weakness-aware): done in exp 15, PR #32 open awaiting merge
+  - #33 (Trade Room surplus): done in exp 16, PR #34 open awaiting merge
+  - #35 (My Roster z-score): done in exp 17, PR #36 open awaiting merge
+  - #39 (GM Advisor accordion): done in exp 19, PR #40 open awaiting merge
+  - #37 (GM Advisor three-tier): superseded by #39, PR #38 already closed
+
+  **Part 2: Fix 74 lint errors (issue #28) in 4 batches**
+  The previous attempt (exp 13) timed out trying everything at once. Split into ordered batches:
+
+  **Batch A: ESPN API response types (51 `no-explicit-any` errors)**
+  Create `web/src/types/espn.ts` with interfaces for all ESPN API response shapes: roster entries, matchup data, scoreboard results, standings rows, player stats, schedule, starts, league stats, H2H data. Replace `any` type annotations in:
+  - `web/src/lib/espn.ts` (1 error)
+  - `web/src/app/api/espn/roster/route.ts`
+  - `web/src/app/api/espn/matchup/route.ts`
+  - `web/src/app/api/espn/scoreboard/route.ts`
+  - `web/src/app/api/espn/standings/route.ts`
+  - `web/src/app/api/espn/player-stats/route.ts`
+  - `web/src/app/api/espn/schedule/route.ts`
+  - `web/src/app/api/espn/starts/route.ts`
+  - `web/src/app/api/espn/league-stats/route.ts`
+  - `web/src/app/api/espn/h2h/route.ts`
+  - `web/src/app/api/mlb/bvp/route.ts`
+  - `web/src/app/api/analysis/advisor/route.ts`
+
+  **Batch B: React Compiler errors (12 nested component + 6 memoization)**
+  Extract inline components to module scope with explicit props in:
+  - `web/src/app/gm/bullpen/page.tsx` (4 nested components at lines 512, 645-648)
+  - `web/src/app/gm/matchup/page.tsx` (nested components around lines 262-284)
+  - `web/src/app/gm/roster/page.tsx` (nested components around lines 340-448)
+  - `web/src/app/gm/today/page.tsx` (lines 243-245)
+  - `web/src/app/gm/starts/page.tsx` (lines 162-163)
+  - `web/src/app/gm/free-agents/page.tsx` (memoization warnings)
+
+  **Batch C: setState-in-effect (4 errors)**
+  Refactor `useEffect`+`setState` patterns in:
+  - `web/src/app/gm/category-breakdown/page.tsx` (line 61)
+  - `web/src/app/league/category-rank/page.tsx` (line 106)
+  Replace `setLoading(true)` inside effects with a state machine pattern or move loading state outside the effect body.
+
+  **Batch D: Minor fixes (remaining)**
+  - `web/src/app/league/category-rank/page.tsx`: `let rankDeltas` -> `const rankDeltas` (prefer-const)
+  - `web/src/app/league/category-rank/page.tsx`: remove unused `LOWER_IS_BETTER`
+  - `web/src/app/league/power-rankings/page.tsx`: remove unused `current`
+  - `web/src/app/strategy/page.tsx`: remove unused `DRAFT_ORDER`, escape `'` -> `&apos;`
+
+- **Execution step:**
+  1. Run `gh issue comment` and `gh issue close` for #29, #31, #33, #35, #37, #39
+  2. Create `web/src/types/espn.ts` with ESPN response interfaces
+  3. Apply Batch A: replace `any` types in all API route handlers and espn.ts
+  4. Apply Batch B: extract nested components to module scope
+  5. Apply Batch C: fix setState-in-effect patterns
+  6. Apply Batch D: fix minor lint issues (const, unused vars, escaping)
+  7. Run `npx eslint .` and verify 0 errors
+  8. Run `npx tsc --noEmit` to confirm type safety
+  9. Run `vitest run` to confirm no test regressions
+- **Expected output:**
+  - 6 GitHub issues closed with explanatory comments
+  - `web/src/types/espn.ts`: new file with typed ESPN API interfaces
+  - 0 lint errors (down from 74 errors, 35 warnings)
+  - Clean TypeScript compilation
+  - All existing tests passing
+- **Why:** 6 of 9 open issues are already resolved by kept experiments with PRs awaiting merge. Closing them is pure operational cleanup. Issue #28 is the only actionable code issue. Experiment 13 proved that 74 errors in one pass exceeds the builder timeout. The 4-batch approach (types -> React -> effects -> minor) is ordered by error count and dependency: ESPN types must be defined before they can be used in route handlers, React component extraction is independent per file, and the minor fixes are trivial. The `no-explicit-any` errors (51 of 74) also directly improve the `type_safety` project eval dimension.
+- **Expected impact:** lint 0.9 -> 1.0 (+0.0075 weighted), type_safety project eval improvement (significant, 40% project weight), factory_effectiveness recovery via successful experiment. Composite +0.02 to +0.04.
 - **Priority:** high
 
 ### Anti-patterns to Avoid
-- **Do not modify `.claude/commands/gm-advice.md`:** Outside factory scope. The backward compatibility fallback ensures the advisor works with the existing skill output.
-- **Do not merge PR #38 directly:** CEO directive is to close it and implement fresh on a new branch. Use PR #38's diff as reference only.
-- **Do not use `<details>/<summary>` for accordion:** Does not match the existing Tailwind design system styling.
-- **Do not skip `hidden` attribute on collapsed panels:** CSS visibility alone does not hide content from screen readers. The `hidden` attribute is required per WAI-ARIA.
-- **Do not crash on missing JSON files:** All three files may be absent initially. Both the backward compat fallback and per-tier "No analysis available" empty state handle this.
-- **Do not remove existing `GmAdvice` interface or `TABS` array:** Replace them cleanly. The new code supersedes the old tab-based UI entirely.
-- **Do not add pino logging to this client component:** Pino is server-side only (already excluded via `serverExternalPackages`). The GmAdvisor is a client component (`useState`, `useEffect`).
+- **Do NOT attempt all 74 lint errors in a single pass.** Experiment 13 timed out at 600s doing this. Process in batches, verify each batch compiles before moving to the next.
+- **Do NOT modify eval/score.py this cycle.** Experiment 12 (issue #26) was reverted. That is a separate concern.
+- **Do NOT touch issue #2.** Historical draft data requires manual CSV creation, not factory code.
+- **Do NOT use overly generic types (Record<string, unknown>) as a shortcut.** Define specific interfaces that match actual ESPN API response shapes. Generic types defeat the purpose of type safety.
+- **Do NOT introduce new `any` types while fixing existing ones.** Use `unknown` for truly unknown shapes and narrow with type guards.

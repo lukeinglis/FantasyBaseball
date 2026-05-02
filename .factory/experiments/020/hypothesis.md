@@ -1,0 +1,1 @@
+Close resolved issues and fix 74 lint errors in scoped batches

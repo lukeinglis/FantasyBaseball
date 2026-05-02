@@ -1,8 +1,8 @@
 # Interaction Study — FantasyBaseball
 
-Analyzed 49 conversation log(s), 126 relevant messages.
+Analyzed 60 conversation log(s), 140 relevant messages.
 
-## User Messages (28)
+## User Messages (31)
 - Project: /Users/linglis/projects/FantasyBaseball
 Mode: improve
 
@@ -36,16 +36,36 @@ Mode: improve
 - yes commit this
 - Project: /Users/linglis/projects/FantasyBaseball
 Mode: improve
+
+## Focus Directive (Targeted Mode)
+
+Target: Please fix open issues
+
+Single-item mode. This target has been added to the backlog. The Str
+- Project: /Users/linglis/projects/FantasyBaseball
+Mode: improve
 - merge and continue.
 - [Request interrupted by user for tool use]
 - Project: /Users/linglis/projects/FantasyBaseball
 Mode: improve
 - whoami
+- Project: /Users/linglis/projects/FantasyBaseball
+Mode: improve
 
-## Errors and Issues (98)
+## Focus Directive (Targeted Mode)
+
+Target: Please fix issue 37
+
+Single-item mode. This target has been added to the backlog. The Strate
+- [Request interrupted by user]
+
+## Errors and Issues (109)
 - - **5 experiment notes written**: 013 (error/timeout), 015 (Free Agents), 016 (Trade Room), 017 (My Roster), 018 (GM Advisor)
+- - **Dashboard** updated: 17 kept / 1 reverted / 1 error, 94% keep rate, cycle 4 finalized
 - Now I need to fix the `stats.R` reference - the field in the API is actually "R" for Runs. Let me verify the stat mapping and then check for TypeScript compatibility:
 - `playingBatters` and `startingToday` are regular `const` declarations after the early returns — not `useMemo` hooks. I need to move `todayStartersWithStats` and `actionItems` to after those declaratio
+- Precheck failed on two checks, both are false positives:
+- **Cycle 4: Targeted Fix for Issue #37**
 - The `trendDirection` function filters out non-finite values, so `[Infinity, 1, 2]` becomes `[1, 2]` which is a valid 2-point set. My test expectation was wrong. Let me fix the test.
 - One test failed. Let me check the `getProTeam` function behavior for `proTeamId: 0`. The issue is that `0` is falsy in JS, so `if (player.proTeamId && ...)` evaluates to false.
 - Actually, this is exactly the kind of edge case the issue wants me to find. The code has a truthiness bug with `proTeamId: 0`. I should fix the code since FA players won't get mapped correctly. Let me
@@ -55,6 +75,7 @@ Mode: improve
 - 1. **Lint is 74 errors, not 1.** Mostly `no-explicit-any` (50) and React Compiler nested component errors (12) in bullpen. PRs #17-#25 introduced new untyped API code.
 - 3. **Observability eval is fundamentally broken:** `eval/score.py` only scans `*.py` files. This is a JS/TS project. Pino is properly deployed but the eval will never detect it.
 - 5. **Issue #3 is fixed** (PR #5 merged), should be closed. Issue #2 is not factory-actionable.
+- 2. **Missing ARIA attributes:** No `aria-expanded`, `aria-controls`, `role="region"`, or `aria-labelledby` on the accordion. Quick fix (5-6 attributes).
 - **FIX (highest priority):**
 - - H2: Fix 74 lint errors (ESPN API types, component extraction)
 - - H3: Close already-fixed GitHub issue #3
@@ -97,6 +118,7 @@ Mode: improve
 - The log.info ended up after the return statement (unreachable). Let me fix that:
 - Now add log.info/error at the return/catch points for the mlb routes:
 - - **`web/src/lib/espn.ts`**: `espnFetch` now times the HTTP call and logs `{op, views, durationMs}` on success/error
+- Starting a targeted improve cycle focused on fixing open issues. Let me detect the project state and review what's open.
 - The `draft-context.tsx` lint error is gone. All remaining errors are pre-existing in `warroom/page.tsx` (SortTh component-in-render and unescaped entities). Let me verify these are pre-existing.
 - Confirmed: same 9 errors exist on main. My changes introduce zero new lint errors. Now let me run the build.
 - TypeScript check is clean (no output = no errors). The `next lint` command has a pre-existing issue with this Next.js version. Let me also check if there are eval scripts to run.
@@ -138,8 +160,14 @@ Mode: improve
 - The score_direction check is problematic because the project starts at 0.5098 and the threshold is 0.7. With zero test suite and zero vault config, reaching 0.7 from a bug fix alone isn't possible. Th
 - I'm in the `web` subdirectory. Let me fix the path.
 - H4 complete. Moving to H3: Fix Category Breakdown and Category Rank data scope. This is a growth hypothesis (capability_surface).
+- Experiment 19 note is complete. Dashboard exists but dimension scores are stale (lint shows ~0.0/74 errors but last eval shows 0.9/1 error). Let me read the cycle 4 strategy snapshot, then write the c
 - - H1-H3: FIX (draft cold start, historical data, category scope)
 - - H4-H5: FIX/NEW (testing infra, structured logging, both foundational)
+- The lint errors are pre-existing (not from my changes). Let me verify by checking if these same errors exist on the `main` branch code.
+- Confirmed: same 9 lint issues (5 errors, 4 warnings) exist on the original code. My changes introduce no new lint errors. Let me also verify my changes lint cleanly in isolation.
+- - TypeScript clean (`tsc --noEmit` no errors)
+- - No new lint errors
+- **Verification:** 130/130 tests pass, TypeScript clean, no new lint errors.
 - 1. **Draft state persistence**: localStorage is the right fix. Draft data is per-user, per-session, small. Move state to client-side React context, persist via `useEffect`, hydrate on mount with SSR g
 
 ## Similar Projects
@@ -147,8 +175,10 @@ No similar projects found.
 
 ## Open GitHub Issues
 
-### Your Issues (8) — actionable, may generate fix hypotheses
+### Your Issues (9) — actionable, may generate fix hypotheses
 
+- **#39** GM Advisor: three-tier cached analysis with accessible accordion (by @lukeinglis)
+  > Factory experiment 19. Hypothesis: GM Advisor three-tier cached analysis with accessible accordion and backward compatibility.  ## What to Build  Rewrite the GmAdvisor component in `web/src/app/gm/roster/page.tsx` with five deliverables:  1. **Three-file JSON loading:** Replace single `gm-advice.jso
 - **#37** Expand GM Advisor to three-tier cached analysis (by @lukeinglis)
   > Factory experiment 18. Hypothesis: Three-tier GM Advisor with cached JSON analysis.  ## What to Build  Update `/gm/roster/page.tsx` to load from three static JSON files: - `web/public/gm-advice-week.json` (This Week analysis) - `web/public/gm-advice-month.json` (Next 30 Days analysis) - `web/public/
 - **#35** Add deep stat breakdown with z-score detail to My Roster (by @lukeinglis)
@@ -168,9 +198,9 @@ No similar projects found.
 
 ## Backlog
 
-**TARGETED MODE** — building exactly one item: Please fix issue 37
+**TARGETED MODE** — building exactly one item: Please fix open issues
 
-- Please fix issue 37
+- Please fix open issues
 
 ## Observability Coverage
 - **Score:** 51.8%
@@ -188,9 +218,9 @@ No prior notes found.
 
 ## Cross-Project Insights
 
-Analyzed 1 projects (FantasyBaseball), 18 experiments, 89% overall keep rate.
+Analyzed 1 projects (FantasyBaseball), 19 experiments, 89% overall keep rate.
 
-**Winning categories:** feature
+**Winning categories:** feature, performance
 
 Full report: /Users/linglis/projects/FantasyBaseball/.factory/strategy/insights.md
 

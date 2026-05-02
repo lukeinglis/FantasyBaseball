@@ -1,14 +1,20 @@
 # Builder Agent Output
 
-- **timestamp:** 2026-05-02T17:46:28Z
+- **timestamp:** 2026-05-02T19:04:51Z
 - **exit_code:** 0
 
 ---
 
-All 5 deliverables implemented and PR opened: https://github.com/lukeinglis/FantasyBaseball/pull/40
+All done. Here's the summary:
 
-**Changes made:**
-- `web/src/app/gm/roster/page.tsx`: Replaced tab-based GmAdvisor with accessible accordion. Added `parseGmTierJson` parser (exported), `GmTierAdvice`/`TierKey`/`GmTierResult` types (exported), `AccordionSection` with full WAI-ARIA attributes, three-file `Promise.all` loading with backward compat fallback to `gm-advice.json`, and `useRef` unmount safety.
-- `web/src/tests/gm-advisor.test.ts`: 14 tests covering all parser edge cases.
+**Part 1: Closed 6 resolved issues** (#29, #31, #33, #35, #37, #39) with explanatory comments.
 
-**Verification:** 130/130 tests pass, TypeScript clean, no new lint errors.
+**Part 2: Fixed all 74 lint errors** across 22 files in 4 batches:
+- **Batch A:** Created `web/src/types/espn.ts` with typed ESPN API interfaces. Replaced 51 `no-explicit-any` errors with proper types.
+- **Batch B:** Extracted 3 nested components to module scope, removed 6 manual useMemo calls the React Compiler can't preserve.
+- **Batch C:** Fixed 4 setState-in-effect patterns by restructuring effects.
+- **Batch D:** Fixed prefer-const and unescaped entity.
+
+**Verification:** 0 lint errors, clean TypeScript compilation, 115 tests pass, Next.js build succeeds.
+
+PR: https://github.com/lukeinglis/FantasyBaseball/pull/42
