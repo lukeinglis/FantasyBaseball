@@ -144,10 +144,10 @@ function PitchingStatsTable({
 }) {
   const sorted = useMemo(() => {
     return [...stats].sort((a, b) => {
-      let aVal = a.seasonStats[sortColumn] ?? 9999;
-      let bVal = b.seasonStats[sortColumn] ?? 9999;
-      if (!isFinite(aVal)) aVal = 9999;
-      if (!isFinite(bVal)) bVal = 9999;
+      const aVal = a.seasonStats[sortColumn] ?? 9999;
+      const bVal = b.seasonStats[sortColumn] ?? 9999;
+      if (!Number.isFinite(aVal)) return 1;
+      if (!Number.isFinite(bVal)) return -1;
       return sortAsc ? aVal - bVal : bVal - aVal;
     });
   }, [stats, sortColumn, sortAsc]);
