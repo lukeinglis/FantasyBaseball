@@ -1,246 +1,101 @@
-# Research: Fantasy Baseball War Room, Cycle 3
+# Research: Issue #37 (Three-Tier GM Advisor with Cached JSON)
 
-## Project Summary
+## Target
+GitHub issue #37: Expand GM Advisor to load from three separate JSON files with collapsible accordion UI and Vitest tests.
 
-Next.js fantasy baseball app ("War Room") for ESPN private leagues. Post-cycle-2 state: 97 Vitest tests passing, pino structured logging added, coverage-v8 configured, Monte Carlo matchup projections shipped, Today/Scoreboard/Schedule pages enhanced. Current composite score: ~0.51 (threshold: 0.7). Key insight: **the eval script is fundamentally broken for this project type**, which is the primary reason scores remain low despite significant real improvements.
+## Current State (main branch)
 
----
+- `web/src/app/gm/roster/page.tsx` lines 160-261: GmAdvisor component loads a single `/gm-advice.json` with tab-based UI (three tabs: This Week, Next 30 Days, Win the League)
+- `web/public/gm-advice.json`: single file containing `week[]`, `month[]`, `season[]` arrays plus `generatedAt`
+- `.claude/commands/gm-advice.md`: skill writes to single `web/public/gm-advice.json`
+- No existing tests for the GM advisor on main (no `web/src/tests/gm*` files)
 
-## Investigation 1: Lint Score (reported as 0.9 / "1 error")
+## PR #38 Analysis (experiment/18-gm-advisor-three-tier)
 
-### Finding: 74 errors, not 1
+**Branch:** `experiment/18-gm-advisor-three-tier` (4 commits, 423 lines diff)
+**Merge status:** MERGEABLE, CLEAN merge state, no conflicts
+**State:** OPEN, never merged despite being KEPT in experiment 18
 
-Running `cd web && npx eslint src/` reveals **74 errors and 32 warnings** across 12+ files. The eval's "1 error" report is inaccurate, likely a display/parsing artifact.
+### What PR #38 delivers
 
-**Error breakdown by rule:**
+1. **Three-file loading:** Fetches `gm-advice-week.json`, `gm-advice-month.json`, `gm-advice-season.json` via `Promise.all`
+2. **Accordion UI:** Replaces tabs with collapsible `AccordionSection` components, multiple sections can be open simultaneously
+3. **Parser function:** Exported `parseGmTierJson(raw: unknown)` with null guards for all edge cases
+4. **Tier fallback:** Inline "No analysis available" prompt per tier instead of crashing
+5. **Unmount cleanup:** `mounted` flag prevents state updates after component unmount
+6. **Vitest tests:** 12 tests in `web/src/tests/gm-advisor.test.ts` covering: null, undefined, non-object, missing bullets, empty arrays, mixed invalid bullets, missing generatedAt, extra fields
+7. **Bonus fixes:** NaN/Infinity sanitization in z-scores, free-agents, and trade pages
 
-| Rule | Count | Type |
+### What PR #38 is missing
+
+1. **Skill not updated:** `.claude/commands/gm-advice.md` still writes to a single `gm-advice.json`. The three separate files (`gm-advice-week.json`, `gm-advice-month.json`, `gm-advice-season.json`) don't exist in `web/public/`. Merging PR #38 as-is means the GM advisor will show "No analysis available" for all tiers until the skill is updated.
+
+2. **ARIA accessibility gaps:** The accordion uses a plain `<button>` without:
+   - `aria-expanded` attribute
+   - `aria-controls` linking button to panel
+   - `role="region"` on panels
+   - `aria-labelledby` on panels
+   - Heading wrapper (`<h2>`) around button
+   - `id` attributes for linking
+
+3. **No backward compatibility:** Old `gm-advice.json` is ignored. If someone runs the current `/gm-advice` skill after merge, no advice appears.
+
+## Accessibility Research: Accordion Best Practices
+
+WAI-ARIA accordion pattern requires (per W3C, aditus.io/patterns/accordion, and accessible-react.eevis.codes):
+
+| Attribute | Element | Purpose |
 |---|---|---|
-| `@typescript-eslint/no-explicit-any` | 50 | error |
-| React Compiler: "Cannot create components during render" | 12 | error |
-| React Compiler: "setState synchronously within effect" | 4 | error |
-| React Compiler: "memoization could not be preserved" | 6 | warning |
-| `@typescript-eslint/no-unused-vars` | 9 | warning |
-| `prefer-const` | 1 | error |
-| `react/no-unescaped-entities` | 1 | error |
+| `aria-expanded` | button | Communicates open/closed state to screen readers |
+| `aria-controls` | button | Links to panel id |
+| `role="region"` | panel | Identifies panel as landmark (appropriate for <= 6 panels) |
+| `aria-labelledby` | panel | Links back to button id |
+| `hidden` | panel | Hides collapsed content from keyboard and screen readers |
 
-**Affected files:** `api/analysis/advisor/route.ts`, `api/espn/h2h/route.ts`, `api/espn/matchup/route.ts`, `api/espn/scoreboard/route.ts`, `gm/bullpen/page.tsx` (heaviest: 12 React Compiler + 6 any errors), and 7 other API routes.
+Keyboard: Enter/Space toggles panel, Tab navigates between focusable elements.
 
-**Root cause:** PRs #13 fixed warroom lint errors, but PRs #17-#25 introduced new code with `any` types in API routes. The bullpen page has a nested component pattern identical to the warroom bug that was fixed in PR #13.
+For only 3 panels, `role="region"` is appropriate. Native `<details>/<summary>` is a 2025 trend but doesn't match the existing design system's styling.
 
-### Fix strategies
-
-1. **`no-explicit-any` (50 errors):** Most are in ESPN API response handling where the ESPN API has no published types. Two approaches:
-   - **Proper fix:** Define ESPN response interfaces in a shared types file, cast API responses at the boundary. This is the right long-term approach.
-   - **Quick fix:** Use `unknown` + type narrowing, or add `// eslint-disable-next-line` with `suppress-eslint-errors` codemod ([source](https://github.com/amanda-mitchell/suppress-eslint-errors)). Not recommended: masks real type safety issues.
-
-2. **React Compiler errors (12+4):** The bullpen page (`page.tsx:645`) has the same nested-component-in-render pattern that was fixed in warroom. Move component definitions to module scope with explicit props.
-
-3. **Unused vars (9 warnings):** Remove dead imports and unused assignments.
-
-### Sources
-- [typescript-eslint: no-explicit-any](https://typescript-eslint.io/rules/no-explicit-any/)
-- [Avoiding anys with Linting and TypeScript](https://typescript-eslint.io/blog/avoiding-anys/)
-- [suppress-eslint-errors codemod](https://github.com/amanda-mitchell/suppress-eslint-errors)
-
----
-
-## Investigation 2: Coverage Score (0.5 / "no coverage tool detected")
-
-### Finding: Coverage works, eval does not detect it
-
-`cd web && npx vitest run --coverage` produces correct output:
-- **97 tests pass** (8 test files)
-- Statement coverage: 51.75%
-- Line coverage: 54.26%
-- Reporters configured: text, html, lcov
-
-The Vitest + coverage-v8 configuration in `web/vitest.config.mts` is correct:
-
-```ts
-coverage: {
-  provider: "v8",
-  reporter: ["text", "html", "lcov"],
-  exclude: ["src/app/**", "src/tests/**", "src/mocks/**", "**/*.config.*"],
-  thresholds: { lines: 50 },
-}
+### Minimal accessible pattern
+```jsx
+<h3>
+  <button id="btn-week" aria-expanded={isOpen} aria-controls="panel-week">
+    This Week
+  </button>
+</h3>
+<div id="panel-week" role="region" aria-labelledby="btn-week" hidden={!isOpen}>
+  {content}
+</div>
 ```
 
-### Root cause: eval/score.py has no coverage or test dimension
+## Recommended Implementation Path
 
-`eval/score.py` only defines two dimensions: `eval_syntax_check` (runs `true`, always passes) and `eval_observability` (scans only `*.py` files). There is no test runner dimension and no coverage dimension in the eval script.
+**Merge PR #38, then patch three gaps:**
 
-`eval_profile.json` has three dimensions (typescript_check, next_build, lint) but none for tests or coverage either.
+1. **Update `.claude/commands/gm-advice.md`** to write three separate JSON files instead of one. Each file contains `{ "bullets": [...], "generatedAt": "..." }`. The skill should also delete the old `gm-advice.json` on first run (or the builder can remove it).
 
-**Impact:** The factory's coverage and test scores come from its internal heuristic detection, not from eval/score.py or eval_profile.json. The factory detects "no coverage tool" because the eval doesn't exercise it.
+2. **Add ARIA attributes** to `AccordionSection`: `aria-expanded`, `aria-controls`, `role="region"`, `aria-labelledby`, `id` attributes, and `hidden` on collapsed panels.
 
-### Fix
+3. **Backward compatibility (optional):** If three files are all missing but `gm-advice.json` exists, fall back to loading and splitting the single file. This is transitional and can be removed after the first `/gm-advice` run with the updated skill.
 
-Add test and coverage dimensions to `eval_profile.json`:
+### Why merge first
 
-```json
-{
-  "name": "tests",
-  "command": "cd web && npx vitest run 2>&1; echo \"exit:$?\"",
-  "weight": 0.4,
-  "parser": "exit_code",
-  "description": "Vitest test suite passes"
-},
-{
-  "name": "coverage",
-  "command": "cd web && npx vitest run --coverage 2>&1; echo \"exit:$?\"",
-  "weight": 0.2,
-  "parser": "exit_code",
-  "description": "Vitest coverage meets thresholds"
-}
-```
+- PR is clean, well-tested, aligns with issue #37's three requirements
+- The NaN/Infinity fixes in the PR are independently valuable
+- CLEAN merge state means no conflict resolution needed
+- Patches are additive (don't require reworking existing code)
 
-### Sources
-- [Vitest Coverage Guide](https://vitest.dev/guide/coverage)
-- [Vitest Coverage Config Reference](https://vitest.dev/config/coverage)
+## Complexity Assessment
 
----
+- **Core change (already in PR #38):** Low complexity, contained to one component
+- **Skill update:** Low complexity, change output format from one file to three
+- **ARIA fix:** Low complexity, add 5-6 attributes to existing AccordionSection
+- **Backward compat:** Low complexity, optional fallback fetch
+- **Dependencies:** None beyond existing stack (React, Vitest, Next.js)
 
-## Investigation 3: Observability Score (0.406)
+## References
 
-### Finding: eval/score.py only scans Python files
-
-The `eval_observability()` function at `eval/score.py:74` does:
-
-```python
-sources = [f for f in Path(".").rglob("*.py")
-           if not any(p in f.parts for p in skip)]
-```
-
-This project is JavaScript/TypeScript. There are zero `.py` source files (only `eval/score.py` itself, which is in the skip list). So `total_fn = 0`, triggering the early return at line 110-112 with score 0.0 and details "No functions found to analyze".
-
-Meanwhile, pino IS properly configured:
-- `web/src/lib/logger.ts` exports a pino singleton
-- `web/src/lib/espn.ts` uses `log.info`/`log.error` with structured fields (`{op, views, durationMs}`)
-- All API routes import and use the logger
-
-The struct_pats array already includes `r"\bpino\b"` (line 69-70), but it never finds it because the scan is limited to `.py` files.
-
-### Fix
-
-Rewrite `eval_observability()` to scan `.ts`, `.tsx`, `.js`, `.jsx` files. Replace Python `ast.parse` with regex-based function detection (count `function `, `const ... = (`, `async function` patterns). The structured logging and tracing pattern detection already works via regex; only the file glob and function counting need updating.
-
-Alternatively, add an observability dimension to `eval_profile.json` that runs a shell command to check for pino usage:
-
-```json
-{
-  "name": "observability",
-  "command": "cd web && grep -r 'pino\\|logger' src/lib/ src/app/api/ --include='*.ts' --include='*.tsx' | wc -l | awk '{print ($1 > 10) ? \"exit:0\" : \"exit:1\"}'",
-  "weight": 0.15,
-  "parser": "exit_code",
-  "description": "Structured logging is present across API routes"
-}
-```
-
----
-
-## Investigation 4: Backlog Deduplication
-
-### 15 items, 5 already completed, 5 are duplicates
-
-**Completed by merged PRs (remove from backlog):**
-
-| Backlog Item | Completed By |
-|---|---|
-| [Fix] Category Breakdown: default to full season data | PR #9 |
-| [Exploit] Today: daily command center | PR #23 |
-| [Exploit] Matchup: prediction algorithm with Monte Carlo | PR #21 |
-| [Exploit] Scoreboard: per-category team ranking | PR #19 |
-| [Exploit] Schedule: matchup strength indicator | PR #25 |
-
-**Duplicate items (keep first, remove rest):**
-
-| Unique Item | Duplicate Lines |
-|---|---|
-| Bullpen streaming intelligence | Lines 4 and 11 (near-identical) |
-| Free Agents weakness-aware recommendations | Lines 5, 12, AND 15 (3 copies!) |
-| Trade Room surplus detection | Lines 6 and 13 |
-| My Roster deeper analysis | Lines 7 and 14 |
-
-**Unique remaining items after dedup (5 items):**
-
-1. **[Exploit] Bullpen** (/gm/bullpen): Double-starter identification, accurate starts tracking, streaming targets
-2. **[Exploit] Free Agents** (/gm/free-agents): Weakness-aware FA recommendations, z-score gap cross-reference, double-starter highlights
-3. **[Exploit] Trade Room** (/gm/trade): Surplus detection, sell-high candidates, gap analysis, metric arbitrage
-4. **[Exploit] My Roster** (/gm/roster): Full stat breakdowns, z-score detail by category, performance trends
-5. **[Explore] GM Advisor** (/gm/roster): Three-tier cached AI analysis (week/30-day/season)
-
----
-
-## Investigation 5: Open GitHub Issues
-
-### Issue #3: "War room draft tracker resets on page reload"
-- **Status:** OPEN (should be CLOSED)
-- **Fixed by:** PR #5 ("Replace in-memory draft store with localStorage persistence"), merged 2026-05-01
-- **Action:** Close issue #3 with reference to PR #5
-
-### Issue #2: "Historical draft results missing for 2015-2018"
-- **Status:** OPEN (not actionable by factory)
-- **Reason:** Requires manual creation of `seasons/YYYY/draft_results.csv` files for 2015-2018. The data is not available via the ESPN API. This is a data-entry task, not a code change.
-- **Action:** Leave open. Note as out-of-scope for factory.
-
----
-
-## Recommended Focus for This Cycle
-
-### Highest Impact: Fix the Eval (3 new items)
-
-The single most impactful action is fixing `eval/score.py` and `eval_profile.json` to correctly measure this JavaScript/TypeScript project. Current eval is measuring a phantom Python project. Fixing this alone could move the composite score from ~0.51 to ~0.7+ without any application code changes, because:
-
-- **Tests:** 97 passing tests already exist (would score ~1.0)
-- **Coverage:** 51.75% statement coverage already works (would score ~0.5-0.7)
-- **Observability:** pino structured logging is deployed across all API routes (would score ~0.6-0.8)
-- **Lint:** Once `no-explicit-any` errors are fixed or the eval correctly counts, score improves
-
-**Proposed new items (count toward 3 max new):**
-
-1. **[Fix] Rewrite eval/score.py observability to scan JS/TS files** (Growth dimension: factory_effectiveness)
-2. **[Fix] Add test + coverage dimensions to eval_profile.json** (Growth dimension: factory_effectiveness)
-3. **[Fix] Close GitHub issue #3 (already fixed by PR #5)**
-
-### Backlog Items to Prioritize
-
-After eval fixes, tackle remaining backlog items in FEEC order:
-
-1. **[Fix] Lint errors (74 errors):** Biggest bang is typing ESPN API responses (kills 50 `no-explicit-any` errors) and moving bullpen nested components to module scope (kills 12 React Compiler errors). This is a prerequisite for lint score improvement.
-2. **[Exploit] Bullpen streaming intelligence:** Core strategy pillar per backlog description. Medium complexity but high user value.
-3. **[Exploit] Free Agents weakness-aware:** Cross-references existing z-score infrastructure.
-4. **[Exploit] Trade Room:** Highest complexity remaining item.
-5. **[Exploit] My Roster:** Deepest dive into existing data.
-6. **[Explore] GM Advisor:** Depends on Claude Code skill infrastructure, partially scaffolded.
-
-### Vitest Coverage Best Practices (from research)
-
-The existing configuration is solid. One improvement from [Vitest docs](https://vitest.dev/guide/coverage):
-
-- Add `coverage.include: ['src/**/*.{ts,tsx}']` to explicitly scope coverage. Currently relies on exclude patterns only, which means new directories would be auto-included.
-- The `thresholds: { lines: 50 }` is appropriate for current state. Raise to 60-70 as more lib code gets tested.
-
----
-
-## External Research: ESLint Bulk Fix
-
-For the 50 `no-explicit-any` errors, the most effective approach for this project:
-
-1. **Define ESPN API response types** in `web/src/types/espn.ts`. The ESPN API returns consistent JSON shapes for rosters, matchups, standings, etc. Type them once, use across all routes.
-2. **Cast at the API boundary:** `const data = (await res.json()) as EspnRosterResponse;`
-3. **Fix one route at a time** to keep PRs reviewable.
-
-The `fixToUnknown` auto-fix option ([typescript-eslint docs](https://typescript-eslint.io/rules/no-explicit-any/)) can batch-convert `any` to `unknown`, but this creates cascading type errors that are harder to fix incrementally. Not recommended for this codebase.
-
----
-
-## Backlog Cleanup Summary
-
-**Remove (5 completed):** Category Breakdown fix, Today command center, Matchup prediction, Scoreboard rankings, Schedule strength
-
-**Remove (4 duplicates):** Second Bullpen entry, second+third Free Agents entries, second Trade Room entry, second My Roster entry
-
-**Keep (5 unique remaining):** Bullpen, Free Agents (one copy), Trade Room (one copy), My Roster (one copy), GM Advisor
-
-**Add (up to 3 new):** Eval observability rewrite, eval test+coverage dimensions, close issue #3
+- [WAI-ARIA Accordion Pattern (Aditus)](https://www.aditus.io/patterns/accordion/)
+- [Accessible React Accordion Guide](https://accessible-react.eevis.codes/components/accordion)
+- [react-accessible-accordion (deprecated in favor of native)](https://github.com/springload/react-accessible-accordion)
+- [Building an Accessible Accordion with React (DEV)](https://dev.to/eevajonnapanula/expand-the-content-inclusively-building-an-accessible-accordion-with-react-2ded)

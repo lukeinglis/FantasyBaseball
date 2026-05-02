@@ -1,15 +1,14 @@
 # Builder Agent Output
 
-- **timestamp:** 2026-05-02T02:19:50Z
+- **timestamp:** 2026-05-02T17:46:28Z
 - **exit_code:** 0
 
 ---
 
-Done. PR #38 is open: https://github.com/lukeinglis/FantasyBaseball/pull/38
+All 5 deliverables implemented and PR opened: https://github.com/lukeinglis/FantasyBaseball/pull/40
 
-Changes:
-- **Three-file loading**: GM Advisor now fetches from `gm-advice-week.json`, `gm-advice-month.json`, `gm-advice-season.json` independently
-- **Accordion UI**: Replaced tabs with collapsible sections, each with its own color theme (orange/blue/purple), auto-opens the first tier with data
-- **Graceful fallback**: Missing or malformed JSON shows an inline prompt to run `/gm-advice` instead of crashing
-- **`parseGmTierJson` exported**: Validates bullets array, filters non-string/empty entries, handles null `generatedAt`
-- **12 new Vitest tests**: Covers null, undefined, non-object, missing bullets, empty arrays, mixed invalid entries, and more
+**Changes made:**
+- `web/src/app/gm/roster/page.tsx`: Replaced tab-based GmAdvisor with accessible accordion. Added `parseGmTierJson` parser (exported), `GmTierAdvice`/`TierKey`/`GmTierResult` types (exported), `AccordionSection` with full WAI-ARIA attributes, three-file `Promise.all` loading with backward compat fallback to `gm-advice.json`, and `useRef` unmount safety.
+- `web/src/tests/gm-advisor.test.ts`: 14 tests covering all parser edge cases.
+
+**Verification:** 130/130 tests pass, TypeScript clean, no new lint errors.

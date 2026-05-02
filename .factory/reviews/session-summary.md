@@ -1,11 +1,11 @@
 # Session Summary — FantasyBaseball
 
-_Generated: 2026-05-02 02:24 UTC_
+_Generated: 2026-05-02 18:00 UTC_
 
 ## Overview
 
 - **Mode:** unknown
-- **Experiments:** 18 total (16 kept, 1 reverted, 1 errors)
+- **Experiments:** 19 total (17 kept, 1 reverted, 1 errors)
 
 ## What Was Built
 
@@ -27,6 +27,7 @@ _Generated: 2026-05-02 02:24 UTC_
 | 16 | Trade Room surplus detection, sell-high candidates, and gap  | EXPLORE | — | #34 |
 | 17 | My Roster deep stat breakdown with z-score detail and perfor | EXPLORE | — | #36 |
 | 18 | GM Advisor three-tier cached analysis with week, month, and  | EXPLORE | — | #38 |
+| 19 | GM Advisor three-tier cached analysis with accessible accord | EXPLORE | — | #40 |
 
 ## What Was Deferred
 

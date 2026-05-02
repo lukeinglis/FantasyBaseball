@@ -1,6 +1,6 @@
 {
   "project_name": "FantasyBaseball",
-  "generated_at": "2026-05-02 02:24:00.578402+00:00",
+  "generated_at": "2026-05-02 18:00:52.288327+00:00",
   "mode": "unknown",
   "experiments_kept": [
     {
@@ -241,6 +241,21 @@
       "verdict": "keep",
       "cost_usd": null,
       "notes": "ceo:keep score_delta=0.0 precheck=failed_override(structural) hypothesis_type=code e2e=pass backlog_cleared=yes ceo_override=true",
+      "research_citations": []
+    },
+    {
+      "id": 19,
+      "timestamp": "2026-05-02 13:56:50.762296",
+      "hypothesis": "GM Advisor three-tier cached analysis with accessible accordion and backward compatibility",
+      "change_summary": "Rewrote GmAdvisor component with three-file JSON loading, accessible accordion (WAI-ARIA), backward compat fallback to gm-advice.json, unmount safety, and 14 Vitest tests",
+      "issue_number": 39,
+      "pr_number": 40,
+      "score_before": null,
+      "score_after": null,
+      "delta": null,
+      "verdict": "keep",
+      "cost_usd": null,
+      "notes": "ceo:keep score_delta=+0.0000 precheck=structural_threshold_gap agents_spawned=R,S,B,R,E pr_status=open_for_review hypothesis_type=code execution_artifacts=na e2e=pass backlog_cleared=yes",
       "research_citations": []
     }
   ],
