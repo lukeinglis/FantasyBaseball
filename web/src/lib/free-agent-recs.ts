@@ -29,8 +29,8 @@ export function findWeakCategories(
 
   const catAvgs: WeakCategory[] = categories.map((cat) => {
     const vals = teamPlayerZScores
-      .map((p) => sanitizeNum(p.zScores[cat]))
-      .filter((v) => v !== 0 || teamPlayerZScores.some((p) => p.zScores[cat] !== undefined));
+      .filter((p) => p.zScores[cat] !== undefined)
+      .map((p) => sanitizeNum(p.zScores[cat]));
     const sum = vals.reduce((s, v) => s + v, 0);
     const avg = vals.length > 0 ? sum / vals.length : 0;
     return { cat, teamAvgZ: sanitizeNum(avg) };
