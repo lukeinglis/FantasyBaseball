@@ -1,0 +1,1 @@
+GM Advisor three-tier cached analysis with week, month, and season sections

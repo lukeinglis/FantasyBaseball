@@ -1,0 +1,1 @@
+Set up Vitest + MSW testing infrastructure with initial data transformation tests

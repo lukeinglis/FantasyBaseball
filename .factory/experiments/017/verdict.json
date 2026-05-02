@@ -1,0 +1,15 @@
+{
+  "id": 17,
+  "timestamp": "2026-05-01 22:16:35.854979",
+  "hypothesis": "My Roster deep stat breakdown with z-score detail and performance trends",
+  "change_summary": "Added expandable player rows with full stats, z-score breakdown with percentiles, and trend sparklines. 13 new tests.",
+  "issue_number": 35,
+  "pr_number": 36,
+  "score_before": null,
+  "score_after": null,
+  "delta": null,
+  "verdict": "keep",
+  "cost_usd": null,
+  "notes": "ceo:keep score_delta=0.0 precheck=failed_override(structural) hypothesis_type=code e2e=pass backlog_cleared=yes ceo_override=true",
+  "research_citations": []
+}

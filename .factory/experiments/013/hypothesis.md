@@ -1,0 +1,1 @@
+Fix 74 lint errors with ESPN API response types

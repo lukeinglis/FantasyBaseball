@@ -1,0 +1,15 @@
+{
+  "id": 6,
+  "timestamp": "2026-05-01 16:22:51.224894",
+  "hypothesis": "Add @vitest/coverage-v8 and coverage script",
+  "change_summary": "Installed @vitest/coverage-v8. Added v8 coverage config to vitest.config.mts (text/html/lcov reporters, 50% threshold). Added coverage script to package.json. Coverage runs at 46.71% lines on existing 46 tests.",
+  "issue_number": 14,
+  "pr_number": 15,
+  "score_before": null,
+  "score_after": null,
+  "delta": null,
+  "verdict": "keep",
+  "cost_usd": null,
+  "notes": "ceo:keep score_delta=-0.0047 precheck=threshold_below agents_spawned=B pr_status=open_for_review hypothesis_type=code execution_artifacts=na e2e=pass backlog_cleared=na delta_note=diversity_shift_artifact",
+  "research_citations": []
+}

@@ -1,0 +1,35 @@
+{
+  "project_type": "web_app",
+  "dimensions": [
+    {
+      "name": "typescript_check",
+      "command": "cd web && npx tsc --noEmit 2>&1; echo \"exit:$?\"",
+      "weight": 0.4,
+      "parser": "exit_code",
+      "regex_pattern": null,
+      "description": "TypeScript strict mode type checking with no emit",
+      "source": "explicit"
+    },
+    {
+      "name": "next_build",
+      "command": "cd web && npx next build 2>&1; echo \"exit:$?\"",
+      "weight": 0.4,
+      "parser": "exit_code",
+      "regex_pattern": null,
+      "description": "Next.js production build succeeds without errors",
+      "source": "explicit"
+    },
+    {
+      "name": "lint",
+      "command": "cd web && npx eslint src/ 2>&1; echo \"exit:$?\"",
+      "weight": 0.2,
+      "parser": "exit_code",
+      "regex_pattern": null,
+      "description": "ESLint passes on all source files",
+      "source": "explicit"
+    }
+  ],
+  "tier": "explicit",
+  "confidence": 0.8,
+  "human_reviewed": true
+}

@@ -1,0 +1,15 @@
+{
+  "id": 4,
+  "timestamp": "2026-05-01 15:55:51.649664",
+  "hypothesis": "Consolidate vs League + Team H2H into unified page with All-Play Record",
+  "change_summary": "Rebuilt H2H page with 3 tabs: This Week, Season H2H, All-Play Record. Removed dead vs League nav link. New SeasonH2HView and AllPlayView components with safe() sanitizer.",
+  "issue_number": 10,
+  "pr_number": 11,
+  "score_before": null,
+  "score_after": null,
+  "delta": null,
+  "verdict": "keep",
+  "cost_usd": null,
+  "notes": "ceo:keep score_delta=+0.0133 precheck=threshold_below agents_spawned=B,A pr_status=open_for_review hypothesis_type=code execution_artifacts=na e2e=pass backlog_cleared=yes",
+  "research_citations": []
+}
