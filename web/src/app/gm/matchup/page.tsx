@@ -6,6 +6,7 @@ function isOnIL(status: string): boolean { return IL_INJURY_STATUSES.has(status)
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { DataFreshness } from "@/components/DataFreshness";
 import { simulateCategoryWinProb } from "@/lib/monte-carlo";
+import { isPunt, isHighImpact, categoryTierClass } from "@/lib/category-weights";
 
 interface MatchupCat {
   cat: string;
@@ -682,8 +683,8 @@ export default function MatchupPage() {
                 const oppColor = c.result === "LOSS" ? "#dc2626" : c.result === "TIE" ? "#ea580c" : "#cbd5e1";
 
                 // Danger flag logic: win probability in contested zone
-                const isWinningAtRisk = winProb !== null && daysLeft > 0 && c.result === "WIN" && winProb < 67;
-                const isLosingFlippable = winProb !== null && daysLeft > 0 && c.result === "LOSS" && winProb > 33;
+                const isWinningAtRisk = winProb !== null && daysLeft > 0 && c.result === "WIN" && winProb < 67 && !isPunt(c.cat);
+                const isLosingFlippable = winProb !== null && daysLeft > 0 && c.result === "LOSS" && winProb > 33 && !isPunt(c.cat);
                 const dangerRing = isWinningAtRisk
                   ? "ring-2 ring-orange-400 animate-pulse"
                   : isLosingFlippable
@@ -693,6 +694,10 @@ export default function MatchupPage() {
                 return (
                   <div key={c.cat}
                     className={`flex flex-col items-center cursor-pointer rounded-lg px-1 py-1 transition-all ${
+                      isPunt(c.cat) ? "opacity-50" : ""
+                    } ${
+                      isHighImpact(c.cat) ? "border-t-2 border-t-amber-400" : ""
+                    } ${
                       selectedCat === c.cat ? "ring-2 ring-orange-400 bg-orange-50" :
                       dangerRing ? dangerRing :
                       "hover:bg-black/[0.03]"
@@ -702,6 +707,8 @@ export default function MatchupPage() {
                     <span className="text-[10px] font-bold text-slate-500 mb-1">
                       {c.cat}{(isWinningAtRisk || isLosingFlippable) && " \u26A0"}
                     </span>
+                    {isPunt(c.cat) && <span className="text-[8px] text-slate-400">punt</span>}
+                    {isHighImpact(c.cat) && <span className="text-[8px] text-amber-600">key</span>}
 
                     {/* Donut chart */}
                     <div className="relative w-[72px] h-[72px]">

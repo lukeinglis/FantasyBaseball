@@ -1,5 +1,6 @@
 import { espnFetch, hasEspnCreds, STAT_ID_MAP, POS_MAP, getProTeam, getCurrentMatchupPeriod, getMatchupDates } from "@/lib/espn";
 import logger from "@/lib/logger";
+import { isPunt, categoryWeight } from "@/lib/category-weights";
 
 interface Recommendation {
   type: "score" | "target" | "alert" | "stream" | "sit";
@@ -96,6 +97,7 @@ export async function GET(req: Request) {
     // 2. Categories to target (closest to flipping)
     const flippable: { cat: string; gap: number; direction: "flip_to_win" | "protect" }[] = [];
     for (const cat of CATS_ORDER) {
+      if (isPunt(cat)) continue;
       const myVal = myStats[cat]?.score ?? 0;
       const oppVal = oppStats[cat] ?? 0;
       const result = myStats[cat]?.result;
@@ -115,7 +117,7 @@ export async function GET(req: Request) {
     }
 
     // Sort by smallest gap (easiest to flip)
-    flippable.sort((a, b) => a.gap - b.gap);
+    flippable.sort((a, b) => a.gap - b.gap || categoryWeight(b.cat) - categoryWeight(a.cat));
 
     const topTargets = flippable.filter((f) => f.direction === "flip_to_win").slice(0, 3);
     if (topTargets.length > 0) {
@@ -163,17 +165,17 @@ export async function GET(req: Request) {
       });
     }
 
-    // 4. Streaming tip
-    if (losses > wins && daysLeft >= 2) {
+    // 4. Streaming tip: always recommend streaming when trailing or tied
+    if (losses >= wins && daysLeft >= 1) {
       const losingPitchingCats = CATS_ORDER.filter((cat) =>
         ["K", "QS", "W"].includes(cat) && myStats[cat]?.result === "LOSS"
       );
-      if (losingPitchingCats.length >= 2) {
+      if (losingPitchingCats.length >= 1) {
         recommendations.push({
           type: "stream",
           title: "Stream a starter",
-          description: `You're losing ${losingPitchingCats.join(", ")} — pick up a SP with a start in the next ${daysLeft} days to boost these categories.`,
-          priority: "medium",
+          description: `You're losing ${losingPitchingCats.join(", ")} — pick up a SP with a start in the next ${daysLeft} day${daysLeft > 1 ? "s" : ""}. Target double-starters for maximum K/QS/W impact.`,
+          priority: "high",
         });
       }
     }

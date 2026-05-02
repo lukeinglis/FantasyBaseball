@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
+import { isPunt, categoryTierHeaderClass, BAT_CATS_BY_WEIGHT, PIT_CATS_BY_WEIGHT } from "@/lib/category-weights";
 
 interface RosterPlayer {
   name: string;
@@ -182,6 +183,7 @@ export default function TradeRoomPage() {
     const catAvg: Record<string, number> = {};
     const allCats = [...BAT_CATS, ...PIT_CATS];
     for (const cat of allCats) {
+      if (isPunt(cat)) continue;
       const vals = myPlayers
         .filter((p) => p.zScores[cat] !== undefined)
         .map((p) => p.zScores[cat]);
@@ -615,8 +617,8 @@ export default function TradeRoomPage() {
 
           {/* Category-by-category impact */}
           {[
-            { label: "Batting", cats: BAT_CATS },
-            { label: "Pitching", cats: PIT_CATS },
+            { label: "Batting", cats: BAT_CATS_BY_WEIGHT },
+            { label: "Pitching", cats: PIT_CATS_BY_WEIGHT },
           ].map(({ label, cats }) => (
             <div key={label}>
               <div className="px-4 py-1.5 text-[9px] font-bold uppercase tracking-widest text-slate-400 bg-black/[0.02]">
@@ -633,11 +635,12 @@ export default function TradeRoomPage() {
                   const isNegative = isLower ? net > 0 : net < 0;
                   const isWeakCat = myWeakCats.has(cat);
 
+                  const isPuntCat = isPunt(cat);
                   return (
                     <div key={cat} className={`border-r border-b border-border last:border-r-0 px-2 py-2.5 text-center ${
                       isWeakCat ? "bg-amber-50/50" : ""
-                    }`}>
-                      <div className={`text-[10px] font-bold ${isWeakCat ? "text-amber-600" : "text-slate-500"}`}>
+                    }${isPuntCat ? " opacity-50" : ""}`}>
+                      <div className={`text-[10px] ${categoryTierHeaderClass(cat)} ${isWeakCat ? "text-amber-600" : ""}`}>
                         {cat}{isWeakCat ? "*" : ""}
                       </div>
                       <div className="mt-1 text-[10px] text-slate-500">

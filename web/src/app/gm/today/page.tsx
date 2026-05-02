@@ -94,7 +94,7 @@ interface MatchupPlayerLocal {
   stats: Record<string, number>;
 }
 
-const LOWER_IS_BETTER = new Set(["ERA", "WHIP", "L"]);
+import { CATEGORY_WEIGHTS, LOWER_IS_BETTER, isPunt } from "@/lib/category-weights";
 
 export function sanitizeNum(val: unknown): number {
   if (typeof val !== "number" || !Number.isFinite(val)) return 0;
@@ -105,14 +105,16 @@ export function scoreActionItem(
   stats: Record<string, number>,
   atRiskCats: string[],
   lowerIsBetter: ReadonlySet<string> = LOWER_IS_BETTER,
+  weights: Record<string, number> = CATEGORY_WEIGHTS,
 ): number {
   let total = 0;
   for (const cat of atRiskCats) {
     const val = sanitizeNum(stats[cat]);
+    const w = weights[cat] ?? 1;
     if (lowerIsBetter.has(cat)) {
-      total -= val;
+      total -= val * w;
     } else {
-      total += val;
+      total += val * w;
     }
   }
   return total;
@@ -266,7 +268,7 @@ export default function TodayPage() {
   const atRiskCats = useMemo(() => {
     if (!matchupSnapshot) return [] as string[];
     return matchupSnapshot.categories
-      .filter(c => c.result === "LOSS")
+      .filter(c => c.result === "LOSS" && !isPunt(c.cat))
       .map(c => c.cat);
   }, [matchupSnapshot]);
 

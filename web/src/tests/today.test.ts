@@ -31,9 +31,17 @@ describe("sanitizeNum", () => {
 });
 
 describe("scoreActionItem", () => {
-  it("sums stats for at-risk higher-is-better categories", () => {
+  it("sums weighted stats for at-risk higher-is-better categories", () => {
     const stats = { HR: 30, RBI: 100, SB: 20 };
-    expect(scoreActionItem(stats, ["HR", "RBI"])).toBe(130);
+    const equal = { HR: 1, RBI: 1 };
+    expect(scoreActionItem(stats, ["HR", "RBI"], undefined, equal)).toBe(130);
+  });
+
+  it("applies category weights by default", () => {
+    const stats = { HR: 30, SV: 30 };
+    const hrScore = scoreActionItem(stats, ["HR"]);
+    const svScore = scoreActionItem(stats, ["SV"]);
+    expect(hrScore).toBeGreaterThan(svScore * 10);
   });
 
   it("ranks player A higher than B when A has more HR", () => {
@@ -54,7 +62,8 @@ describe("scoreActionItem", () => {
 
   it("handles mixed higher-is-better and lower-is-better cats", () => {
     const stats = { HR: 30, ERA: 3.0 };
-    const score = scoreActionItem(stats, ["HR", "ERA"]);
+    const equal = { HR: 1, ERA: 1 };
+    const score = scoreActionItem(stats, ["HR", "ERA"], undefined, equal);
     expect(score).toBe(30 - 3.0);
   });
 
