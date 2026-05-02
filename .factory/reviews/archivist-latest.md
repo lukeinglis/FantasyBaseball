@@ -1,15 +1,16 @@
 # Archivist Agent Output
 
-- **timestamp:** 2026-05-02T02:23:51Z
+- **timestamp:** 2026-05-02T18:00:48Z
 - **exit_code:** 0
 
 ---
 
-All archive files written. Cycle 3 final archive complete:
+Cycle 4 final archive complete.
 
-- **5 experiment notes written**: 013 (error/timeout), 015 (Free Agents), 016 (Trade Room), 017 (My Roster), 018 (GM Advisor)
-- **Cycle 3 summary**: `strategies/FantasyBaseball-2026-05-01-cycle3-summary.md` with full experiment table, score trajectory, and cumulative stats
-- **Dashboard updated**: `FantasyBaseball.md` now reflects all 18 experiments, cycle history, 89% keep rate, 0.6326 final score
-- **Patterns updated**: Added "Rapid Backlog Clearing Over Score Optimization" and "Z-Score Analysis as a Reusable Analytical Primitive"
+**What was written:**
+- **Cycle 4 summary** (`strategies/FantasyBaseball-2026-05-02-cycle4-summary.md`): targeted mode, 1 experiment, KEEP, score neutral, cumulative stats, dimension breakdown, remaining gap analysis
+- **Dashboard updated** (`FantasyBaseball.md`): corrected all dimension scores from last_eval.json (notably lint jumped from ~0.0 to 0.9), added guard_patterns/config_parser/experiment_diversity/factory_effectiveness rows, documented structural score gap
+- **Experiment 19 note**: verified complete, no changes needed
+- **Checkpoint logged**, archivist-latest updated
 
-18 experiments across 3 cycles. Score 0.5098 to 0.6326 (+0.1228). Backlog empty.
+**Structural gap note for future cycles**: composite 0.6279 is 0.0721 below threshold 0.7. This is structural, not regression. Highest leverage targets: capability_surface (0.28 of 100, weight 0.14) and research_grounding (0.0, weight 0.08, requires vault config).

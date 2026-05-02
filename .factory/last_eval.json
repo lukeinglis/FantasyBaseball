@@ -1,12 +1,12 @@
 {
-  "total": 0.632644,
+  "total": 0.6279250000000001,
   "results": [
     {
       "name": "tests",
       "score": 1.0,
       "weight": 0.15,
       "passed": true,
-      "details": "web(js): 9 passed, 0 failed"
+      "details": "web(js): 10 passed, 0 failed"
     },
     {
       "name": "lint",
@@ -52,10 +52,10 @@
     },
     {
       "name": "experiment_diversity",
-      "score": 0.9429,
+      "score": 0.9,
       "weight": 0.11,
       "passed": true,
-      "details": "6 distinct categories in last 10 experiments; dominant=feature (30%); last 3: ['observability', 'bugfix', 'feature']"
+      "details": "6 distinct categories in last 10 experiments; dominant=feature (40%); last 3: ['feature', 'performance', 'performance']"
     },
     {
       "name": "observability",
