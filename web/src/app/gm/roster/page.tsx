@@ -151,13 +151,13 @@ function ExpandedDetail({
               const allVals = allZScores
                 .filter((p) => p.zScores[cat] !== undefined)
                 .map((p) => safeNum(p.zScores[cat]));
-              const pct = computePercentile(z, allVals);
+              const pct = allVals.length > 0 ? computePercentile(z, allVals) : null;
               const colorCls =
                 z > 0.5 ? "text-emerald-600" : z < -0.5 ? "text-red-600" : "text-slate-500";
               return (
                 <span key={cat} className={colorCls}>
                   {cat} {z >= 0 ? "+" : ""}{z.toFixed(1)}{" "}
-                  <span className="text-slate-400">top {100 - pct}%</span>
+                  <span className="text-slate-400">{pct !== null ? `top ${100 - pct}%` : "N/A"}</span>
                 </span>
               );
             })}
@@ -261,7 +261,7 @@ function PlayerRow({
           {/* FAR badge */}
           {zp && (
             <span className={`shrink-0 text-[9px] font-mono font-bold ${zColor(zp.zTotal)}`}>
-              {safeNum(zp.far).toFixed(1)}
+              {Number.isFinite(zp.far) ? zp.far.toFixed(1) : "N/A"}
             </span>
           )}
 
