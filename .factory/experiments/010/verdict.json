@@ -1,0 +1,15 @@
+{
+  "id": 10,
+  "timestamp": "2026-05-01 16:50:42.992321",
+  "hypothesis": "Enhance Today page as daily command center",
+  "change_summary": "Added Category Status (per-category W/L/T with margins), Today's Starters (active players with stats), Action Items (ranked benched players by category impact). 15 new tests (85 total).",
+  "issue_number": 22,
+  "pr_number": 23,
+  "score_before": null,
+  "score_after": null,
+  "delta": null,
+  "verdict": "keep",
+  "cost_usd": null,
+  "notes": "ceo:keep score_delta=+0.0020 precheck=threshold_below agents_spawned=B pr_status=open_for_review hypothesis_type=code execution_artifacts=na e2e=pass backlog_cleared=yes",
+  "research_citations": []
+}

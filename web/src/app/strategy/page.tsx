@@ -243,7 +243,7 @@ export default function StrategyPage() {
               Avoid Reaching — Market Overvalues These Players
             </h2>
             <p className="mb-3 text-[12px] text-slate-500">
-              The ESPN/ADP consensus takes these players significantly earlier than our model says they're worth.
+              The ESPN/ADP consensus takes these players significantly earlier than our model says they&apos;re worth.
               Let them go and find better value elsewhere.
             </p>
             {overvalued.length === 0 ? (

@@ -1,0 +1,1 @@
+GM Advisor three-tier cached analysis with accessible accordion and backward compatibility

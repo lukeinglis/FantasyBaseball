@@ -1,0 +1,15 @@
+{
+  "id": 1,
+  "timestamp": "2026-05-01 15:28:37.256119",
+  "hypothesis": "Fix draft tracker cold start with localStorage persistence",
+  "change_summary": "Replaced in-memory draft-store.ts with client-side React context + useReducer backed by localStorage. Migrated warroom, scarcity, and team pages to useDraft() hook. API route now stateless.",
+  "issue_number": 4,
+  "pr_number": 5,
+  "score_before": null,
+  "score_after": null,
+  "delta": null,
+  "verdict": "keep",
+  "cost_usd": null,
+  "notes": "ceo:keep score_delta=+0.0000 precheck=threshold_below agents_spawned=R,S,B,A pr_status=open_for_review hypothesis_type=code execution_artifacts=na e2e=pass backlog_cleared=na",
+  "research_citations": []
+}

@@ -1,0 +1,1 @@
+Rewrite eval/score.py to scan JS/TS files and detect pino structured logging

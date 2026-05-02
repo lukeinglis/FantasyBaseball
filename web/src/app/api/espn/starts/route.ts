@@ -1,5 +1,6 @@
 export const dynamic = "force-dynamic";
 import { espnFetch, hasEspnCreds, POS_MAP, getProTeam, getMatchupDates, getCurrentMatchupPeriod } from "@/lib/espn";
+import type { EspnLeagueData } from "@/types/espn";
 import logger from "@/lib/logger";
 
 export interface StartsTeam {
@@ -65,7 +66,7 @@ export async function GET(req: Request) {
 
   try {
     const t0 = Date.now();
-    const data: any = await espnFetch(["mRoster", "mTeam", "mStatus", "mSettings"]);
+    const data = await espnFetch(["mRoster", "mTeam", "mStatus", "mSettings"]) as EspnLeagueData;
     const currentMatchupPeriod = getCurrentMatchupPeriod(data);
     const currentDates = getMatchupDates(data, currentMatchupPeriod);
     const nextDates = getMatchupDates(data, currentMatchupPeriod + 1);
@@ -81,7 +82,7 @@ export async function GET(req: Request) {
     const allRosteredPitchers: string[] = [];
 
     for (const t of data.teams ?? []) {
-      const name = `${t.location ?? ""} ${t.nickname ?? ""}`.trim() || t.abbrev;
+      const name = `${t.location ?? ""} ${t.nickname ?? ""}`.trim() || (t.abbrev ?? "");
       const pitchers: StartsTeam["pitchers"] = [];
 
       for (const e of t.roster?.entries ?? []) {

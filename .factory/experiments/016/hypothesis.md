@@ -1,0 +1,1 @@
+Trade Room surplus detection, sell-high candidates, and gap analysis

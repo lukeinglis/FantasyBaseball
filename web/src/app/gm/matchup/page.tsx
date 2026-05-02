@@ -6,6 +6,7 @@ function isOnIL(status: string): boolean { return IL_INJURY_STATUSES.has(status)
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { DataFreshness } from "@/components/DataFreshness";
 import { simulateCategoryWinProb } from "@/lib/monte-carlo";
+import { isPunt, isHighImpact, categoryTierClass } from "@/lib/category-weights";
 
 interface MatchupCat {
   cat: string;
@@ -48,7 +49,7 @@ interface MatchupData {
 interface StartsTeamData {
   teamId: number;
   teamName: string;
-  pitchers: { name: string; pos: string; proTeam: string; onIL: boolean }[];
+  pitchers: { name: string; pos: string; proTeam: string; onIL: boolean; ppCount: number; ppNextCount: number }[];
 }
 
 interface StartsData {
@@ -225,6 +226,31 @@ function PlayerRow({
   );
 }
 
+function RosterSection({ label, players, showStarts, totalStarts, schedule, isMine, getStarts, selectedCat }: {
+  label: string;
+  players: MatchupPlayer[];
+  showStarts?: boolean;
+  totalStarts: number;
+  schedule: Record<string, TeamSchedule>;
+  isMine: boolean;
+  getStarts: (name: string) => number;
+  selectedCat: string | null;
+}) {
+  return (
+    <>
+      <div className="px-2 py-1 text-[9px] font-bold uppercase tracking-widest text-slate-400 bg-black/[0.03] flex justify-between">
+        <span>{label}</span>
+        {showStarts && totalStarts > 0 && (
+          <span className="text-orange-600/60">{totalStarts} starts</span>
+        )}
+      </div>
+      {players.map((p, i) => (
+        <PlayerRow key={i} player={p} schedule={schedule[p.proTeam] ?? null} isMine={isMine} starts={getStarts(p.name)} selectedCat={selectedCat} />
+      ))}
+    </>
+  );
+}
+
 function RosterPanel({
   teamName,
   roster,
@@ -258,29 +284,15 @@ function RosterPanel({
     .filter((p) => p.pos === "SP")
     .reduce((sum, p) => sum + getStarts(p.name), 0);
 
-  const Section = ({ label, players, showStarts }: { label: string; players: MatchupPlayer[]; showStarts?: boolean }) => (
-    <>
-      <div className="px-2 py-1 text-[9px] font-bold uppercase tracking-widest text-slate-400 bg-black/[0.03] flex justify-between">
-        <span>{label}</span>
-        {showStarts && totalStarts > 0 && (
-          <span className="text-orange-600/60">{totalStarts} starts</span>
-        )}
-      </div>
-      {players.map((p, i) => (
-        <PlayerRow key={i} player={p} schedule={schedule[p.proTeam] ?? null} isMine={isMine} starts={getStarts(p.name)} selectedCat={selectedCat} />
-      ))}
-    </>
-  );
-
   return (
     <div className={`rounded-lg border ${borderColor} bg-surface flex-1 min-w-0`}>
       <div className={`border-b ${headerColor} px-3 py-2`}>
         <span className="text-[12px] font-semibold">{teamName}</span>
       </div>
-      <Section label="Batters" players={batters} />
-      <Section label="Pitchers" players={pitchers} showStarts />
-      {bench.length > 0 && <Section label="Bench" players={bench} />}
-      {il.length > 0 && <Section label="IL" players={il} />}
+      <RosterSection label="Batters" players={batters} totalStarts={totalStarts} schedule={schedule} isMine={isMine} getStarts={getStarts} selectedCat={selectedCat} />
+      <RosterSection label="Pitchers" players={pitchers} showStarts totalStarts={totalStarts} schedule={schedule} isMine={isMine} getStarts={getStarts} selectedCat={selectedCat} />
+      {bench.length > 0 && <RosterSection label="Bench" players={bench} totalStarts={totalStarts} schedule={schedule} isMine={isMine} getStarts={getStarts} selectedCat={selectedCat} />}
+      {il.length > 0 && <RosterSection label="IL" players={il} totalStarts={totalStarts} schedule={schedule} isMine={isMine} getStarts={getStarts} selectedCat={selectedCat} />}
     </div>
   );
 }
@@ -317,7 +329,6 @@ export default function MatchupPage() {
   const [selectedCat, setSelectedCat] = useState<string | null>(null);
 
   const fetchData = useCallback(() => {
-    setLoading(true);
     fetch("/api/espn/matchup")
       .then((r) => r.json())
       .then((d: MatchupData & { error?: string }) => {
@@ -508,14 +519,14 @@ export default function MatchupPage() {
   // Count SP starts using ESPN's starterStatusByProGame PP data
   const startsCounts = useMemo(() => {
     if (!startsData || !data) return null;
-    const myTeam = startsData.teams.find((t: any) => t.teamId === data.myTeamId);
-    const oppTeam = startsData.teams.find((t: any) => t.teamId === data.oppTeamId);
+    const myTeam = startsData.teams.find((t) => t.teamId === data.myTeamId);
+    const oppTeam = startsData.teams.find((t) => t.teamId === data.oppTeamId);
     if (!myTeam || !oppTeam) return null;
 
-    function countPPStarts(pitchers: any[]): number {
+    function countPPStarts(pitchers: StartsTeamData["pitchers"]): number {
       return pitchers
-        .filter((p: any) => p.pos === "SP" && !p.onIL)
-        .reduce((sum: number, p: any) => sum + (p.ppCount ?? 0), 0);
+        .filter((p) => p.pos === "SP" && !p.onIL)
+        .reduce((sum, p) => sum + (p.ppCount ?? 0), 0);
     }
 
     return { my: countPPStarts(myTeam.pitchers), opp: countPPStarts(oppTeam.pitchers) };
@@ -682,8 +693,8 @@ export default function MatchupPage() {
                 const oppColor = c.result === "LOSS" ? "#dc2626" : c.result === "TIE" ? "#ea580c" : "#cbd5e1";
 
                 // Danger flag logic: win probability in contested zone
-                const isWinningAtRisk = winProb !== null && daysLeft > 0 && c.result === "WIN" && winProb < 67;
-                const isLosingFlippable = winProb !== null && daysLeft > 0 && c.result === "LOSS" && winProb > 33;
+                const isWinningAtRisk = winProb !== null && daysLeft > 0 && c.result === "WIN" && winProb < 67 && !isPunt(c.cat);
+                const isLosingFlippable = winProb !== null && daysLeft > 0 && c.result === "LOSS" && winProb > 33 && !isPunt(c.cat);
                 const dangerRing = isWinningAtRisk
                   ? "ring-2 ring-orange-400 animate-pulse"
                   : isLosingFlippable
@@ -693,6 +704,10 @@ export default function MatchupPage() {
                 return (
                   <div key={c.cat}
                     className={`flex flex-col items-center cursor-pointer rounded-lg px-1 py-1 transition-all ${
+                      isPunt(c.cat) ? "opacity-50" : ""
+                    } ${
+                      isHighImpact(c.cat) ? "border-t-2 border-t-amber-400" : ""
+                    } ${
                       selectedCat === c.cat ? "ring-2 ring-orange-400 bg-orange-50" :
                       dangerRing ? dangerRing :
                       "hover:bg-black/[0.03]"
@@ -702,6 +717,8 @@ export default function MatchupPage() {
                     <span className="text-[10px] font-bold text-slate-500 mb-1">
                       {c.cat}{(isWinningAtRisk || isLosingFlippable) && " \u26A0"}
                     </span>
+                    {isPunt(c.cat) && <span className="text-[8px] text-slate-400">punt</span>}
+                    {isHighImpact(c.cat) && <span className="text-[8px] text-amber-600">key</span>}
 
                     {/* Donut chart */}
                     <div className="relative w-[72px] h-[72px]">

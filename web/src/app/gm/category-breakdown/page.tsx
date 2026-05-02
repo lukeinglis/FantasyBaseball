@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
+import { ALL_CATS_BY_WEIGHT, isPunt, categoryTierHeaderClass } from "@/lib/category-weights";
 
 interface TeamCategoryStats {
   teamId: number;
@@ -18,7 +19,7 @@ interface LeagueStatsData {
   teams: TeamCategoryStats[];
 }
 
-const CATS_ORDER = ["H", "R", "HR", "TB", "RBI", "BB", "SB", "AVG", "K", "QS", "W", "L", "SV", "HD", "ERA", "WHIP"];
+const CATS_ORDER = ALL_CATS_BY_WEIGHT;
 const LOWER_IS_BETTER = new Set(["ERA", "WHIP", "L"]);
 
 function rankCellClasses(rank: number): string {
@@ -57,15 +58,17 @@ export default function CategoryBreakdownPage() {
   const [scope, setScope] = useState<"season" | "week">("season");
 
   useEffect(() => {
-    setLoading(true);
+    let cancelled = false;
     fetch(`/api/espn/league-stats?scope=${scope}`)
       .then((r) => r.json())
       .then((d) => {
+        if (cancelled) return;
         if (d.error) { setError(d.error); return; }
         setData(d);
       })
-      .catch(() => setError("FETCH_FAILED"))
-      .finally(() => setLoading(false));
+      .catch(() => { if (!cancelled) setError("FETCH_FAILED"); })
+      .finally(() => { if (!cancelled) setLoading(false); });
+    return () => { cancelled = true; };
   }, [scope]);
 
   const sortedTeams = useMemo(() => {
@@ -96,7 +99,7 @@ export default function CategoryBreakdownPage() {
     for (const cat of CATS_ORDER) {
       const rank = myTeam.ranks[cat] ?? 5;
       if (rank <= 2) dominant.push(cat);
-      if (rank >= 9) critical.push(cat);
+      if (rank >= 9 && !isPunt(cat)) critical.push(cat);
     }
     return { dominant, critical };
   }, [myTeam]);
@@ -180,7 +183,7 @@ export default function CategoryBreakdownPage() {
                 <th
                   key={cat}
                   className={`px-1.5 py-2.5 text-center cursor-pointer hover:text-orange-600 transition-colors select-none ${
-                    sortCat === cat ? "text-orange-600 font-extrabold" : ""
+                    sortCat === cat ? "text-orange-600 font-extrabold" : categoryTierHeaderClass(cat)
                   }`}
                   onClick={() => setSortCat(sortCat === cat ? null : cat)}
                 >

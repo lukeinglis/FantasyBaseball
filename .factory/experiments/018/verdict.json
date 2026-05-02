@@ -1,0 +1,15 @@
+{
+  "id": 18,
+  "timestamp": "2026-05-01 22:20:32.807119",
+  "hypothesis": "GM Advisor three-tier cached analysis with week, month, and season sections",
+  "change_summary": "Expanded GM Advisor to three-tier accordion with graceful JSON fallback. 12 new tests.",
+  "issue_number": 37,
+  "pr_number": 38,
+  "score_before": null,
+  "score_after": null,
+  "delta": null,
+  "verdict": "keep",
+  "cost_usd": null,
+  "notes": "ceo:keep score_delta=0.0 precheck=failed_override(structural) hypothesis_type=code e2e=pass backlog_cleared=yes ceo_override=true",
+  "research_citations": []
+}

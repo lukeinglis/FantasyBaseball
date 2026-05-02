@@ -1,0 +1,15 @@
+{
+  "id": 13,
+  "timestamp": "2026-05-01 21:17:58.022574",
+  "hypothesis": "Fix 74 lint errors with ESPN API response types",
+  "change_summary": "Builder timed out after 600s. 74 errors across 19 files too large for single experiment.",
+  "issue_number": 28,
+  "pr_number": null,
+  "score_before": null,
+  "score_after": null,
+  "delta": null,
+  "verdict": "error",
+  "cost_usd": null,
+  "notes": "ceo:error builder_failed=true reason=timeout_600s hypothesis_type=code scope_too_large=true",
+  "research_citations": []
+}

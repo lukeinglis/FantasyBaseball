@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
+import { categoryTierHeaderClass, isPunt, ALL_CATS_BY_WEIGHT } from "@/lib/category-weights";
 
 interface H2HMatchup {
   week: number;
@@ -184,7 +185,7 @@ function ThisWeekView({ leagueData }: { leagueData: LeagueStatsData }) {
 
   const catStrength = useMemo(() => {
     if (!myTeam) return [];
-    return ALL_CATS.map((cat) => {
+    return ALL_CATS_BY_WEIGHT.map((cat) => {
       let winsCount = 0;
       for (const opp of leagueData.teams) {
         if (opp.teamId === leagueData.myTeamId) continue;
@@ -225,8 +226,8 @@ function ThisWeekView({ leagueData }: { leagueData: LeagueStatsData }) {
             const ratio = total > 0 ? wins / total : 0;
             const colorClass = ratio >= 0.7 ? "text-emerald-600" : ratio >= 0.4 ? "text-orange-600" : "text-red-600";
             return (
-              <div key={cat} className="px-2 py-2 text-center border-r border-border last:border-r-0">
-                <div className="text-[9px] font-bold text-slate-500">{cat}</div>
+              <div key={cat} className={`px-2 py-2 text-center border-r border-border last:border-r-0${isPunt(cat) ? " opacity-50" : ""}`}>
+                <div className={`text-[9px] ${categoryTierHeaderClass(cat)}`}>{cat}</div>
                 <div className={`text-[13px] font-bold font-mono tabular-nums ${colorClass}`}>
                   {wins}/{total}
                 </div>

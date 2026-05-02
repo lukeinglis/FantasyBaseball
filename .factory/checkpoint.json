@@ -1,0 +1,17 @@
+{
+  "mode": "improve",
+  "active_experiment_id": null,
+  "completed_agents": [
+    "researcher",
+    "strategist"
+  ],
+  "pending_agents": [
+    "builder",
+    "evaluator",
+    "archivist"
+  ],
+  "last_eval_scores": {},
+  "current_hypothesis": null,
+  "completed_hypotheses": [],
+  "timestamp": "2026-05-02T14:22:52.882694"
+}

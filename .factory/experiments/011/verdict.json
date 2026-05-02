@@ -1,0 +1,15 @@
+{
+  "id": 11,
+  "timestamp": "2026-05-01 16:55:20.481929",
+  "hypothesis": "Add matchup strength indicator to Schedule page",
+  "change_summary": "Added computeMatchupStrength and buildZScoreMap exports. Favorable/Even/Tough badges on schedule with tooltip top-2 driving categories. 12 new tests (97 total).",
+  "issue_number": 24,
+  "pr_number": 25,
+  "score_before": null,
+  "score_after": null,
+  "delta": null,
+  "verdict": "keep",
+  "cost_usd": null,
+  "notes": "ceo:keep score_delta=+0.0016 precheck=threshold_below agents_spawned=B pr_status=open_for_review hypothesis_type=code execution_artifacts=na e2e=pass backlog_cleared=yes",
+  "research_citations": []
+}

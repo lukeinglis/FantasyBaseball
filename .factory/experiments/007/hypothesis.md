@@ -1,0 +1,1 @@
+Add pino structured logging with per-request tracing

@@ -1,0 +1,15 @@
+{
+  "id": 3,
+  "timestamp": "2026-05-01 15:44:21.016279",
+  "hypothesis": "Fix Category Breakdown and Category Rank data scope with tab toggle and trend tracking",
+  "change_summary": "Added week-over-week rank deltas with TrendArrow component to Category Rank page. Hardened Category Breakdown formatters against NaN/Infinity. Tab toggle deferred.",
+  "issue_number": 8,
+  "pr_number": 9,
+  "score_before": null,
+  "score_after": null,
+  "delta": null,
+  "verdict": "keep",
+  "cost_usd": null,
+  "notes": "ceo:keep score_delta=+0.0000 precheck=threshold_below agents_spawned=B,A pr_status=open_for_review hypothesis_type=code execution_artifacts=na e2e=pass backlog_cleared=partial",
+  "research_citations": []
+}

@@ -1,8 +1,9 @@
 export const dynamic = "force-dynamic";
 export const maxDuration = 30;
 import logger from "@/lib/logger";
+import { STRATEGY_CONTEXT, categoryTier, ALL_CATS_BY_WEIGHT } from "@/lib/category-weights";
 
-const CATS_ORDER = ["H", "R", "HR", "TB", "RBI", "BB", "SB", "AVG", "K", "QS", "W", "L", "SV", "HD", "ERA", "WHIP"];
+const CATS_ORDER = ALL_CATS_BY_WEIGHT;
 const LOWER_IS_BETTER = new Set(["ERA", "WHIP", "L"]);
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -61,11 +62,11 @@ function buildPrompt(matchup: any, league: any, standings: any, schedule: any, z
     const tied = cats.filter(c => c.result === "TIE");
 
     if (winning.length)
-      lines.push(`Winning: ${winning.map(c => `${c.cat}(me:${fmt(c.cat, c.myVal)} vs ${fmt(c.cat, c.oppVal)})`).join(", ")}`);
+      lines.push(`Winning: ${winning.map(c => `${c.cat}[${categoryTier(c.cat)}](me:${fmt(c.cat, c.myVal)} vs ${fmt(c.cat, c.oppVal)})`).join(", ")}`);
     if (losing.length)
-      lines.push(`Losing: ${losing.map(c => `${c.cat}(me:${fmt(c.cat, c.myVal)} vs ${fmt(c.cat, c.oppVal)})`).join(", ")}`);
+      lines.push(`Losing: ${losing.map(c => `${c.cat}[${categoryTier(c.cat)}](me:${fmt(c.cat, c.myVal)} vs ${fmt(c.cat, c.oppVal)})`).join(", ")}`);
     if (tied.length)
-      lines.push(`Tied: ${tied.map(c => c.cat).join(", ")}`);
+      lines.push(`Tied: ${tied.map(c => `${c.cat}[${categoryTier(c.cat)}]`).join(", ")}`);
 
     // Gap analysis — categories close to flipping
     const flippable = losing
@@ -157,6 +158,7 @@ function buildPrompt(matchup: any, league: any, standings: any, schedule: any, z
           : `${(s.AVG ?? 0).toFixed(3)} AVG, ${Math.round(s.HR ?? 0)} HR, ${Math.round(s.RBI ?? 0)} RBI, ${Math.round(s.SB ?? 0)} SB`;
         lines.push(`  ${p.name} (${p.pos}/${p.proTeam}): ${key} — FAR ${(p.far ?? 0).toFixed(1)}`);
       }
+      lines.push("Note: SV and HD are punt categories (weight <0.03). Do not recommend closers or saves-focused pickups.");
       lines.push("");
     }
   }
@@ -217,6 +219,8 @@ export async function GET(req: Request) {
       model: "claude-opus-4-7",
       max_tokens: 2000,
       system: `You are the most ruthless, analytically precise GM in fantasy baseball history. You have been hired specifically to tear apart this roster and tell the owner exactly what they're doing wrong and what to fix. You cite specific players by name, quote exact stats, and give harsh but actionable directives. No compliments. No hedging. No generic advice.
+
+${STRATEGY_CONTEXT}
 
 Respond ONLY with a valid JSON object — no markdown, no preamble:
 {

@@ -1,0 +1,15 @@
+{
+  "id": 8,
+  "timestamp": "2026-05-01 16:37:14.515686",
+  "hypothesis": "Add per-category team rankings to Scoreboard page",
+  "change_summary": "Added CategoryRankingsGrid component with heatmap (green/yellow/red), per-category team rankings, user row highlight. Exported sanitizeCatVal, rankByCategory, buildTeamCatValues utility fns. 14 new tests (60 total).",
+  "issue_number": 18,
+  "pr_number": 19,
+  "score_before": null,
+  "score_after": null,
+  "delta": null,
+  "verdict": "keep",
+  "cost_usd": null,
+  "notes": "ceo:keep score_delta=+0.0097 precheck=threshold_below agents_spawned=B pr_status=open_for_review hypothesis_type=code execution_artifacts=na e2e=pass backlog_cleared=yes",
+  "research_citations": []
+}

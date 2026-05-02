@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
+import { isPunt, categoryWeight, categoryTierHeaderClass } from "@/lib/category-weights";
 
 interface PlayerStats {
   name: string;
@@ -51,11 +52,11 @@ const BAT_SORT_OPTIONS = [
 const PIT_SORT_OPTIONS = [
   { key: "FAR", label: "FAR" },
   { key: "K", label: "K" },
+  { key: "W", label: "W" },
+  { key: "QS", label: "QS" },
   { key: "ERA", label: "ERA" },
   { key: "WHIP", label: "WHIP" },
-  { key: "W", label: "W" },
   { key: "SV", label: "SV" },
-  { key: "QS", label: "QS" },
   { key: "HD", label: "HD" },
 ];
 const LOWER_IS_BETTER = new Set(["ERA", "WHIP", "L"]);
@@ -133,13 +134,13 @@ export default function FreeAgentsPage() {
 
       // Extract team weaknesses from league stats
       if (leagueStats?.teams && leagueStats.myTeamId) {
-        const myTeam = leagueStats.teams.find((t: any) => t.teamId === leagueStats.myTeamId);
+        const myTeam = leagueStats.teams.find((t: { teamId: number }) => t.teamId === leagueStats.myTeamId);
         if (myTeam?.ranks) {
           const weak: WeaknessInfo[] = [];
           for (const [cat, rank] of Object.entries(myTeam.ranks as Record<string, number>)) {
             if (rank >= 7) weak.push({ cat, rank });
           }
-          weak.sort((a, b) => b.rank - a.rank);
+          weak.sort((a, b) => categoryWeight(b.cat) - categoryWeight(a.cat));
           setWeaknesses(weak);
         }
       }
@@ -268,11 +269,15 @@ export default function FreeAgentsPage() {
             <button key={w.cat}
               onClick={() => setWeaknessFilter(weaknessFilter === w.cat ? null : w.cat)}
               className={`text-[10px] font-bold px-2 py-1 rounded border transition-colors ${
-                weaknessFilter === w.cat
-                  ? "bg-red-600 text-white border-red-600"
-                  : "bg-red-50 text-red-700 border-red-200 hover:bg-red-100"
+                isPunt(w.cat)
+                  ? weaknessFilter === w.cat
+                    ? "bg-slate-500 text-white border-slate-500"
+                    : "bg-slate-100 text-slate-500 border-slate-300 hover:bg-slate-200"
+                  : weaknessFilter === w.cat
+                    ? "bg-red-600 text-white border-red-600"
+                    : "bg-red-50 text-red-700 border-red-200 hover:bg-red-100"
               }`}>
-              {w.cat} (#{w.rank})
+              {w.cat} (#{w.rank}){isPunt(w.cat) ? " (punt)" : ""}
             </button>
           ))}
           {weaknessFilter && (
@@ -330,13 +335,13 @@ export default function FreeAgentsPage() {
               <th className="px-2 py-2.5 text-right">FAR</th>
               {isPitcherFilter ? (
                 <>
-                  <th className="px-2 py-2.5 text-right">ERA</th>
-                  <th className="px-2 py-2.5 text-right">WHIP</th>
-                  <th className="px-2 py-2.5 text-right">K</th>
-                  <th className="px-2 py-2.5 text-right">W</th>
-                  <th className="px-2 py-2.5 text-right">QS</th>
-                  <th className="px-2 py-2.5 text-right">SV</th>
-                  <th className="px-2 py-2.5 text-right">HD</th>
+                  <th className={`px-2 py-2.5 text-right ${categoryTierHeaderClass("ERA")}`}>ERA</th>
+                  <th className={`px-2 py-2.5 text-right ${categoryTierHeaderClass("WHIP")}`}>WHIP</th>
+                  <th className={`px-2 py-2.5 text-right ${categoryTierHeaderClass("K")}`}>K</th>
+                  <th className={`px-2 py-2.5 text-right ${categoryTierHeaderClass("W")}`}>W</th>
+                  <th className={`px-2 py-2.5 text-right ${categoryTierHeaderClass("QS")}`}>QS</th>
+                  <th className={`px-2 py-2.5 text-right ${categoryTierHeaderClass("SV")}`}>SV</th>
+                  <th className={`px-2 py-2.5 text-right ${categoryTierHeaderClass("HD")}`}>HD</th>
                   <th className="px-2 py-2.5 text-right">IP</th>
                 </>
               ) : (

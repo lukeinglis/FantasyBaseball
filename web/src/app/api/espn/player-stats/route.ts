@@ -1,5 +1,6 @@
 export const dynamic = "force-dynamic";
-import { hasEspnCreds, STAT_ID_MAP, getProTeam } from "@/lib/espn";
+import { hasEspnCreds, getProTeam } from "@/lib/espn";
+import type { EspnStatBlock, EspnPlayerStatsResponse } from "@/types/espn";
 import logger from "@/lib/logger";
 
 // Fetch current season stats for all rostered players
@@ -74,8 +75,7 @@ export async function GET(req: Request) {
       return Response.json({ error: `ESPN API ${res.status}` }, { status: 502 });
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const data: any = await res.json();
+    const data = await res.json() as EspnPlayerStatsResponse;
     const players: PlayerStats[] = [];
 
     // ESPN position ID map
@@ -108,11 +108,11 @@ export async function GET(req: Request) {
       // "012026" = last 7 days
       // "022026" = last 15 days
       // "032026" = last 30 days
-      const statBlocks: any[] = player.stats ?? [];
+      const statBlocks: EspnStatBlock[] = player.stats ?? [];
 
       function parseStatBlock(targetId: string): Record<string, number> {
         const result: Record<string, number> = {};
-        const block = statBlocks.find((s: any) => s.id === targetId);
+        const block = statBlocks.find((s) => s.id === targetId);
         if (!block?.stats) return result;
         for (const [sid, val] of Object.entries(block.stats)) {
           const cat = statMap[sid];
@@ -132,8 +132,8 @@ export async function GET(req: Request) {
       players.push({
         name,
         playerId: player.id ?? 0,
-        pos: posMap[player.defaultPositionId] ?? "?",
-        proTeam: getProTeam(player),
+        pos: posMap[player.defaultPositionId ?? 0] ?? "?",
+        proTeam: getProTeam(player ?? {}),
         seasonStats,
         last7Stats,
         last15Stats,
