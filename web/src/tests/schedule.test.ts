@@ -44,7 +44,9 @@ describe("computeMatchupStrength", () => {
   });
 
   it("mixed-category fixture: computes score correctly", () => {
-    // Opponent is better in half, I am better in half — should be near zero
+    // Opponent is better in half, I am better in half.
+    // With weighted scoring the result is not zero because even/odd indexed
+    // categories carry different total weight.
     const myZ: Record<string, number> = {};
     const oppZ: Record<string, number> = {};
     for (let i = 0; i < ALL_CATS.length; i++) {
@@ -53,7 +55,8 @@ describe("computeMatchupStrength", () => {
       oppZ[cat] = i % 2 === 0 ? -1.0 : 1.0;
     }
     const result = computeMatchupStrength(myZ, oppZ);
-    expect(result.score).toBeCloseTo(0, 5);
+    // Weighted mean with CATEGORY_WEIGHTS yields ~-0.15 (favorable)
+    expect(result.score).toBeCloseTo(-0.1504, 3);
   });
 
   it("top categories are the ones with the largest absolute differential", () => {

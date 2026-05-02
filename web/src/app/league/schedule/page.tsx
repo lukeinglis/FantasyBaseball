@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { mean, stddev } from "@/lib/z-scores";
+import { CATEGORY_WEIGHTS } from "@/lib/category-weights";
 
 interface MatchupWeek {
   period: number;
@@ -48,14 +49,19 @@ export function buildZScoreMap(
 export function computeMatchupStrength(
   myZ: Record<string, number>,
   oppZ: Record<string, number>,
+  weights: Record<string, number> = CATEGORY_WEIGHTS,
 ): { score: number; topCategories: string[] } {
   const diffs = CATS.map((cat) => ({
     cat,
     diff: (oppZ[cat] ?? 0) - (myZ[cat] ?? 0),
+    weight: weights[cat] ?? 0,
   }));
-  const score = mean(diffs.map((d) => d.diff));
+  const totalWeight = diffs.reduce((s, d) => s + d.weight, 0);
+  const score = totalWeight > 0
+    ? diffs.reduce((s, d) => s + d.diff * d.weight, 0) / totalWeight
+    : mean(diffs.map((d) => d.diff));
   const topCategories = [...diffs]
-    .sort((a, b) => Math.abs(b.diff) - Math.abs(a.diff))
+    .sort((a, b) => Math.abs(b.diff * b.weight) - Math.abs(a.diff * a.weight))
     .slice(0, 2)
     .map((d) => d.cat);
   return { score, topCategories };

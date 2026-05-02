@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { categoryTierHeaderClass, isPunt } from "@/lib/category-weights";
 
 interface ScoreboardCatResult {
   cat: string;
@@ -131,7 +132,7 @@ function CategoryRankingsGrid({ matchups, myTeamId }: CategoryRankingsGridProps)
             <tr className="border-b border-border bg-slate-50">
               <th className="px-3 py-2 text-left font-semibold text-slate-500 whitespace-nowrap">Team</th>
               {cats.map((cat) => (
-                <th key={cat} className="px-1.5 py-2 text-center font-semibold text-slate-500 whitespace-nowrap">
+                <th key={cat} className={`px-1.5 py-2 text-center whitespace-nowrap ${categoryTierHeaderClass(cat)}`}>
                   {cat}
                 </th>
               ))}
@@ -152,7 +153,7 @@ function CategoryRankingsGrid({ matchups, myTeamId }: CategoryRankingsGridProps)
                   {cats.map((cat) => {
                     const rank = rankMaps[cat]?.[team.teamId] ?? 0;
                     return (
-                      <td key={cat} className="px-1 py-1.5 text-center">
+                      <td key={cat} className={`px-1 py-1.5 text-center${isPunt(cat) ? " opacity-50" : ""}`}>
                         <span className={`inline-block min-w-[22px] rounded px-1 py-0.5 font-mono tabular-nums font-semibold ${rankColor(rank)}`}>
                           {rank}
                         </span>
