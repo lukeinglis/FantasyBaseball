@@ -1,0 +1,15 @@
+{
+  "id": 9,
+  "timestamp": "2026-05-01 16:42:27.767438",
+  "hypothesis": "Add Monte Carlo category win probabilities to Matchup page",
+  "change_summary": "Created monte-carlo.ts with 5000-iteration Box-Muller simulation. Replaced lock% labels with continuous win probability % on matchup page. 9 new tests (69 total).",
+  "issue_number": 20,
+  "pr_number": 21,
+  "score_before": null,
+  "score_after": null,
+  "delta": null,
+  "verdict": "keep",
+  "cost_usd": null,
+  "notes": "ceo:keep score_delta=+0.0088 precheck=threshold_below agents_spawned=B pr_status=open_for_review hypothesis_type=code execution_artifacts=na e2e=pass backlog_cleared=yes",
+  "research_citations": []
+}

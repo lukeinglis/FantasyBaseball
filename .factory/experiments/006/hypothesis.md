@@ -1,0 +1,1 @@
+Add @vitest/coverage-v8 and coverage script

@@ -1,0 +1,15 @@
+{
+  "id": 16,
+  "timestamp": "2026-05-01 22:11:05.932482",
+  "hypothesis": "Trade Room surplus detection, sell-high candidates, and gap analysis",
+  "change_summary": "Added surplus detector, gap analysis, sell-high candidates, metric arbitrage to trade page. 17 new tests.",
+  "issue_number": 33,
+  "pr_number": 34,
+  "score_before": null,
+  "score_after": null,
+  "delta": null,
+  "verdict": "keep",
+  "cost_usd": null,
+  "notes": "ceo:keep score_delta=0.0 precheck=failed_override(structural) hypothesis_type=code e2e=pass backlog_cleared=yes ceo_override=true",
+  "research_citations": []
+}

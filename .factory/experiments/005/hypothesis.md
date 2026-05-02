@@ -1,0 +1,1 @@
+Fix lint error in warroom/page.tsx

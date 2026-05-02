@@ -1,0 +1,84 @@
+{
+  "total": 0.632644,
+  "results": [
+    {
+      "name": "tests",
+      "score": 1.0,
+      "weight": 0.15,
+      "passed": true,
+      "details": "web(js): 9 passed, 0 failed"
+    },
+    {
+      "name": "lint",
+      "score": 0.9,
+      "weight": 0.075,
+      "passed": false,
+      "details": "web(js): 1 errors"
+    },
+    {
+      "name": "type_check",
+      "score": 1.0,
+      "weight": 0.05,
+      "passed": true,
+      "details": "web(ts): clean"
+    },
+    {
+      "name": "coverage",
+      "score": 0.5,
+      "weight": 0.125,
+      "passed": true,
+      "details": "Not detected: no coverage tool detected"
+    },
+    {
+      "name": "guard_patterns",
+      "score": 0.7,
+      "weight": 0.05,
+      "passed": false,
+      "details": "7/10 pattern tests passed; FAIL: web/src/**/*.ts vs web/src/example.py expected=True got=False; FAIL: web/src/**/*.tsx vs web/src/example.py expected=True got=False; FAIL: web/src/**/*.css vs web/src/example.py expected=True got=False"
+    },
+    {
+      "name": "config_parser",
+      "score": 1.0,
+      "weight": 0.05,
+      "passed": true,
+      "details": "OK: goal is non-empty; OK: scope has entries; OK: eval_command is non-empty; OK: eval_threshold is positive"
+    },
+    {
+      "name": "capability_surface",
+      "score": 0.28,
+      "weight": 0.14,
+      "passed": false,
+      "details": "surface=28 (modules=3, public_fns=25, entry_points=0), target=100"
+    },
+    {
+      "name": "experiment_diversity",
+      "score": 0.9429,
+      "weight": 0.11,
+      "passed": true,
+      "details": "6 distinct categories in last 10 experiments; dominant=feature (30%); last 3: ['observability', 'bugfix', 'feature']"
+    },
+    {
+      "name": "observability",
+      "score": 0.406,
+      "weight": 0.1,
+      "passed": false,
+      "details": "observability_score=0.41, function_coverage=0.64, structured_logging=False"
+    },
+    {
+      "name": "research_grounding",
+      "score": 0.0,
+      "weight": 0.08,
+      "passed": true,
+      "details": "vault not configured \u2014 set $FACTORY_VAULT_PATH"
+    },
+    {
+      "name": "factory_effectiveness",
+      "score": 0.4875,
+      "weight": 0.07,
+      "passed": false,
+      "details": "keep_rate=0.75 (6/8), delta_score=0.50, managed_projects=0"
+    }
+  ],
+  "guard_violations": [],
+  "passed": false
+}

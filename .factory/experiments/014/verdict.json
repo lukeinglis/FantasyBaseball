@@ -1,0 +1,15 @@
+{
+  "id": 14,
+  "timestamp": "2026-05-01 21:51:57.780054",
+  "hypothesis": "Bullpen streaming pitcher intelligence with double-starter detection and streaming targets",
+  "change_summary": "Added Double Starters, Streaming Targets, and Starts Tracker sections to bullpen page. 13 new Vitest tests.",
+  "issue_number": 29,
+  "pr_number": 30,
+  "score_before": null,
+  "score_after": null,
+  "delta": null,
+  "verdict": "keep",
+  "cost_usd": null,
+  "notes": "ceo:keep score_delta=-0.0142 precheck=failed_override(structural) agents_spawned=R,S,B hypothesis_type=code execution_artifacts=na e2e=pass backlog_cleared=yes ceo_override=true override_reason=meta_dimension_regression_not_code",
+  "research_citations": []
+}

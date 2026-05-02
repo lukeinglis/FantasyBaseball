@@ -1,0 +1,45 @@
+{
+  "goal": "Improve the reliability, code quality, and test coverage of a Next.js 16 fantasy baseball \"War Room\" web app that fetches live data from ESPN APIs. The app suffers from edge case crashes (Infinity, NaN, null from ESPN), fragile data transformations, and zero test coverage.",
+  "scope": [
+    "web/src/**/*.ts",
+    "web/src/**/*.tsx",
+    "web/src/**/*.css",
+    "web/package.json",
+    "web/tsconfig.json"
+  ],
+  "guards": [
+    "Do not delete or overwrite existing page components",
+    "Do not modify files outside the declared scope",
+    "Do not introduce secrets or credentials into the repository",
+    "Do not change the ESPN league ID, team ID, or API endpoints",
+    "Do not remove existing error handling or data sanitization",
+    "Do not break the Vercel deployment (keep Next.js conventions)",
+    "Do not add mock data that could be confused with real ESPN data"
+  ],
+  "eval_command": "cd web && npx tsc --noEmit 2>&1 | tail -1 && npx next lint 2>&1 | tail -5",
+  "eval_threshold": 0.7,
+  "constraints": [
+    "Prefer small, incremental changes over large rewrites",
+    "Each change should be accompanied by at least one test",
+    "Follow the existing code style (Next.js App Router, Tailwind CSS, TypeScript strict)",
+    "ESPN API data is unreliable: always sanitize numeric values before display",
+    "The app is deployed on Vercel: all API routes must work as serverless functions"
+  ],
+  "hypothesis_budget": {
+    "min_growth": 2,
+    "max_new": 3
+  },
+  "target_branch": "main",
+  "smoke_test": "cd web && npx next build 2>&1 | tail -3",
+  "project_eval": [],
+  "eval_weights": {
+    "hygiene": 40.0,
+    "growth": 20.0,
+    "project": 40.0
+  },
+  "research_target": null,
+  "mutable_surfaces": [],
+  "fixed_surfaces": [],
+  "research_constraints": [],
+  "cost_budget": null
+}
