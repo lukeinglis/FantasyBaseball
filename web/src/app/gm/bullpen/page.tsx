@@ -571,6 +571,15 @@ export default function BullpenPage() {
         </div>
       )}
 
+      {/* Starts Tracker */}
+      {view === "SP" && (
+        <StartsTracker
+          startsApiData={startsApiData}
+          myTeamId={myTeamId}
+          currentDates={startsApiData?.currentDates ?? null}
+        />
+      )}
+
       {/* Header */}
       <div className="mb-5 flex flex-wrap items-start justify-between gap-4">
         <div>
@@ -637,6 +646,25 @@ export default function BullpenPage() {
             })}
           </div>
         </div>
+      )}
+
+      {/* Double Starters */}
+      {view === "SP" && (
+        <DoubleStartersSection
+          startsApiData={startsApiData}
+          myTeamId={myTeamId}
+          matchupProbables={matchupProbables}
+          currentDates={startsApiData?.currentDates ?? null}
+        />
+      )}
+
+      {/* Streaming Targets (current period) */}
+      {view === "SP" && (
+        <StreamingTargetsSection
+          matchupProbables={matchupProbables}
+          rosteredPitchers={startsApiData?.rosteredPitchers ?? []}
+          currentDates={startsApiData?.currentDates ?? null}
+        />
       )}
 
       {/* Pitcher lists */}
@@ -708,6 +736,246 @@ export default function BullpenPage() {
         myPitchers={starters}
         pitcherStarts={pitcherStarts}
       />
+    </div>
+  );
+}
+
+// --- Double Starters Section ---
+
+function DoubleStartersSection({
+  startsApiData,
+  myTeamId,
+  matchupProbables,
+  currentDates,
+}: {
+  startsApiData: StartsApiData | null;
+  myTeamId: number | null;
+  matchupProbables: ProbablePitchersData | null;
+  currentDates: { start: string; end: string } | null;
+}) {
+  const doubleStarters = useMemo(() => {
+    if (!startsApiData || !myTeamId) return [];
+    const team = startsApiData.teams.find((t) => t.teamId === myTeamId);
+    if (!team) return [];
+    return getDoubleStarters(team.pitchers);
+  }, [startsApiData, myTeamId]);
+
+  if (doubleStarters.length === 0) return null;
+
+  return (
+    <div className="mb-4 rounded-lg border border-emerald-300 bg-surface">
+      <div className="border-b border-emerald-300 px-3 py-2 flex items-center justify-between">
+        <div>
+          <span className="text-[10px] font-semibold uppercase tracking-wider text-emerald-600">
+            Double Starters
+          </span>
+          <span className="ml-2 text-[10px] text-slate-500">2+ starts this period</span>
+        </div>
+        <span className="text-[13px] font-bold tabular-nums text-emerald-600">
+          {doubleStarters.length}
+        </span>
+      </div>
+      {doubleStarters.map((p, i) => {
+        const starts = matchupProbables
+          ? findPitcherStarts(p.name, p.proTeam, matchupProbables).filter(
+              (s) =>
+                currentDates &&
+                s.date >= currentDates.start &&
+                s.date <= currentDates.end
+            )
+          : [];
+        return (
+          <div key={i} className="border-b border-border last:border-b-0 px-3 py-2">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span className="text-[12px] font-semibold text-emerald-700">{p.name}</span>
+                <span className="text-[10px] text-slate-500">{p.proTeam}</span>
+              </div>
+              <span className="text-[13px] font-bold tabular-nums text-emerald-600">
+                {Number.isFinite(p.ppCount) ? p.ppCount : 0}
+              </span>
+            </div>
+            {starts.length > 0 && (
+              <div className="mt-1 flex flex-wrap gap-1">
+                {starts.map((s, j) => (
+                  <span
+                    key={j}
+                    className="text-[9px] rounded px-1.5 py-0.5 bg-emerald-50 border border-emerald-200 text-emerald-700"
+                  >
+                    {fmtDateLabel(s.date)} {s.opponent}
+                  </span>
+                ))}
+              </div>
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+// --- Streaming Targets Section (Current Period) ---
+
+function StreamingTargetsSection({
+  matchupProbables,
+  rosteredPitchers,
+  currentDates,
+}: {
+  matchupProbables: ProbablePitchersData | null;
+  rosteredPitchers: string[];
+  currentDates: { start: string; end: string } | null;
+}) {
+  const rosteredSet = useMemo(() => new Set(rosteredPitchers), [rosteredPitchers]);
+
+  const targets = useMemo(() => {
+    if (!matchupProbables || !currentDates) return [];
+
+    const raw = Object.entries(matchupProbables.byPitcher)
+      .map(([name, allStarts]) => {
+        const periodStarts = allStarts.filter(
+          (s) => s.date >= currentDates.start && s.date <= currentDates.end
+        );
+        return {
+          name,
+          team: periodStarts[0]?.team ?? allStarts[0]?.team ?? "",
+          starts: periodStarts.map((s) => ({ date: s.date, opponent: s.opponent })),
+        };
+      })
+      .filter((t) => t.starts.length > 0 && !rosteredSet.has(t.name));
+
+    return rankStreamingTargets(raw);
+  }, [matchupProbables, currentDates, rosteredSet]);
+
+  if (!matchupProbables || !currentDates) return null;
+
+  return (
+    <div className="mb-4 rounded-lg border border-blue-300 bg-surface">
+      <div className="border-b border-blue-300 px-3 py-2 flex items-center justify-between">
+        <div>
+          <span className="text-[10px] font-semibold uppercase tracking-wider text-blue-600">
+            Streaming Targets
+          </span>
+          <span className="ml-2 text-[10px] text-slate-500">
+            FA pitchers with starts this period
+          </span>
+        </div>
+        <span className="text-[13px] font-bold tabular-nums text-blue-600">
+          {targets.length}
+        </span>
+      </div>
+      {targets.length > 0 ? (
+        targets.slice(0, 10).map((t, i) => (
+          <div key={i} className="border-b border-border last:border-b-0 px-3 py-2">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span className="text-[12px] font-semibold text-blue-700">{t.name}</span>
+                <span className="text-[10px] text-slate-500">{t.team}</span>
+              </div>
+              <span className="text-[13px] font-bold tabular-nums text-blue-600">
+                {t.starts.length}
+              </span>
+            </div>
+            <div className="mt-1 flex flex-wrap gap-1">
+              {t.starts.map((s, j) => (
+                <span
+                  key={j}
+                  className="text-[9px] rounded px-1.5 py-0.5 bg-blue-50 border border-blue-200 text-blue-700"
+                >
+                  {fmtDateLabel(s.date)} vs {s.opponent}
+                </span>
+              ))}
+            </div>
+          </div>
+        ))
+      ) : (
+        <div className="px-3 py-4 text-[11px] text-slate-500 text-center">
+          No unrostered pitchers with starts found for this period.
+        </div>
+      )}
+      {targets.length > 10 && (
+        <div className="px-3 py-2 text-[10px] text-slate-400 text-center border-t border-border">
+          +{targets.length - 10} more
+        </div>
+      )}
+    </div>
+  );
+}
+
+// --- Starts Tracker ---
+
+function StartsTracker({
+  startsApiData,
+  myTeamId,
+  currentDates,
+}: {
+  startsApiData: StartsApiData | null;
+  myTeamId: number | null;
+  currentDates: { start: string; end: string } | null;
+}) {
+  const stats = useMemo(() => {
+    if (!startsApiData || !myTeamId) return null;
+    const team = startsApiData.teams.find((t) => t.teamId === myTeamId);
+    if (!team) return null;
+
+    const activeSPs = team.pitchers.filter((p) => p.pos === "SP" && !p.onIL);
+    const totalStarts = activeSPs.reduce(
+      (sum, p) => sum + (Number.isFinite(p.ppCount) ? p.ppCount : 0),
+      0
+    );
+
+    const periodDays =
+      currentDates
+        ? Math.max(
+            1,
+            Math.ceil(
+              (new Date(currentDates.end + "T12:00:00").getTime() -
+                new Date(currentDates.start + "T12:00:00").getTime()) /
+                86400000
+            ) + 1
+          )
+        : 7;
+
+    const target = Math.max(1, Math.round(periodDays * 1.5));
+    const pct = target > 0 ? Math.min(100, (totalStarts / target) * 100) : 0;
+    const safePct = Number.isFinite(pct) ? pct : 0;
+
+    return { totalStarts, activeSPs: activeSPs.length, target, pct: safePct };
+  }, [startsApiData, myTeamId, currentDates]);
+
+  if (!stats) return null;
+
+  const barColor =
+    stats.pct >= 80
+      ? "bg-emerald-500"
+      : stats.pct >= 50
+        ? "bg-orange-500"
+        : "bg-red-500";
+
+  return (
+    <div className="mb-4 rounded-lg border border-border bg-surface px-4 py-3">
+      <div className="flex items-center justify-between mb-2">
+        <div>
+          <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-600">
+            Starts Tracker
+          </span>
+          <span className="ml-2 text-[10px] text-slate-400">
+            {stats.activeSPs} active SPs
+          </span>
+        </div>
+        <span className="text-[14px] font-bold tabular-nums text-slate-700">
+          {stats.totalStarts} starts
+        </span>
+      </div>
+      <div className="h-2.5 w-full rounded-full bg-black/[0.06]">
+        <div
+          className={`h-full rounded-full transition-all ${barColor}`}
+          style={{ width: `${stats.pct}%` }}
+        />
+      </div>
+      <div className="mt-1 flex justify-between text-[9px] text-slate-400">
+        <span>0</span>
+        <span>Target: ~{stats.target}</span>
+      </div>
     </div>
   );
 }
@@ -1039,6 +1307,64 @@ function NextWeekStarts({
       </div>
     </div>
   );
+}
+
+// --- Exported utility functions for testability ---
+
+export interface DoubleStarterPitcher {
+  name: string;
+  pos: string;
+  proTeam: string;
+  onIL: boolean;
+  ppCount: number;
+}
+
+export function getDoubleStarters(
+  pitchers: DoubleStarterPitcher[]
+): DoubleStarterPitcher[] {
+  return pitchers
+    .filter(
+      (p) =>
+        p.pos === "SP" &&
+        !p.onIL &&
+        Number.isFinite(p.ppCount) &&
+        p.ppCount >= 2
+    )
+    .sort((a, b) => b.ppCount - a.ppCount);
+}
+
+export interface StreamingTarget {
+  name: string;
+  team: string;
+  starts: { date: string; opponent: string }[];
+  opponentBattingZ: number | null;
+}
+
+export function rankStreamingTargets(
+  targets: { name: string; team: string; starts: { date: string; opponent: string }[] }[],
+  opponentBattingZ?: Record<string, number>
+): StreamingTarget[] {
+  if (!targets.length) return [];
+
+  const scored: StreamingTarget[] = targets.map((t) => {
+    const zValues = t.starts
+      .map((s) => opponentBattingZ?.[s.opponent])
+      .filter((z): z is number => z !== undefined && Number.isFinite(z));
+    const avgZ =
+      zValues.length > 0
+        ? zValues.reduce((a, b) => a + b, 0) / zValues.length
+        : null;
+    return { ...t, opponentBattingZ: avgZ };
+  });
+
+  return scored.sort((a, b) => {
+    if (a.opponentBattingZ !== null && b.opponentBattingZ !== null) {
+      return a.opponentBattingZ - b.opponentBattingZ;
+    }
+    if (a.opponentBattingZ !== null) return -1;
+    if (b.opponentBattingZ !== null) return 1;
+    return b.starts.length - a.starts.length;
+  });
 }
 
 // Name matching helper for probable pitchers
