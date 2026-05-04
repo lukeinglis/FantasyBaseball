@@ -1,12 +1,12 @@
 # Strategist Agent Output
 
-- **timestamp:** 2026-05-02T18:20:59Z
+- **timestamp:** 2026-05-02T19:58:16Z
 - **exit_code:** 0
 
 ---
 
-Strategy written to `.factory/strategy/current.md`. 
+Strategy written to `.factory/strategy/current.md`. One hypothesis targeting both issues:
 
-One hypothesis (targeted mode) with two parts:
-1. **Operational cleanup:** Close 6 resolved issues (#29, #31, #33, #35, #37, #39) with comments explaining PRs are open awaiting merge or superseded
-2. **Code fix:** Fix 74 lint errors from issue #28 in 4 ordered batches (ESPN API types, React Compiler, setState-in-effect, minor fixes), avoiding the timeout that killed experiment 13's single-pass attempt
+- **H1 (FIX):** Rewrite eval/score.py to scan JS/TS files (issue #26) and merge PR #42's verified lint fixes (issue #41)
+- Key risk mitigations: add `eval/**` to factory.md scope first, check PR #42 rebase before merging, CEO override if circular precheck recurs
+- Expected impact: observability 0.406 to ~0.65, lint 0.9 to 1.0, composite +0.05 to +0.08

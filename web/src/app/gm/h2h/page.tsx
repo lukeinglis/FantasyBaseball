@@ -30,6 +30,15 @@ interface AllPlayWeek {
   ties: number;
 }
 
+interface AllPlayTeamRecord {
+  teamId: number;
+  teamName: string;
+  wins: number;
+  losses: number;
+  ties: number;
+  winPct: number;
+}
+
 interface H2HData {
   myTeamId: number;
   myTeamName: string;
@@ -42,6 +51,7 @@ interface H2HData {
     totalTies: number;
     weeks: AllPlayWeek[];
   };
+  allPlayStandings?: AllPlayTeamRecord[];
 }
 
 interface TeamCategoryStats {
@@ -441,7 +451,7 @@ function SeasonH2HView({ data }: { data: H2HData }) {
 
 /* ── All-Play Record Tab Component ── */
 
-function AllPlayView({ allPlay }: { allPlay: NonNullable<H2HData["allPlay"]> }) {
+function AllPlayView({ allPlay, allPlayStandings, myTeamId }: { allPlay: NonNullable<H2HData["allPlay"]>; allPlayStandings?: AllPlayTeamRecord[]; myTeamId: number }) {
   const totalGames = safe(allPlay.totalWins) + safe(allPlay.totalLosses) + safe(allPlay.totalTies);
   const winPct = fmtPct(safe(allPlay.totalWins), totalGames);
 
@@ -516,6 +526,42 @@ function AllPlayView({ allPlay }: { allPlay: NonNullable<H2HData["allPlay"]> }) 
       {allPlay.weeks.length === 0 && (
         <div className="rounded-lg border border-border bg-surface px-6 py-10 text-center text-slate-500">
           No scoring periods completed yet. All-play records will appear after the first week.
+        </div>
+      )}
+
+      {/* League All-Play Standings */}
+      {allPlayStandings && allPlayStandings.length > 0 && (
+        <div>
+          <div className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-slate-400">League All-Play Standings</div>
+          <div className="overflow-x-auto rounded-lg border border-border">
+            <table className="w-full text-left text-[12px]">
+              <thead className="border-b border-border bg-surface text-[10px] uppercase tracking-wider text-slate-500">
+                <tr>
+                  <th className="px-3 py-2.5 w-10 text-center">#</th>
+                  <th className="px-3 py-2.5">Team</th>
+                  <th className="px-3 py-2.5 text-center">Record</th>
+                  <th className="px-3 py-2.5 text-right">Win %</th>
+                </tr>
+              </thead>
+              <tbody>
+                {allPlayStandings.map((t, i) => {
+                  const isMe = t.teamId === myTeamId;
+                  return (
+                    <tr key={t.teamId} className={`border-b border-border/50 ${isMe ? "bg-orange-50" : i % 2 === 0 ? "" : "bg-black/[0.02]"}`}>
+                      <td className="px-3 py-2 text-center font-bold text-slate-500">{i + 1}</td>
+                      <td className={`px-3 py-2 ${isMe ? "text-orange-600 font-semibold" : "text-slate-700"}`}>{t.teamName}</td>
+                      <td className="px-3 py-2 text-center">
+                        <span className={`font-bold font-mono tabular-nums ${resultColor(safe(t.wins), safe(t.losses))}`}>
+                          {safe(t.wins)}-{safe(t.losses)}{safe(t.ties) > 0 ? `-${safe(t.ties)}` : ""}
+                        </span>
+                      </td>
+                      <td className="px-3 py-2 text-right font-mono tabular-nums text-slate-600">{t.winPct.toFixed(3)}</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
     </div>
@@ -606,7 +652,7 @@ export default function TeamH2HPage() {
         <SeasonH2HView data={data} />
       ) : (
         data.allPlay ? (
-          <AllPlayView allPlay={data.allPlay} />
+          <AllPlayView allPlay={data.allPlay} allPlayStandings={data.allPlayStandings} myTeamId={data.myTeamId} />
         ) : (
           <div className="rounded-lg border border-border bg-surface px-6 py-10 text-center text-slate-500">
             All-play data is not available yet. Check back after the first scoring period.

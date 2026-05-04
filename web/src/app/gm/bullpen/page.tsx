@@ -341,6 +341,9 @@ export default function BullpenPage() {
   const [playerStats, setPlayerStats] = useState<PlayerStatsEntry[]>([]);
   const [sortColumn, setSortColumn] = useState<string>("ERA");
   const [sortAsc, setSortAsc] = useState<boolean>(true);
+  const [matchupCats, setMatchupCats] = useState<{ cat: string; myValue: number | null; oppValue: number | null; result: string }[] | null>(null);
+  const [matchupOpp, setMatchupOpp] = useState<string | null>(null);
+  const [matchupScore, setMatchupScore] = useState<{ w: number; l: number; t: number } | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [view, setView] = useState<"SP" | "RP">("SP");
@@ -362,6 +365,18 @@ export default function BullpenPage() {
       if (rosterData.error) { setError(rosterData.error); setLoading(false); return; }
       setTeams(rosterData);
       if (matchupData.myTeamId) setMyTeamId(matchupData.myTeamId);
+      if (matchupData.categories) {
+        const pitCats = (matchupData.categories as any[]).filter((c: any) =>
+          ["K", "QS", "W", "L", "SV", "HD", "ERA", "WHIP"].includes(c.cat)
+        );
+        setMatchupCats(pitCats);
+        setMatchupOpp(matchupData.oppTeamName ?? null);
+        setMatchupScore({
+          w: matchupData.myWins ?? 0,
+          l: matchupData.myLosses ?? 0,
+          t: matchupData.myTies ?? 0,
+        });
+      }
       if (matchupData.myTeamId && matchupData.oppTeamId) {
         setMatchupApiData({
           myTeamId: matchupData.myTeamId,
@@ -592,6 +607,53 @@ export default function BullpenPage() {
           myTeamId={myTeamId}
           currentDates={startsApiData?.currentDates ?? null}
         />
+      )}
+
+      {/* Matchup Pitching Categories */}
+      {matchupCats && matchupCats.length > 0 && (
+        <div className="mb-4 rounded-lg border border-border bg-surface">
+          <div className="border-b border-border px-4 py-2 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-500">Pitching Categories</span>
+              {matchupOpp && <span className="text-[11px] text-slate-400">vs {matchupOpp}</span>}
+            </div>
+            {matchupScore && (
+              <span className={`text-[13px] font-bold tabular-nums ${
+                matchupScore.w > matchupScore.l ? "text-emerald-600" :
+                matchupScore.l > matchupScore.w ? "text-red-600" : "text-slate-600"
+              }`}>
+                {matchupScore.w}-{matchupScore.l}{matchupScore.t > 0 ? `-${matchupScore.t}` : ""} overall
+              </span>
+            )}
+          </div>
+          <div className="grid grid-cols-4 sm:grid-cols-8 gap-0">
+            {matchupCats.map((c) => {
+              const fmtVal = (v: number | null) => {
+                if (v === null) return "-";
+                if (c.cat === "ERA" || c.cat === "WHIP") return v.toFixed(2);
+                return String(Math.round(v));
+              };
+              return (
+                <div key={c.cat} className={`px-2 py-2.5 text-center border-r border-border last:border-r-0 ${
+                  c.result === "WIN" ? "bg-emerald-50" : c.result === "LOSS" ? "bg-red-50" : ""
+                }`}>
+                  <div className="text-[9px] font-bold text-slate-500">{c.cat}</div>
+                  <div className={`text-[13px] font-bold font-mono tabular-nums ${
+                    c.result === "WIN" ? "text-emerald-600" : c.result === "LOSS" ? "text-red-600" : "text-slate-600"
+                  }`}>
+                    {fmtVal(c.myValue)}
+                  </div>
+                  <div className="text-[10px] font-mono tabular-nums text-slate-400">{fmtVal(c.oppValue)}</div>
+                  <div className={`text-[8px] font-bold ${
+                    c.result === "WIN" ? "text-emerald-600" : c.result === "LOSS" ? "text-red-600" : "text-slate-400"
+                  }`}>
+                    {c.result === "PENDING" ? "-" : c.result[0]}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
       )}
 
       {/* Header */}

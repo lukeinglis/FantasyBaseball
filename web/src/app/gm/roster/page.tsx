@@ -575,6 +575,33 @@ export default function RosterPage() {
         </div>
       </div>
 
+      {/* IL Summary */}
+      {il.length > 0 && (
+        <div className="mb-4 rounded-lg border border-red-300 bg-surface">
+          <div className="border-b border-red-300 px-4 py-2 flex items-center justify-between">
+            <div>
+              <span className="text-[10px] font-semibold uppercase tracking-wider text-red-600/70">IL Summary</span>
+              <span className="ml-2 text-[11px] text-slate-500">{il.length} player{il.length !== 1 ? "s" : ""}</span>
+            </div>
+          </div>
+          <div className="divide-y divide-border">
+            {il.map((p, i) => (
+              <div key={i} className="flex items-center justify-between px-4 py-2">
+                <div className="flex items-center gap-3">
+                  <span className={`text-[11px] font-bold ${p.injuryColor}`}>{p.injuryLabel}</span>
+                  <span className="text-[12px] font-medium text-slate-700">{p.name}</span>
+                  <span className="text-[10px] text-slate-500">{p.pos}</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <span className="text-[10px] text-slate-500">{p.proTeam}</span>
+                  {p.injuryNote && <span className="text-[10px] text-slate-400 max-w-[200px] truncate">{p.injuryNote}</span>}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Roster grid */}
       <div className="grid gap-4 lg:grid-cols-3">
         <Section label="Batting" players={batters} borderColor="border-orange-300" />

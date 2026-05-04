@@ -294,7 +294,8 @@ export default function TradeRoomPage() {
     for (const cat of ALL_CATS) {
       const sendTotal = sending.reduce((sum, name) => { const v = getStats(name)[cat] ?? 0; return sum + (Number.isFinite(v) ? v : 0); }, 0);
       const recvTotal = receiving.reduce((sum, name) => { const v = getStats(name)[cat] ?? 0; return sum + (Number.isFinite(v) ? v : 0); }, 0);
-      impact[cat] = { sending: sendTotal, receiving: recvTotal, net: recvTotal - sendTotal };
+      const net = recvTotal - sendTotal;
+      impact[cat] = { sending: sendTotal, receiving: recvTotal, net: Number.isFinite(net) ? net : 0 };
     }
 
     return impact;

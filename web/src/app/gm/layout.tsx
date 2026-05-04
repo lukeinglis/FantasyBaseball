@@ -11,6 +11,7 @@ const SUB_LINKS = [
   { href: "/gm/h2h", label: "Team H2H" },
   { href: "/gm/free-agents", label: "Free Agents" },
   { href: "/gm/trade", label: "Trade Room" },
+  { href: "/draft", label: "Draft" },
 ];
 
 export default function GmLayout({ children }: { children: React.ReactNode }) {

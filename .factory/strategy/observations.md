@@ -1,8 +1,16 @@
 # Interaction Study — FantasyBaseball
 
-Analyzed 60 conversation log(s), 140 relevant messages.
+Analyzed 73 conversation log(s), 206 relevant messages.
 
-## User Messages (31)
+## User Messages (32)
+- Project: /Users/linglis/projects/FantasyBaseball
+Mode: improve
+
+## Focus Directive (Targeted Mode)
+
+Target: Please fix issues 26 and 41
+
+Single-item mode. This target has been added to the backlog. Th
 - Project: /Users/linglis/projects/FantasyBaseball
 Mode: improve
 
@@ -59,7 +67,9 @@ Target: Please fix issue 37
 Single-item mode. This target has been added to the backlog. The Strate
 - [Request interrupted by user]
 
-## Errors and Issues (109)
+## Errors and Issues (174)
+- Current state: `has_factory`, baseline score 0.6366. Issue #26 is a reverted eval rewrite, and #41 is about closing resolved issues + fixing lint errors (was kept as exp 20 but issue still open). Let 
+- Now I have a clear picture. Issue #26: eval/score.py scans Python files but the project is JS/TS. Issue #41: resolved issues need closing + remaining lint errors. Let me run the targeted improve cycle
 - - **5 experiment notes written**: 013 (error/timeout), 015 (Free Agents), 016 (Trade Room), 017 (My Roster), 018 (GM Advisor)
 - - **Dashboard** updated: 17 kept / 1 reverted / 1 error, 94% keep rate, cycle 4 finalized
 - Now I need to fix the `stats.R` reference - the field in the API is actually "R" for Runs. Let me verify the stat mapping and then check for TypeScript compatibility:
@@ -75,6 +85,8 @@ Single-item mode. This target has been added to the backlog. The Strate
 - 1. **Lint is 74 errors, not 1.** Mostly `no-explicit-any` (50) and React Compiler nested component errors (12) in bullpen. PRs #17-#25 introduced new untyped API code.
 - 3. **Observability eval is fundamentally broken:** `eval/score.py` only scans `*.py` files. This is a JS/TS project. Pino is properly deployed but the eval will never detect it.
 - 5. **Issue #3 is fixed** (PR #5 merged), should be closed. Issue #2 is not factory-actionable.
+- Let me see more of the diff, focusing on the page component changes and API route lint fixes.
+- TypeScript passes. Let me fix the lint command and check issue closure status.
 - 2. **Missing ARIA attributes:** No `aria-expanded`, `aria-controls`, `role="region"`, or `aria-labelledby` on the accordion. Quick fix (5-6 attributes).
 - **FIX (highest priority):**
 - - H2: Fix 74 lint errors (ESPN API types, component extraction)
@@ -82,6 +94,7 @@ Single-item mode. This target has been added to the backlog. The Strate
 - The `StartsTeamData` interface in the page doesn't include `ppCount`. Let me fix it to match the actual API response.
 - Now I need to fix the places in the existing code that reference `startsApiData.teams` pitchers. Let me check line 923 and the countPPStarts function.
 - The `countPPStarts` function uses `p: any` so it's already compatible. The type error at line 923 was because the old type didn't have `ppCount`. Now that I've fixed the `StartsTeamData` interface, th
+- - **Patterns**: Updated batching pattern with Exp 20 validation, added new "Typed Interfaces Eliminate Whole Error Categories" pattern from the `espn.ts` approach
 - | H1 | FIX | Fix lint error in warroom/page.tsx | high |
 - | H2 | FIX | Add @vitest/coverage-v8 + coverage script | high |
 - **3 new items** (exactly at cap): lint fix, coverage tooling, pino — all directly addressing known eval gaps.
@@ -113,12 +126,29 @@ Single-item mode. This target has been added to the backlog. The Strate
 - The Phase 4-5 agent is still running and found that my today page changes broke 2 tests (scoreActionItem now applies weights by default). Let me fix the today tests while waiting.
 - Fix the TypeScript error in the test - need to cast the empty categories object:
 - - `web/src/tests/schedule.test.ts`: 12 new Vitest tests covering both functions: score direction for stronger/weaker opponents, missing z-score handling, zero-variance category safety, lower-is-better
+- Now let me check the current lint errors to get an accurate count and breakdown for scoping the hypothesis.
+- 2. **Code fix:** Fix 74 lint errors from issue #28 in 4 ordered batches (ESPN API types, React Compiler, setState-in-effect, minor fixes), avoiding the timeout that killed experiment 13's single-pass 
+- 3. **Patterns updated**: `.factory/archive/patterns.md` with new pattern "Scope Lint Fixes by Category, Not All At Once" from Exp 13 timeout and cycle 5 analysis.
 - - `getProTeam` truthiness fix is correct: `proTeamId=0` maps to FA and the old check would silently drop free agents
 - Let me check which route files have console.log/error calls, and read a few more to understand the patterns.
 - The log.info ended up after the return statement (unreachable). Let me fix that:
 - Now add log.info/error at the return/catch points for the mlb routes:
 - - **`web/src/lib/espn.ts`**: `espnFetch` now times the HTTP call and logs `{op, views, durationMs}` on success/error
 - Starting a targeted improve cycle focused on fixing open issues. Let me detect the project state and review what's open.
+- Current composite score is **0.5996**. Let me review the open issues more carefully. Issues #28 (lint errors), #26 (eval rewrite), and #37/#39 (GM Advisor) are factory-created. Issue #2 is historical 
+- Clear picture now. Most open issues (#29, #31, #33, #35, #37, #39) have corresponding kept experiments with open PRs awaiting human merge. Issues #26 (eval rewrite, reverted) and #28 (lint errors, tim
+- Builder is still running. This is a large task with 74 lint errors to fix across 20 files. Let me wait for it to complete.
+- Builder completed successfully. PR #42 opened, 6 issues closed, all 74 lint errors fixed. Let me review the PR before spawning the Reviewer.
+- **0 lint errors** (down from 74). 27 warnings remain (unused vars, which are less critical). CLAUDE.md has no diff (empty output = no change). Let me verify tests pass and check the types file.
+- - 0 lint errors (down from 74)
+- Score is unchanged at 0.5996. The factory eval reports lint 0.9 (1 error) but I verified 0 errors on the branch. Let me investigate the discrepancy.
+- The score_after is 0.5996 (same as baseline 0.5996). Score delta is 0.0. The actual lint improvement is real (74 errors to 0) but the factory eval can't detect it due to the exit_code parser treating 
+- Precheck failed on the same two structural issues that affected experiments 14-19:
+- The lint improvement is real and verified: 74 errors to 0. CEO override is warranted, consistent with the precedent set in experiments 14-19 for the same structural issue.
+- Issue #28 (lint errors) is still open but now fixed by PR #42. Let me close it with a comment, then finalize.
+- ## Cycle 5 Results (Targeted: Fix Open Issues)
+- - **74 lint errors fixed to 0** across 22 files
+- - Created `web/src/types/espn.ts` (110 lines) with typed ESPN API interfaces, eliminating 51 `no-explicit-any` errors
 - The `draft-context.tsx` lint error is gone. All remaining errors are pre-existing in `warroom/page.tsx` (SortTh component-in-render and unescaped entities). Let me verify these are pre-existing.
 - Confirmed: same 9 errors exist on main. My changes introduce zero new lint errors. Now let me run the build.
 - TypeScript check is clean (no output = no errors). The `next lint` command has a pre-existing issue with this Next.js version. Let me also check if there are eval scripts to run.
@@ -132,6 +162,45 @@ Single-item mode. This target has been added to the backlog. The Strate
 - **Experiment 5 — H1: Fix lint error in warroom/page.tsx**
 - Warroom lint passes clean. The "1 error" in eval is a different fixable error (unrelated to the PR). The fix is correct but the eval score is unchanged. Let me run the full eval and precheck.
 - Precheck fails on threshold (expected) and scope false-positive (empty violations = `.gitignore` dirty check). Score unchanged — this is a code quality fix that doesn't move the eval needle directly. 
+- Good. I have the full picture. Let me start with Part 1 (closing issues) and simultaneously read the codebase to understand the lint errors.
+- Now let me close the 6 resolved issues and start reading the lint errors in parallel.
+- 74 errors, 33 warnings. Let me get a full categorized view and read all the files I need to modify. I'll start by gathering all the error details and reading the key source files.
+- - ~51 `no-explicit-any` errors
+- - 12 `static-components` (nested component) errors
+- - 6 `react-compiler/react-compiler` memoization errors
+- Now I have all the source context I need. Let me get the complete picture of all `any` errors and read the remaining files with `any` usage.
+- Let me get the full error list with file names to ensure I catch everything.
+- Now I have the complete map of all 51 `no-explicit-any` errors. Let me read the remaining page file sections I need.
+- I now have a complete picture of all 51 `no-explicit-any` errors across 14 files. Let me create the ESPN types file and start fixing all the errors.
+- Now let me fix `espn.ts` and all the API route files. I'll batch the independent edits.
+- Now let me fix all the API route files. I'll do the h2h route first since it's representative, then batch the rest.
+- Now let me fix the matchup route. This one needs careful handling of the `?? {}` patterns.
+- Now fix the schedule and scoreByStat entries in matchup/route.ts:
+- Now let me fix all the remaining API routes in parallel:
+- Now fix the advisor, player-stats, league-stats, and bvp routes:
+- Now fix bvp/route.ts and league-stats/route.ts:
+- Now fix league-stats/route.ts (the file with inline eslint-disable comments):
+- Now fix the page components with `any` errors. Bullpen needs `ppCount`/`ppNextCount` in its `StartsTeamData`:
+- Now fix matchup/page.tsx (add ppCount to interface and remove `any` casts):
+- Now fix free-agents, starts, and today pages:
+- All 51 `no-explicit-any` errors are gone. Now fixing the TypeScript compilation errors that the new types exposed.
+- Now fix the remaining TS errors: league-stats team name, player-stats index, and starts/page.tsx ProbablePitchersData:
+- Now fix starts/page.tsx. The issue is the `Promise<ProbablePitchersData | null>` type doesn't have `error`:
+- Need to fix mixed `||`/`??` operator precedence and one more index error:
+- I introduced a duplicate. Let me fix that:
+- I also need to fix the `||`/`??` in h2h and scoreboard routes which have the same pattern:
+- Down from 74 errors to 24. Batch A is complete (51 `any` errors eliminated, plus some bonus fixes). Now moving to Batch B: React Compiler errors.
+- Good. Now I have the exact list of remaining 24 errors. Let me tackle Batch B: React Compiler errors. I need to read the nested components to extract them.
+- Now fix the memoization errors. Let me read the relevant sections:
+- Fix the 6 memoization errors by removing manual useMemo that the React Compiler can't preserve:
+- Down to 6 errors. Batch B is done (12 static-components + 6 memoization = 0). Now Batch C: fix setState-in-effect, then Batch D.
+- For both category-breakdown and category-rank, the fix is to remove `setLoading(true)` from the effect and set data to null (which implicitly shows loading state). Let me fix all 4 setState-in-effect 
+- Now I can fix all the remaining setState-in-effect errors:
+- Now Batch D: fix the remaining minor errors (prefer-const, unescaped entities):
+- **0 errors!** TypeScript compiles clean. Down from 74 errors to 0. Let me run vitest:
+- **Part 2: Fixed all 74 lint errors** across 22 files in 4 batches:
+- - **Batch A:** Created `web/src/types/espn.ts` with typed ESPN API interfaces. Replaced 51 `no-explicit-any` errors with proper types.
+- - **Batch C:** Fixed 4 setState-in-effect patterns by restructuring effects.
 - Now let me create the branch and see the actual lint errors.
 - Let me get the full error list and read all affected source files.
 - One test failed due to a tie in the test data. Let me fix the test values to make the ordering unambiguous.
@@ -139,6 +208,10 @@ Single-item mode. This target has been added to the backlog. The Strate
 - 2. **Project dashboard** (`FantasyBaseball.md`): Updated stats (11 kept / 1 reverted), marked H1 as REVERTED, updated dimension status root cause, added key learning section, H2 (lint fix) marked as N
 - - **Experiment note**: `.factory/archive/experiments/FantasyBaseball-002.md` — H4 Vitest+MSW, verdict KEEP, +0.075, tests dimension 0.5 to 1.0, 46 tests, getProTeam bug found
 - All 109 tests pass including the new ones, and TypeScript has no errors. Now let me commit and open a PR.
+- Let me get the lint error/warning counts for proper scoring.
+- Starting Mode 2 research focused on lint error fixing strategies for this Next.js/TypeScript project.
+- Good, I can see the actual lint errors. Let me get the full breakdown by file and error type.
+- Now let me check the React Compiler errors and look at the ESLint config.
 - JSX escaping issue. Let me fix the `>` character in the Metric Arbitrage section.
 - I'll start by reading the issue and project context, then implement the fix.
 - Now I'll create the branch and run lint to see the exact errors before fixing.
@@ -175,22 +248,10 @@ No similar projects found.
 
 ## Open GitHub Issues
 
-### Your Issues (9) — actionable, may generate fix hypotheses
+### Your Issues (3) — actionable, may generate fix hypotheses
 
-- **#39** GM Advisor: three-tier cached analysis with accessible accordion (by @lukeinglis)
-  > Factory experiment 19. Hypothesis: GM Advisor three-tier cached analysis with accessible accordion and backward compatibility.  ## What to Build  Rewrite the GmAdvisor component in `web/src/app/gm/roster/page.tsx` with five deliverables:  1. **Three-file JSON loading:** Replace single `gm-advice.jso
-- **#37** Expand GM Advisor to three-tier cached analysis (by @lukeinglis)
-  > Factory experiment 18. Hypothesis: Three-tier GM Advisor with cached JSON analysis.  ## What to Build  Update `/gm/roster/page.tsx` to load from three static JSON files: - `web/public/gm-advice-week.json` (This Week analysis) - `web/public/gm-advice-month.json` (Next 30 Days analysis) - `web/public/
-- **#35** Add deep stat breakdown with z-score detail to My Roster (by @lukeinglis)
-  > Factory experiment 17. Hypothesis: Deeper roster analysis with z-score detail and performance trends.  ## What to Build  On `/gm/roster/page.tsx`, add expandable player rows with:  1. **Full Stats**: Show all counting and rate stats for the season in a compact grid.  2. **Z-Score Breakdown**: Per-ca
-- **#33** Add surplus detection and gap analysis to Trade Room (by @lukeinglis)
-  > Factory experiment 16. Hypothesis: Add surplus detection, sell-high candidates, and gap analysis to Trade Room.  ## What to Build  Enhance `/gm/trade/page.tsx` with four analytical sections:  1. **Surplus Detector**: Identify categories where team ranks top-3 in the league. Flag highest-contributing
-- **#31** Add weakness-aware FA recommendations to Free Agents page (by @lukeinglis)
-  > Factory experiment 15. Hypothesis: Add weakness-aware free agent recommendations.  ## What to Build  On `/gm/free-agents/page.tsx`, add a "Recommended" section at the top:  1. **Weakness Detection**: Fetch user's team z-scores per category from the existing z-scores API. Identify the 3 weakest categ
-- **#29** Add streaming pitcher intelligence to Bullpen page (by @lukeinglis)
-  > Factory experiment 14. Hypothesis: Add streaming pitcher intelligence to Bullpen page.  ## What to Build  Enhance `/gm/bullpen/page.tsx` with three sections using already-fetched data:  1. **Double Starters** - List pitchers with 2+ scheduled starts in the current scoring period. Source from the exi
-- **#28** Fix 74 lint errors with ESPN API response types (by @lukeinglis)
-  > Factory experiment 13. Hypothesis: Fix 74 lint errors by defining ESPN API response types and fixing React Compiler violations.  ## What to Build  1. **Create `web/src/types/espn.ts`** with typed interfaces for ESPN API responses: roster entries, matchup data, scoreboard results, standings rows, pla
+- **#41** Close resolved issues and fix 74 lint errors (by @lukeinglis)
+  > Factory experiment 20. Hypothesis: Close resolved issues and fix 74 lint errors in scoped batches.  ## What to Build  ### Part 1: Close resolved GitHub issues (operational) Comment on and close these issues that are already resolved by kept experiments: - #29: Bullpen streaming intelligence (done in
 - **#26** Rewrite eval/score.py for JS/TS scanning (by @lukeinglis)
   > Factory experiment 12. Hypothesis: Rewrite eval/score.py to scan JS/TS files and detect pino structured logging.  ## What to Build  1. **Rewrite `eval_syntax_check()`**: Replace the no-op `true` command with `cd web && npx tsc --noEmit`. Parse exit code for pass/fail. Count error lines in stderr for
 - **#2** Historical draft results missing for 2015–2018 (by @lukeinglis)
@@ -198,9 +259,9 @@ No similar projects found.
 
 ## Backlog
 
-**TARGETED MODE** — building exactly one item: Please fix open issues
+**TARGETED MODE** — building exactly one item: Fix issues 26 and 41
 
-- Please fix open issues
+- Fix issues 26 and 41
 
 ## Observability Coverage
 - **Score:** 51.8%
@@ -218,9 +279,9 @@ No prior notes found.
 
 ## Cross-Project Insights
 
-Analyzed 1 projects (FantasyBaseball), 19 experiments, 89% overall keep rate.
+Analyzed 1 projects (FantasyBaseball), 20 experiments, 90% overall keep rate.
 
-**Winning categories:** feature, performance
+**Winning categories:** bugfix, feature, performance
 
 Full report: /Users/linglis/projects/FantasyBaseball/.factory/strategy/insights.md
 

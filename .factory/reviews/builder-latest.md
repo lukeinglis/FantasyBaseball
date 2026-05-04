@@ -1,20 +1,15 @@
 # Builder Agent Output
 
-- **timestamp:** 2026-05-02T19:04:51Z
+- **timestamp:** 2026-05-02T20:13:41Z
 - **exit_code:** 0
 
 ---
 
-All done. Here's the summary:
+All done. PR #44 is open: https://github.com/lukeinglis/FantasyBaseball/pull/44
 
-**Part 1: Closed 6 resolved issues** (#29, #31, #33, #35, #37, #39) with explanatory comments.
-
-**Part 2: Fixed all 74 lint errors** across 22 files in 4 batches:
-- **Batch A:** Created `web/src/types/espn.ts` with typed ESPN API interfaces. Replaced 51 `no-explicit-any` errors with proper types.
-- **Batch B:** Extracted 3 nested components to module scope, removed 6 manual useMemo calls the React Compiler can't preserve.
-- **Batch C:** Fixed 4 setState-in-effect patterns by restructuring effects.
-- **Batch D:** Fixed prefer-const and unescaped entity.
-
-**Verification:** 0 lint errors, clean TypeScript compilation, 115 tests pass, Next.js build succeeds.
-
-PR: https://github.com/lukeinglis/FantasyBaseball/pull/42
+Summary of what was implemented:
+- **eval/score.py rewrite**: Real `npx tsc --noEmit` check replaces `['true']` stub; JS/TS regex function scanning replaces Python `ast.parse`; weights rebalanced to 0.5/0.5
+- **factory.md**: Added `eval/**` to modifiable scope
+- **74 lint errors fixed**: Created `web/src/types/espn.ts` with typed ESPN interfaces, replaced all `any` types across 11 API routes, extracted 4 nested React components (BullpenPitcherCard, BullpenPitcherSection, RosterSection x2), fixed setState-in-effect patterns in 3 pages, fixed unescaped entity
+- **Issues #26 and #41 closed**
+- **All tests pass**: 115 tests, 0 tsc errors, 0 eslint errors

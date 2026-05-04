@@ -20,6 +20,15 @@ export interface AllPlayWeek {
   ties: number;
 }
 
+export interface AllPlayTeamRecord {
+  teamId: number;
+  teamName: string;
+  wins: number;
+  losses: number;
+  ties: number;
+  winPct: number;
+}
+
 export interface H2HData {
   myTeamId: number;
   myTeamName: string;
@@ -40,6 +49,7 @@ export interface H2HData {
     totalTies: number;
     weeks: AllPlayWeek[];
   };
+  allPlayStandings: AllPlayTeamRecord[];
 }
 
 const LOWER_IS_BETTER = new Set(["ERA", "WHIP", "L"]);
@@ -215,6 +225,61 @@ export async function GET(req: Request) {
       allPlayTotalT += weekT;
     }
 
+    // All-play standings: compute for every team across all completed weeks
+    const allPlayByTeam: Record<number, { w: number; l: number; t: number }> = {};
+    for (let week = 1; week < currentMatchupPeriod; week++) {
+      const weekStats: Record<number, Record<string, number>> = {};
+      for (const m of schedule) {
+        if (m.matchupPeriodId !== week) continue;
+        for (const side of [m.home, m.away]) {
+          if (!side?.teamId) continue;
+          weekStats[side.teamId] = {};
+          const scoreByStat = side.cumulativeScore?.scoreByStat ?? {};
+          for (const [statId, statData] of Object.entries(scoreByStat)) {
+            const cat = STAT_ID_MAP[parseInt(statId)];
+            if (!cat) continue;
+            weekStats[side.teamId][cat] = cleanScore((statData as any).score); // eslint-disable-line @typescript-eslint/no-explicit-any
+          }
+        }
+      }
+      const teamIds = Object.keys(weekStats).map(Number);
+      for (const teamId of teamIds) {
+        if (!allPlayByTeam[teamId]) allPlayByTeam[teamId] = { w: 0, l: 0, t: 0 };
+        const myStats = weekStats[teamId];
+        for (const oppId of teamIds) {
+          if (oppId === teamId) continue;
+          const oppStats = weekStats[oppId];
+          let w = 0, l = 0, t = 0;
+          for (const cat of CATS_ORDER) {
+            const myVal = myStats[cat] ?? 0;
+            const oppVal = oppStats[cat] ?? 0;
+            const lower = LOWER_IS_BETTER.has(cat);
+            if (myVal === oppVal) t++;
+            else if (lower ? myVal < oppVal : myVal > oppVal) w++;
+            else l++;
+          }
+          if (w > l) allPlayByTeam[teamId].w++;
+          else if (l > w) allPlayByTeam[teamId].l++;
+          else allPlayByTeam[teamId].t++;
+        }
+      }
+    }
+
+    const allPlayStandings: AllPlayTeamRecord[] = Object.entries(allPlayByTeam)
+      .map(([idStr, rec]) => {
+        const tid = parseInt(idStr);
+        const total = rec.w + rec.l + rec.t;
+        return {
+          teamId: tid,
+          teamName: teamNames[tid] ?? `Team ${tid}`,
+          wins: rec.w,
+          losses: rec.l,
+          ties: rec.t,
+          winPct: total > 0 ? rec.w / total : 0,
+        };
+      })
+      .sort((a, b) => b.winPct - a.winPct || b.wins - a.wins);
+
     const result: H2HData = {
       myTeamId: MY_TEAM_ID,
       myTeamName: teamNames[MY_TEAM_ID] ?? `Team ${MY_TEAM_ID}`,
@@ -227,6 +292,7 @@ export async function GET(req: Request) {
         totalTies: allPlayTotalT,
         weeks: allPlayWeeks,
       },
+      allPlayStandings,
     };
 
     log.info({ op: "h2h", durationMs: Date.now() - t0 }, "ok");

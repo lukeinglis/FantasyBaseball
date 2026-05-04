@@ -91,21 +91,35 @@ function buildSeasonStats(
   for (const [teamIdStr, raw] of Object.entries(rawById)) {
     const teamId = parseInt(teamIdStr);
     stats[teamId] = {};
+    const ipExists = COMPONENT_IDS.IP in raw;
+    const abExists = COMPONENT_IDS.AB in raw;
     for (const [statIdStr, cat] of Object.entries(STAT_ID_MAP)) {
       const id = parseInt(statIdStr);
       if (cat === "AVG") {
-        const h = raw[COMPONENT_IDS.H_BAT] ?? 0;
-        const ab = raw[COMPONENT_IDS.AB] ?? 0;
-        stats[teamId][cat] = ab > 0 ? h / ab : 0;
+        if (abExists) {
+          const h = raw[COMPONENT_IDS.H_BAT] ?? 0;
+          const ab = raw[COMPONENT_IDS.AB];
+          stats[teamId][cat] = ab > 0 ? h / ab : 0;
+        } else {
+          stats[teamId][cat] = raw[id] ?? 0;
+        }
       } else if (cat === "ERA") {
-        const er = raw[COMPONENT_IDS.ER] ?? 0;
-        const ip = raw[COMPONENT_IDS.IP] ?? 0;
-        stats[teamId][cat] = ip > 0 ? (er / ip) * 9 : 0;
+        if (ipExists) {
+          const er = raw[COMPONENT_IDS.ER] ?? 0;
+          const ip = raw[COMPONENT_IDS.IP];
+          stats[teamId][cat] = ip > 0 ? (er / ip) * 9 : 0;
+        } else {
+          stats[teamId][cat] = raw[id] ?? 0;
+        }
       } else if (cat === "WHIP") {
-        const bb = raw[COMPONENT_IDS.BB_PIT] ?? 0;
-        const h = raw[COMPONENT_IDS.H_PIT] ?? 0;
-        const ip = raw[COMPONENT_IDS.IP] ?? 0;
-        stats[teamId][cat] = ip > 0 ? (bb + h) / ip : 0;
+        if (ipExists) {
+          const bb = raw[COMPONENT_IDS.BB_PIT] ?? 0;
+          const h = raw[COMPONENT_IDS.H_PIT] ?? 0;
+          const ip = raw[COMPONENT_IDS.IP];
+          stats[teamId][cat] = ip > 0 ? (bb + h) / ip : 0;
+        } else {
+          stats[teamId][cat] = raw[id] ?? 0;
+        }
       } else {
         stats[teamId][cat] = raw[id] ?? 0;
       }

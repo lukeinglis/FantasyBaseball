@@ -101,6 +101,7 @@ export default function CategoryRankPage() {
   const [loading, setLoading] = useState(true);
   const [view, setView] = useState<"my-ranks" | "leaderboard">("my-ranks");
   const [scope, setScope] = useState<"season" | "week">("season");
+  const [selectedCat, setSelectedCat] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -142,6 +143,16 @@ export default function CategoryRankPage() {
       .filter((cat) => (myTeam.ranks[cat] ?? 0) >= 8)
       .sort((a, b) => (myTeam.ranks[b] ?? 0) - (myTeam.ranks[a] ?? 0));
   }, [myTeam]);
+
+  const catLeaderboard = useMemo(() => {
+    if (!selectedCat || !data) return [];
+    const lower = LOWER_IS_BETTER.has(selectedCat);
+    return [...data.teams].sort((a, b) => {
+      const aVal = a.categories[selectedCat] ?? (lower ? 999 : -999);
+      const bVal = b.categories[selectedCat] ?? (lower ? 999 : -999);
+      return lower ? aVal - bVal : bVal - aVal;
+    });
+  }, [selectedCat, data]);
 
   if (loading) return <div className="flex h-64 items-center justify-center text-slate-500">Loading category rankings...</div>;
   if (error === "ESPN_CREDS_MISSING" || error === "MY_ESPN_TEAM_ID_MISSING") {
@@ -212,7 +223,13 @@ export default function CategoryRankPage() {
                   const delta = myTeam.deltas?.[cat];
                   const rankDelta = myTeam.rankDeltas?.[cat];
                   return (
-                    <div key={cat} className={`rounded-lg border px-3 py-3 text-center ${rankBg(rank)}`}>
+                    <div
+                      key={cat}
+                      onClick={() => setSelectedCat(selectedCat === cat ? null : cat)}
+                      className={`rounded-lg border px-3 py-3 text-center cursor-pointer transition-all ${rankBg(rank)} ${
+                        selectedCat === cat ? "ring-2 ring-orange-400" : "hover:ring-1 hover:ring-slate-300"
+                      }`}
+                    >
                       <div className="text-[10px] font-bold text-slate-500">{cat}</div>
                       <div className={`mt-1 text-[22px] font-bold tabular-nums ${rankColor(rank)}`}>
                         {rank > 0 ? `#${rank}` : "-"}
@@ -234,6 +251,37 @@ export default function CategoryRankPage() {
               </div>
             </div>
           ))}
+
+          {/* Category Detail Panel */}
+          {selectedCat && catLeaderboard.length > 0 && (
+            <div className="mb-6 rounded-lg border border-orange-300 bg-surface overflow-hidden">
+              <div className="border-b border-orange-300 px-4 py-2.5 flex items-center justify-between">
+                <span className="text-[13px] font-bold text-slate-700">{selectedCat} Leaderboard</span>
+                <button onClick={() => setSelectedCat(null)} className="text-[11px] text-slate-500 hover:text-slate-700">Close</button>
+              </div>
+              <div className="divide-y divide-border">
+                {catLeaderboard.map((team, i) => {
+                  const isMe = team.teamId === data!.myTeamId;
+                  const val = team.categories[selectedCat];
+                  const delta = team.deltas?.[selectedCat];
+                  return (
+                    <div key={team.teamId} className={`flex items-center justify-between px-4 py-2 ${isMe ? "bg-orange-50" : ""}`}>
+                      <div className="flex items-center gap-3">
+                        <span className={`w-6 text-center text-[12px] font-bold ${rankColor(i + 1)}`}>#{i + 1}</span>
+                        <span className={`text-[13px] ${isMe ? "font-semibold text-orange-600" : "text-slate-600"}`}>{team.teamName}</span>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <span className="text-[13px] font-mono tabular-nums font-bold text-slate-700">{fmtValue(selectedCat, val)}</span>
+                        {delta !== undefined && (
+                          <span className={`text-[10px] font-mono tabular-nums ${deltaColor(delta)}`}>{fmtDelta(selectedCat, delta)}</span>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
 
           {/* Strengths & Weaknesses */}
           <div className="grid gap-4 sm:grid-cols-2">

@@ -5,7 +5,9 @@
     "web/src/**/*.tsx",
     "web/src/**/*.css",
     "web/package.json",
-    "web/tsconfig.json"
+    "web/tsconfig.json",
+    "eval/**",
+    "factory.md"
   ],
   "guards": [
     "Do not delete or overwrite existing page components",

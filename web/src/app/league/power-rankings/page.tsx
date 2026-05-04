@@ -60,10 +60,10 @@ function avgRankColor(avg: number): string {
 
 function TrendIndicator({ change }: { change: number | null }) {
   if (change === null) {
-    return <span className="text-[11px] text-slate-400">--</span>;
+    return <span className="text-[10px] text-slate-400">NEW</span>;
   }
   if (change === 0) {
-    return <span className="text-[11px] text-slate-400">--</span>;
+    return <span className="text-[11px] text-slate-400">=</span>;
   }
   if (change > 0) {
     return (

@@ -21,6 +21,7 @@ interface LeagueStatsData {
 
 const CATS_ORDER = ALL_CATS_BY_WEIGHT;
 const LOWER_IS_BETTER = new Set(["ERA", "WHIP", "L"]);
+const RATE_STATS = new Set(["AVG", "ERA", "WHIP"]);
 
 function rankCellClasses(rank: number): string {
   if (!Number.isFinite(rank) || rank <= 0) return "bg-slate-100 text-slate-400";
@@ -51,7 +52,7 @@ function EspnSetupCard() {
 }
 
 export default function CategoryBreakdownPage() {
-  const [data, setData] = useState<LeagueStatsData | null>(null);
+  const [data, setData] = useState<(LeagueStatsData & { averages?: Record<string, number> }) | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [sortCat, setSortCat] = useState<string | null>(null);
@@ -213,13 +214,13 @@ export default function CategoryBreakdownPage() {
                   {CATS_ORDER.map((cat) => {
                     const rank = team.ranks[cat] ?? 5;
                     const value = team.categories[cat];
-                    const showValue = sortCat === cat;
                     return (
                       <td key={cat} className="px-0.5 py-1 text-center">
                         <div
-                          className={`mx-auto w-9 rounded px-1 py-0.5 text-[11px] font-bold tabular-nums font-mono ${rankCellClasses(rank)}`}
+                          className={`mx-auto w-14 rounded px-1 py-0.5 text-[10px] font-bold tabular-nums font-mono ${rankCellClasses(rank)}`}
                         >
-                          {showValue ? fmtValue(cat, value) : `#${rank}`}
+                          <div>{fmtValue(cat, value)}</div>
+                          <div className="text-[8px] opacity-70">#{rank}</div>
                         </div>
                       </td>
                     );
@@ -228,6 +229,44 @@ export default function CategoryBreakdownPage() {
               );
             })}
           </tbody>
+          {/* League average row with differential */}
+          {data.averages && (
+            <tfoot className="border-t border-border bg-slate-50">
+              <tr>
+                <td className="px-3 py-2 sticky left-0 bg-slate-50 z-10 text-[11px] font-semibold text-slate-500">Lg Avg</td>
+                <td className="px-2 py-2"></td>
+                {CATS_ORDER.map((cat) => (
+                  <td key={cat} className="px-0.5 py-1 text-center">
+                    <div className="mx-auto w-14 text-[10px] font-mono tabular-nums text-slate-500">
+                      {fmtValue(cat, data.averages?.[cat])}
+                    </div>
+                  </td>
+                ))}
+              </tr>
+              {myTeam && (
+                <tr>
+                  <td className="px-3 py-2 sticky left-0 bg-slate-50 z-10 text-[11px] font-semibold text-orange-600">vs Avg</td>
+                  <td className="px-2 py-2"></td>
+                  {CATS_ORDER.map((cat) => {
+                    const val = myTeam.categories[cat] ?? 0;
+                    const avg = data.averages?.[cat] ?? 0;
+                    const lower = LOWER_IS_BETTER.has(cat);
+                    const delta = lower ? avg - val : val - avg;
+                    const positive = delta > 0;
+                    return (
+                      <td key={cat} className="px-0.5 py-1 text-center">
+                        <div className={`mx-auto w-14 text-[10px] font-bold font-mono tabular-nums ${
+                          positive ? "text-emerald-600" : delta < 0 ? "text-red-600" : "text-slate-400"
+                        }`}>
+                          {positive ? "+" : ""}{RATE_STATS.has(cat) ? delta.toFixed(2) : delta.toFixed(1)}
+                        </div>
+                      </td>
+                    );
+                  })}
+                </tr>
+              )}
+            </tfoot>
+          )}
         </table>
       </div>
     </div>

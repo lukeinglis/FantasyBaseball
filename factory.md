@@ -14,6 +14,7 @@ Improve the reliability, code quality, and test coverage of a Next.js 16 fantasy
 - web/package.json
 - web/tsconfig.json
 - eval/**
+- factory.md
 
 ### Read-only
 

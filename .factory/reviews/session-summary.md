@@ -1,11 +1,11 @@
 # Session Summary — FantasyBaseball
 
-_Generated: 2026-05-02 19:44 UTC_
+_Generated: 2026-05-02 20:33 UTC_
 
 ## Overview
 
-- **Mode:** improve
-- **Experiments:** 20 total (18 kept, 1 reverted, 1 errors)
+- **Mode:** unknown
+- **Experiments:** 21 total (19 kept, 1 reverted, 1 errors)
 
 ## What Was Built
 
@@ -29,6 +29,7 @@ _Generated: 2026-05-02 19:44 UTC_
 | 18 | GM Advisor three-tier cached analysis with week, month, and  | EXPLORE | — | #38 |
 | 19 | GM Advisor three-tier cached analysis with accessible accord | EXPLORE | — | #40 |
 | 20 | Close resolved issues and fix 74 lint errors in scoped batch | FIX | — | #42 |
+| 21 | Rewrite eval/score.py for JS/TS scanning and fix 74 lint err | FIX | — | #44 |
 
 ## What Was Deferred
 

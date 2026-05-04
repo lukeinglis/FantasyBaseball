@@ -6,7 +6,6 @@ import { usePathname } from "next/navigation";
 const SECTIONS = [
   { href: "/league", label: "LEAGUE" },
   { href: "/gm", label: "GM" },
-  { href: "/draft", label: "DRAFT" },
 ];
 
 interface SubLink {

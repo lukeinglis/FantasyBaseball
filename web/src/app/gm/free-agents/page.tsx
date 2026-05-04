@@ -509,31 +509,26 @@ export default function FreeAgentsPage() {
               <th className="px-3 py-2.5">Player</th>
               <th className="px-2 py-2.5">Pos</th>
               <th className="px-2 py-2.5">Team</th>
-              <th className="px-2 py-2.5 text-right">Z</th>
-              <th className="px-2 py-2.5 text-right">FAR</th>
-              {isPitcherFilter ? (
-                <>
-                  <th className={`px-2 py-2.5 text-right ${categoryTierHeaderClass("ERA")}`}>ERA</th>
-                  <th className={`px-2 py-2.5 text-right ${categoryTierHeaderClass("WHIP")}`}>WHIP</th>
-                  <th className={`px-2 py-2.5 text-right ${categoryTierHeaderClass("K")}`}>K</th>
-                  <th className={`px-2 py-2.5 text-right ${categoryTierHeaderClass("W")}`}>W</th>
-                  <th className={`px-2 py-2.5 text-right ${categoryTierHeaderClass("QS")}`}>QS</th>
-                  <th className={`px-2 py-2.5 text-right ${categoryTierHeaderClass("SV")}`}>SV</th>
-                  <th className={`px-2 py-2.5 text-right ${categoryTierHeaderClass("HD")}`}>HD</th>
-                  <th className="px-2 py-2.5 text-right">IP</th>
-                </>
-              ) : (
-                <>
-                  <th className="px-2 py-2.5 text-right">AVG</th>
-                  <th className="px-2 py-2.5 text-right">HR</th>
-                  <th className="px-2 py-2.5 text-right">R</th>
-                  <th className="px-2 py-2.5 text-right">RBI</th>
-                  <th className="px-2 py-2.5 text-right">SB</th>
-                  <th className="px-2 py-2.5 text-right">H</th>
-                  <th className="px-2 py-2.5 text-right">BB</th>
-                  <th className="px-2 py-2.5 text-right">TB</th>
-                </>
-              )}
+              <th className="px-2 py-2.5 text-right cursor-pointer hover:text-orange-600 select-none" onClick={() => setSortBy("FAR")}>
+                Z{sortBy === "FAR" ? " ▼" : ""}
+              </th>
+              <th className="px-2 py-2.5 text-right cursor-pointer hover:text-orange-600 select-none" onClick={() => setSortBy("FAR")}>
+                FAR{sortBy === "FAR" ? " ▼" : ""}
+              </th>
+              {(isPitcherFilter
+                ? [["ERA", "ERA"], ["WHIP", "WHIP"], ["K", "K"], ["W", "W"], ["QS", "QS"], ["SV", "SV"], ["HD", "HD"], ["IP", "IP"]]
+                : [["AVG", "AVG"], ["HR", "HR"], ["R", "R"], ["RBI", "RBI"], ["SB", "SB"], ["H", "H"], ["BB", "BB"], ["TB", "TB"]]
+              ).map(([cat, label]) => (
+                <th
+                  key={cat}
+                  className={`px-2 py-2.5 text-right cursor-pointer hover:text-orange-600 select-none ${
+                    sortBy === cat ? "text-orange-600 font-extrabold" : categoryTierHeaderClass(cat)
+                  }`}
+                  onClick={() => setSortBy(cat)}
+                >
+                  {label}{sortBy === cat ? " ▼" : ""}
+                </th>
+              ))}
             </tr>
           </thead>
           <tbody>
