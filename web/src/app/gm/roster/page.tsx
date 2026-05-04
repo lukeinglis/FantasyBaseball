@@ -391,31 +391,6 @@ function GmAdvisor() {
   );
 }
 
-function RosterSection({ label, players, borderColor = "border-border", schedule, zScoreMap, playerStatsMap, showDetail }: {
-  label: string;
-  players: RosterPlayer[];
-  borderColor?: string;
-  schedule: Record<string, TeamSchedule>;
-  zScoreMap: Map<string, ZScorePlayer>;
-  playerStatsMap: Map<string, PlayerSeasonStats>;
-  showDetail: boolean;
-}) {
-  return (
-    <div className={`rounded-lg border ${borderColor} bg-surface`}>
-      <div className={`border-b ${borderColor} px-3 py-2 flex items-center justify-between`}>
-        <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-600">{label}</span>
-        <span className="text-[10px] tabular-nums text-slate-400">{players.length}</span>
-      </div>
-      {players.map((p, i) => (
-        <PlayerRow key={i} player={p} schedule={schedule[p.proTeam] ?? null}
-          zp={zScoreMap.get(p.name)} stats={playerStatsMap.get(p.name)} showDetail={showDetail} />
-      ))}
-      {players.length === 0 && (
-        <div className="px-3 py-3 text-[11px] text-slate-400">-</div>
-      )}
-    </div>
-  );
-}
 
 function EspnSetupCard() {
   return (
@@ -602,12 +577,12 @@ export default function RosterPage() {
 
       {/* Roster grid */}
       <div className="grid gap-4 lg:grid-cols-3">
-        <RosterSection label="Batting" players={batters} borderColor="border-orange-300" {...sectionProps} />
-        <RosterSection label="Pitching" players={pitchers} {...sectionProps} />
+        <Section label="Batting" players={batters} borderColor="border-orange-300" />
+        <Section label="Pitching" players={pitchers} />
         <div className="space-y-4">
-          <RosterSection label="Bench" players={bench} {...sectionProps} />
+          <Section label="Bench" players={bench} />
           {il.length > 0 && (
-            <RosterSection label="Injured List" players={il} borderColor="border-red-300" {...sectionProps} />
+            <Section label="Injured List" players={il} borderColor="border-red-300" />
           )}
         </div>
       </div>
