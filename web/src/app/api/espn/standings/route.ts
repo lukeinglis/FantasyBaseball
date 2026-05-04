@@ -69,7 +69,7 @@ export async function GET(req: Request) {
         pct,
         gamesBack: 0, // calculated below
         streak,
-        rank: t.rankCalculatedFinal ?? t.playoffSeed ?? 0,
+        rank: 0,
         playoffSeed: t.playoffSeed ?? 0,
         pointsFor: record.pointsFor ?? 0,
         pointsAgainst: record.pointsAgainst ?? 0,
@@ -93,7 +93,7 @@ export async function GET(req: Request) {
     }
 
     // Assign ranks
-    teams.forEach((t, i) => { if (!t.rank) t.rank = i + 1; });
+    teams.forEach((t, i) => { t.rank = i + 1; });
 
     log.info({ op: "standings", durationMs: Date.now() - t0 }, "ok");
     return Response.json({

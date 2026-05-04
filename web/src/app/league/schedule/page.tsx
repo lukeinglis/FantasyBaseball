@@ -99,6 +99,8 @@ export default function SchedulePage() {
   const [data, setData] = useState<ScheduleData | null>(null);
   const [teamRanks, setTeamRanks] = useState<Record<number, TeamRankInfo>>({});
   const [zScoreMap, setZScoreMap] = useState<Record<number, Record<string, number>>>({});
+  const [h2hMatchups, setH2hMatchups] = useState<Record<number, { myWins: number; myLosses: number; myTies: number; categories: Record<string, { myValue: number; oppValue: number; result: string }> }>>({});
+  const [expandedWeek, setExpandedWeek] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const currentRef = useRef<HTMLDivElement>(null);
@@ -107,7 +109,8 @@ export default function SchedulePage() {
     Promise.all([
       fetch("/api/espn/schedule").then(r => r.json()),
       fetch("/api/espn/league-stats?scope=season").then(r => r.json()).catch(() => null),
-    ]).then(([schedData, leagueData]) => {
+      fetch("/api/espn/h2h").then(r => r.json()).catch(() => null),
+    ]).then(([schedData, leagueData, h2hData]) => {
       if (schedData.error) { setError(schedData.error); return; }
       setData(schedData);
       if (leagueData?.teams) {
@@ -119,6 +122,13 @@ export default function SchedulePage() {
         if (leagueData.averages) {
           setZScoreMap(buildZScoreMap(leagueData.teams, leagueData.averages));
         }
+      }
+      if (h2hData?.matchups) {
+        const byWeek: Record<number, { myWins: number; myLosses: number; myTies: number; categories: Record<string, { myValue: number; oppValue: number; result: string }> }> = {};
+        for (const m of h2hData.matchups) {
+          byWeek[m.week] = { myWins: m.myWins, myLosses: m.myLosses, myTies: m.myTies, categories: m.categories };
+        }
+        setH2hMatchups(byWeek);
       }
     })
     .catch(() => setError("FETCH_FAILED"))
@@ -171,57 +181,106 @@ export default function SchedulePage() {
           const strength = myZ && oppZ ? computeMatchupStrength(myZ, oppZ) : null;
           const style = strength ? strengthStyle(strength.score) : null;
 
+          const matchupResult = isPast ? h2hMatchups[week.period] : null;
+          const isExpanded = expandedWeek === week.period;
+          const canExpand = isPast && !!matchupResult;
+
           return (
-            <div
-              key={week.period}
-              ref={isCurrent ? currentRef : undefined}
-              className={`rounded-lg border px-4 py-3 flex items-center justify-between ${
-                isCurrent
-                  ? "border-orange-300 bg-orange-50"
-                  : isPast
-                  ? "border-border bg-surface/50 opacity-60"
-                  : "border-border bg-surface"
-              }`}
-            >
-              <div className="flex items-center gap-4">
-                <span className={`text-[13px] font-bold tabular-nums w-16 ${
-                  isCurrent ? "text-orange-600" : "text-slate-500"
-                }`}>
-                  Week {week.period}
-                </span>
-                <span className={`text-[12px] ${isCurrent ? "text-orange-700" : "text-slate-600"}`}>
-                  {fmtDateRange(week.startDate, week.endDate)}
-                </span>
-              </div>
-              <div className="flex items-center gap-3">
-                {week.myOpponentName ? (
-                  <>
-                    <span className={`text-[13px] font-medium ${isCurrent ? "text-orange-700" : "text-slate-700"}`}>
-                      vs {week.myOpponentName}
-                    </span>
-                    {week.myOpponentId && teamRanks[week.myOpponentId] && (
-                      <span className={`text-[9px] font-bold border rounded px-1.5 py-0.5 ${difficultyLabel(teamRanks[week.myOpponentId].powerRank).color}`}>
-                        #{teamRanks[week.myOpponentId].powerRank} {difficultyLabel(teamRanks[week.myOpponentId].powerRank).label}
-                      </span>
-                    )}
-                    {strength && style && (
-                      <span
-                        title={`Top factors: ${strength.topCategories.join(", ")}`}
-                        className={`text-[9px] font-bold border rounded px-1.5 py-0.5 cursor-help ${style.color}`}
-                      >
-                        {style.label}
-                      </span>
-                    )}
-                  </>
-                ) : (
-                  <span className="text-[12px] text-slate-400">TBD</span>
-                )}
-                {isCurrent && (
-                  <span className="text-[9px] font-bold uppercase text-orange-600 border border-orange-300 rounded px-1.5 py-0.5">
-                    NOW
+            <div key={week.period} ref={isCurrent ? currentRef : undefined}>
+              <div
+                onClick={canExpand ? () => setExpandedWeek(isExpanded ? null : week.period) : undefined}
+                className={`rounded-lg border px-4 py-3 flex items-center justify-between ${
+                  isCurrent
+                    ? "border-orange-300 bg-orange-50"
+                    : isPast
+                    ? "border-border bg-surface/50 opacity-80"
+                    : "border-border bg-surface"
+                } ${canExpand ? "cursor-pointer hover:opacity-100 transition-opacity" : ""}`}
+              >
+                <div className="flex items-center gap-4">
+                  <span className={`text-[13px] font-bold tabular-nums w-16 ${
+                    isCurrent ? "text-orange-600" : "text-slate-500"
+                  }`}>
+                    Week {week.period}
                   </span>
-                )}
+                  <span className={`text-[12px] ${isCurrent ? "text-orange-700" : "text-slate-600"}`}>
+                    {fmtDateRange(week.startDate, week.endDate)}
+                  </span>
+                </div>
+                <div className="flex items-center gap-3">
+                  {week.myOpponentName ? (
+                    <>
+                      <span className={`text-[13px] font-medium ${isCurrent ? "text-orange-700" : "text-slate-700"}`}>
+                        vs {week.myOpponentName}
+                      </span>
+                      {matchupResult && (
+                        <span className={`text-[12px] font-bold font-mono tabular-nums ${
+                          matchupResult.myWins > matchupResult.myLosses ? "text-emerald-600" :
+                          matchupResult.myLosses > matchupResult.myWins ? "text-red-600" : "text-orange-600"
+                        }`}>
+                          {matchupResult.myWins}-{matchupResult.myLosses}{matchupResult.myTies > 0 ? `-${matchupResult.myTies}` : ""}
+                        </span>
+                      )}
+                      {!isPast && week.myOpponentId && teamRanks[week.myOpponentId] && (
+                        <span className={`text-[9px] font-bold border rounded px-1.5 py-0.5 ${difficultyLabel(teamRanks[week.myOpponentId].powerRank).color}`}>
+                          #{teamRanks[week.myOpponentId].powerRank} {difficultyLabel(teamRanks[week.myOpponentId].powerRank).label}
+                        </span>
+                      )}
+                      {strength && style && !isPast && (
+                        <span
+                          title={`Top factors: ${strength.topCategories.join(", ")}`}
+                          className={`text-[9px] font-bold border rounded px-1.5 py-0.5 cursor-help ${style.color}`}
+                        >
+                          {style.label}
+                        </span>
+                      )}
+                    </>
+                  ) : (
+                    <span className="text-[12px] text-slate-400">TBD</span>
+                  )}
+                  {isCurrent && (
+                    <span className="text-[9px] font-bold uppercase text-orange-600 border border-orange-300 rounded px-1.5 py-0.5">
+                      NOW
+                    </span>
+                  )}
+                  {canExpand && (
+                    <span className="text-slate-400 text-[11px]">{isExpanded ? "▲" : "▼"}</span>
+                  )}
+                </div>
               </div>
+              {isExpanded && matchupResult && (
+                <div className="border border-t-0 border-border rounded-b-lg px-4 py-3 bg-surface/50">
+                  <div className="grid grid-cols-4 sm:grid-cols-8 gap-2">
+                    {CATS.map((cat) => {
+                      const c = matchupResult.categories[cat];
+                      if (!c) return (
+                        <div key={cat} className="rounded px-2 py-1.5 text-center bg-slate-50">
+                          <div className="text-[9px] font-bold text-slate-500">{cat}</div>
+                          <div className="text-[11px] text-slate-400">-</div>
+                        </div>
+                      );
+                      const fmtVal = (v: number) => {
+                        if (cat === "AVG") return v.toFixed(3);
+                        if (cat === "ERA" || cat === "WHIP") return v.toFixed(2);
+                        return String(Math.round(v));
+                      };
+                      return (
+                        <div key={cat} className={`rounded px-2 py-1.5 text-center ${
+                          c.result === "WIN" ? "bg-emerald-50" : c.result === "LOSS" ? "bg-red-50" : "bg-orange-50"
+                        }`}>
+                          <div className="text-[9px] font-bold text-slate-500">{cat}</div>
+                          <div className={`text-[12px] font-bold font-mono tabular-nums ${
+                            c.result === "WIN" ? "text-emerald-600" : c.result === "LOSS" ? "text-red-600" : "text-orange-600"
+                          }`}>
+                            {fmtVal(c.myValue)}
+                          </div>
+                          <div className="text-[10px] font-mono tabular-nums text-slate-400">{fmtVal(c.oppValue)}</div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
             </div>
           );
         })}
