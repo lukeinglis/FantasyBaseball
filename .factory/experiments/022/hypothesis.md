@@ -1,0 +1,1 @@
+Fix 4 bugs (#46, #54, #55, #47) and implement 7 features (#53, #52, #56, #49, #48, #51, #45) to close all open issues
