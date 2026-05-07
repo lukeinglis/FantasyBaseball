@@ -32,7 +32,4 @@ export function trendDirection(points: (number | undefined | null)[]): TrendDire
   return "flat";
 }
 
-export function safeNum(val: number | undefined | null): number {
-  if (val == null || !Number.isFinite(val)) return 0;
-  return val;
-}
+export { sanitizeNum as safeNum } from "@/lib/sanitize";

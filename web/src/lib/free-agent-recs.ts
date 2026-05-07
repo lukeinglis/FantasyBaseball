@@ -1,3 +1,6 @@
+import { sanitizeNum } from "@/lib/sanitize";
+export { sanitizeNum };
+
 export interface WeakCategory {
   cat: string;
   teamAvgZ: number;
@@ -13,11 +16,6 @@ export interface RecommendedFA {
   helpsZ: number;
   far: number;
   zScores: Record<string, number>;
-}
-
-export function sanitizeNum(v: unknown): number {
-  if (typeof v !== "number" || !Number.isFinite(v)) return 0;
-  return v;
 }
 
 export function findWeakCategories(

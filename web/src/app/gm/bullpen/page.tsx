@@ -4,6 +4,7 @@ const IL_INJURY_STATUSES = new Set(["SEVEN_DAY_DL", "TEN_DAY_DL", "FIFTEEN_DAY_D
 function isOnIL(status: string): boolean { return IL_INJURY_STATUSES.has(status); }
 
 import { useState, useEffect, useMemo, useCallback } from "react";
+import { EspnAuthRequired } from "@/components/EspnAuthRequired";
 
 interface RosterPlayer {
   name: string;
@@ -97,18 +98,6 @@ function fmtDate(d: string): string {
 
 function fmtShortDate(d: string): string {
   return new Date(d + "T12:00:00").toLocaleDateString("en-US", { weekday: "short" });
-}
-
-function EspnSetupCard() {
-  return (
-    <div className="mx-auto max-w-lg rounded-xl border border-border bg-surface px-8 py-10 text-center">
-      <div className="text-[11px] font-semibold uppercase tracking-widest text-orange-600/60">Setup Required</div>
-      <div className="mt-3 text-xl font-bold text-gray-900">Connect ESPN Credentials</div>
-      <div className="mt-3 text-[13px] text-slate-500">
-        Bullpen pulls live data from your private ESPN league.
-      </div>
-    </div>
-  );
 }
 
 interface NextWeekData {
@@ -547,7 +536,7 @@ export default function BullpenPage() {
 
   if (loading) return <div className="flex h-64 items-center justify-center text-slate-500">Loading bullpen...</div>;
   if (error === "ESPN_CREDS_MISSING") {
-    return <div className="flex min-h-[70vh] items-center justify-center px-4"><EspnSetupCard /></div>;
+    return <div className="flex min-h-[70vh] items-center justify-center px-4"><EspnAuthRequired /></div>;
   }
   if (error || !myTeam) {
     return (

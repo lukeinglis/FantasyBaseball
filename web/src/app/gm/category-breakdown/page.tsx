@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
+import { EspnAuthRequired } from "@/components/EspnAuthRequired";
 import { ALL_CATS_BY_WEIGHT, isPunt, categoryTierHeaderClass } from "@/lib/category-weights";
 
 interface TeamCategoryStats {
@@ -37,18 +38,6 @@ function fmtValue(cat: string, val: number | null | undefined): string {
   if (cat === "AVG") return val.toFixed(3);
   if (cat === "ERA" || cat === "WHIP") return val.toFixed(2);
   return String(Math.round(val));
-}
-
-function EspnSetupCard() {
-  return (
-    <div className="mx-auto max-w-lg rounded-xl border border-border bg-surface px-8 py-10 text-center">
-      <div className="text-[11px] font-semibold uppercase tracking-widest text-orange-600/60">Setup Required</div>
-      <div className="mt-3 text-xl font-bold text-gray-900">Connect ESPN Credentials</div>
-      <div className="mt-3 text-[13px] text-slate-500">
-        Category Breakdown pulls live data from your private ESPN league.
-      </div>
-    </div>
-  );
 }
 
 export default function CategoryBreakdownPage() {
@@ -107,7 +96,7 @@ export default function CategoryBreakdownPage() {
 
   if (loading) return <div className="flex h-64 items-center justify-center text-slate-500">Loading...</div>;
   if (error === "ESPN_CREDS_MISSING" || error === "MY_ESPN_TEAM_ID_MISSING") {
-    return <div className="flex min-h-[70vh] items-center justify-center px-4"><EspnSetupCard /></div>;
+    return <div className="flex min-h-[70vh] items-center justify-center px-4"><EspnAuthRequired /></div>;
   }
   if (error || !data) {
     return (

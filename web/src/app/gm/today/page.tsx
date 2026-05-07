@@ -4,6 +4,7 @@ const IL_INJURY_STATUSES = new Set(["SEVEN_DAY_DL", "TEN_DAY_DL", "FIFTEEN_DAY_D
 function isOnIL(status: string): boolean { return IL_INJURY_STATUSES.has(status); }
 
 import { useState, useEffect, useMemo } from "react";
+import { EspnAuthRequired } from "@/components/EspnAuthRequired";
 
 interface RosterPlayer {
   name: string;
@@ -49,14 +50,6 @@ function weatherIcon(condition: string | null, rainChance: number | null): { ico
   return { icon: "", color: "", label: "" };
 }
 
-function EspnSetupCard() {
-  return (
-    <div className="mx-auto max-w-lg rounded-xl border border-border bg-surface px-8 py-10 text-center">
-      <div className="text-[11px] font-semibold uppercase tracking-widest text-orange-600/60">Setup Required</div>
-      <div className="mt-3 text-xl font-bold text-gray-900">Connect ESPN Credentials</div>
-    </div>
-  );
-}
 
 interface BvpStats {
   summary: string;
@@ -95,11 +88,8 @@ interface MatchupPlayerLocal {
 }
 
 import { CATEGORY_WEIGHTS, LOWER_IS_BETTER, isPunt } from "@/lib/category-weights";
-
-export function sanitizeNum(val: unknown): number {
-  if (typeof val !== "number" || !Number.isFinite(val)) return 0;
-  return val;
-}
+import { sanitizeNum } from "@/lib/sanitize";
+export { sanitizeNum };
 
 export function scoreActionItem(
   stats: Record<string, number>,
@@ -274,7 +264,7 @@ export default function TodayPage() {
 
   if (loading) return <div className="flex h-64 items-center justify-center text-slate-500">Loading today...</div>;
   if (error === "ESPN_CREDS_MISSING") {
-    return <div className="flex min-h-[70vh] items-center justify-center px-4"><EspnSetupCard /></div>;
+    return <div className="flex min-h-[70vh] items-center justify-center px-4"><EspnAuthRequired /></div>;
   }
   if (error || !myTeam) {
     return (

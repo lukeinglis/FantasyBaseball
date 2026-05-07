@@ -60,12 +60,10 @@ export interface ArbitrageCandidate {
   rankDiff: number;
 }
 
-const INVERT_CATS = new Set(["ERA", "WHIP", "L"]);
+import { sanitizeNum as safeNum } from "@/lib/sanitize";
+export { safeNum };
 
-export function safeNum(v: unknown): number {
-  if (typeof v !== "number" || !Number.isFinite(v)) return 0;
-  return v;
-}
+const INVERT_CATS = new Set(["ERA", "WHIP", "L"]);
 
 export function computeTeamCatStrengths(
   players: ZScorePlayer[],

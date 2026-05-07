@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
+import { EspnAuthRequired } from "@/components/EspnAuthRequired";
 import {
   findSurplusCategories,
   computeGapAnalysis,
@@ -89,18 +90,6 @@ function zColorClass(z: number): string {
   if (z >= 0.5) return "text-emerald-600";
   if (z >= 0) return "text-slate-600";
   return "text-red-600";
-}
-
-function EspnSetupCard() {
-  return (
-    <div className="mx-auto max-w-lg rounded-xl border border-border bg-surface px-8 py-10 text-center">
-      <div className="text-[11px] font-semibold uppercase tracking-widest text-orange-600/60">Setup Required</div>
-      <div className="mt-3 text-xl font-bold text-gray-900">Connect ESPN Credentials</div>
-      <div className="mt-3 text-[13px] text-slate-500">
-        Trade Room needs your ESPN roster data to evaluate trades.
-      </div>
-    </div>
-  );
 }
 
 export default function TradeRoomPage() {
@@ -375,7 +364,7 @@ export default function TradeRoomPage() {
 
   if (loading) return <div className="flex h-64 items-center justify-center text-slate-500">Loading trade room...</div>;
   if (error === "ESPN_CREDS_MISSING") {
-    return <div className="flex min-h-[70vh] items-center justify-center px-4"><EspnSetupCard /></div>;
+    return <div className="flex min-h-[70vh] items-center justify-center px-4"><EspnAuthRequired /></div>;
   }
   if (error || !myTeam) {
     return (

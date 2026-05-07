@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { EspnAuthRequired } from "@/components/EspnAuthRequired";
 
 interface WeeklyTrendPoint {
   week: number;
@@ -79,18 +80,6 @@ function TrendIndicator({ change }: { change: number | null }) {
   );
 }
 
-function EspnSetupCard() {
-  return (
-    <div className="mx-auto max-w-lg rounded-xl border border-border bg-surface px-8 py-10 text-center">
-      <div className="text-[11px] font-semibold uppercase tracking-widest text-orange-600/60">Setup Required</div>
-      <div className="mt-3 text-xl font-bold text-gray-900">Connect ESPN Credentials</div>
-      <div className="mt-3 text-[13px] text-slate-500">
-        Power Rankings pulls live data from your private ESPN league.
-      </div>
-    </div>
-  );
-}
-
 function Sparkline({ points, current }: { points: WeeklyTrendPoint[]; current: number }) {
   if (points.length < 2) return null;
   const maxRank = 10;
@@ -141,7 +130,7 @@ export default function PowerRankingsPage() {
 
   if (loading) return <div className="flex h-64 items-center justify-center text-slate-500">Loading power rankings...</div>;
   if (error === "ESPN_CREDS_MISSING" || error === "MY_ESPN_TEAM_ID_MISSING") {
-    return <div className="flex min-h-[70vh] items-center justify-center px-4"><EspnSetupCard /></div>;
+    return <div className="flex min-h-[70vh] items-center justify-center px-4"><EspnAuthRequired /></div>;
   }
   if (error || !data) {
     return (

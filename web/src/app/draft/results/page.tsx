@@ -58,10 +58,9 @@ export default function DraftResultsPage() {
         </div>
         <div className="mt-4 text-2xl font-bold text-gray-900">No data yet</div>
         <div className="mt-3 text-[14px] text-slate-500">
-          Run the ESPN data fetch script to populate 2026 draft results:
+          Draft results will appear here once the 2026 draft data has been fetched and committed.
         </div>
         <pre className="mt-4 rounded-lg border border-border bg-surface px-4 py-3 text-left text-[12px] text-slate-600">
-          cd /path/to/FantasyBaseball{"\n"}
           python3 scripts/fetch_espn_history.py{"\n"}
           # Then commit seasons/2026/draft_results.csv
         </pre>

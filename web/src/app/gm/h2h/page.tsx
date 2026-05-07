@@ -2,6 +2,9 @@
 
 import { useState, useEffect, useMemo } from "react";
 import { categoryTierHeaderClass, isPunt, ALL_CATS_BY_WEIGHT } from "@/lib/category-weights";
+import { EspnAuthRequired } from "@/components/EspnAuthRequired";
+import { sanitizeNum as safe } from "@/lib/sanitize";
+import { compareTeams } from "@/lib/category-compare";
 
 interface H2HMatchup {
   week: number;
@@ -75,11 +78,6 @@ const PIT_CATS = ["K", "QS", "W", "L", "SV", "HD", "ERA", "WHIP"];
 const ALL_CATS = [...BAT_CATS, ...PIT_CATS];
 const LOWER_IS_BETTER = new Set(["ERA", "WHIP", "L"]);
 
-function safe(v: unknown): number {
-  if (typeof v !== "number" || !Number.isFinite(v)) return 0;
-  return v;
-}
-
 function resultColor(w: number, l: number): string {
   if (w > l) return "text-emerald-600";
   if (l > w) return "text-red-600";
@@ -107,17 +105,6 @@ function fmtPct(numerator: number, denominator: number): string {
   return pct.toFixed(3);
 }
 
-function EspnSetupCard() {
-  return (
-    <div className="mx-auto max-w-lg rounded-xl border border-border bg-surface px-8 py-10 text-center">
-      <div className="text-[11px] font-semibold uppercase tracking-widest text-orange-600/60">Setup Required</div>
-      <div className="mt-3 text-xl font-bold text-gray-900">Connect ESPN Credentials</div>
-      <div className="mt-3 text-[13px] text-slate-500">
-        Team H2H pulls live data from your private ESPN league.
-      </div>
-    </div>
-  );
-}
 
 /* ── This Week: hypothetical H2H matchup helpers ── */
 
@@ -128,36 +115,6 @@ interface HypotheticalMatchup {
   losses: number;
   ties: number;
   catResults: { cat: string; myValue: number; oppValue: number; result: "WIN" | "LOSS" | "TIE" }[];
-}
-
-function compareTeams(
-  myStats: Record<string, number>,
-  oppStats: Record<string, number>
-): { wins: number; losses: number; ties: number; catResults: { cat: string; myValue: number; oppValue: number; result: "WIN" | "LOSS" | "TIE" }[] } {
-  let wins = 0, losses = 0, ties = 0;
-  const catResults: { cat: string; myValue: number; oppValue: number; result: "WIN" | "LOSS" | "TIE" }[] = [];
-
-  for (const cat of ALL_CATS) {
-    const myVal = safe(myStats[cat]);
-    const oppVal = safe(oppStats[cat]);
-    const lower = LOWER_IS_BETTER.has(cat);
-    let result: "WIN" | "LOSS" | "TIE";
-
-    if (myVal === oppVal) {
-      result = "TIE";
-      ties++;
-    } else if (lower ? myVal < oppVal : myVal > oppVal) {
-      result = "WIN";
-      wins++;
-    } else {
-      result = "LOSS";
-      losses++;
-    }
-
-    catResults.push({ cat, myValue: myVal, oppValue: oppVal, result });
-  }
-
-  return { wins, losses, ties, catResults };
 }
 
 /* ── Tab type ── */
@@ -599,7 +556,7 @@ export default function TeamH2HPage() {
 
   if (loading) return <div className="flex h-64 items-center justify-center text-slate-500">Loading...</div>;
   if (error === "ESPN_CREDS_MISSING" || error === "MY_ESPN_TEAM_ID_MISSING") {
-    return <div className="flex min-h-[70vh] items-center justify-center px-4"><EspnSetupCard /></div>;
+    return <div className="flex min-h-[70vh] items-center justify-center px-4"><EspnAuthRequired /></div>;
   }
   if (error || !data) {
     return (

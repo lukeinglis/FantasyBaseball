@@ -5,8 +5,9 @@ function isOnIL(status: string): boolean { return IL_INJURY_STATUSES.has(status)
 
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { DataFreshness } from "@/components/DataFreshness";
+import { EspnAuthRequired } from "@/components/EspnAuthRequired";
 import { simulateCategoryWinProb } from "@/lib/monte-carlo";
-import { isPunt, isHighImpact, categoryTierClass } from "@/lib/category-weights";
+import { isPunt, isHighImpact, categoryTierClass, CATEGORY_WEIGHTS, LOWER_IS_BETTER } from "@/lib/category-weights";
 
 interface MatchupCat {
   cat: string;
@@ -83,7 +84,6 @@ const BENCH_SLOT_ID = 16;
 
 const BAT_CATS = ["H", "R", "HR", "TB", "RBI", "BB", "SB", "AVG"];
 const PIT_CATS = ["K", "QS", "W", "L", "SV", "HD", "ERA", "WHIP"];
-const LOWER_IS_BETTER = new Set(["ERA", "WHIP", "L"]);
 
 function catResultColor(result: string) {
   if (result === "WIN") return "text-emerald-600";
@@ -297,27 +297,6 @@ function RosterPanel({
   );
 }
 
-function EspnSetupCard() {
-  return (
-    <div className="mx-auto max-w-lg rounded-xl border border-border bg-surface px-8 py-10 text-center">
-      <div className="text-[11px] font-semibold uppercase tracking-widest text-orange-600/60">Setup Required</div>
-      <div className="mt-3 text-xl font-bold text-gray-900">Connect ESPN Credentials</div>
-      <div className="mt-3 text-[13px] text-slate-500">
-        The Matchup view pulls live data from your private ESPN league. Add these environment variables to Vercel.
-      </div>
-      <div className="mt-5 rounded-lg border border-border bg-background px-4 py-4 text-left text-[12px]">
-        <div className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-slate-600">
-          Vercel → Settings → Environment Variables
-        </div>
-        <div className="space-y-2 font-mono">
-          <div><span className="text-orange-600">ESPN_S2</span> <span className="text-slate-600">=</span> <span className="text-slate-500">AE...</span></div>
-          <div><span className="text-orange-600">ESPN_SWID</span> <span className="text-slate-600">=</span> <span className="text-slate-500">{"{XXXX-...}"}</span></div>
-          <div><span className="text-orange-600">MY_ESPN_TEAM_ID</span> <span className="text-slate-600">=</span> <span className="text-slate-500">9</span></div>
-        </div>
-      </div>
-    </div>
-  );
-}
 
 export default function MatchupPage() {
   const [data, setData] = useState<MatchupData | null>(null);
@@ -540,7 +519,7 @@ export default function MatchupPage() {
 
   if (loading) return <div className="flex h-64 items-center justify-center text-slate-500">Loading matchup...</div>;
   if (error === "ESPN_CREDS_MISSING" || error === "MY_ESPN_TEAM_ID_MISSING") {
-    return <div className="flex min-h-[70vh] items-center justify-center px-4"><EspnSetupCard /></div>;
+    return <div className="flex min-h-[70vh] items-center justify-center px-4"><EspnAuthRequired /></div>;
   }
   if (error || !data) {
     return (
@@ -665,6 +644,74 @@ export default function MatchupPage() {
           )}
         </div>
       )}
+
+      {/* At-Risk Categories */}
+      {winProbs && projections && daysLeft > 0 && (() => {
+        const atRisk = data.categories
+          .filter((c) => {
+            if (isPunt(c.cat)) return false;
+            const prob = winProbs[c.cat] ?? null;
+            if (prob === null) return false;
+            if (c.result === "WIN" && prob < 67) return true;
+            if (c.result === "LOSS" && prob > 33) return true;
+            return false;
+          })
+          .map((c) => {
+            const prob = winProbs[c.cat] ?? 50;
+            const proj = projections.find((p) => p.cat === c.cat);
+            const gap = c.myValue !== null && c.oppValue !== null
+              ? LOWER_IS_BETTER.has(c.cat)
+                ? c.oppValue - c.myValue
+                : c.myValue - c.oppValue
+              : 0;
+            const weight = CATEGORY_WEIGHTS[c.cat] ?? 0;
+            return { ...c, prob, proj, gap, weight };
+          })
+          .sort((a, b) => b.weight - a.weight);
+
+        if (atRisk.length === 0) return null;
+
+        return (
+          <div className="mb-4 rounded-lg border border-orange-200 bg-orange-50/50">
+            <div className="border-b border-orange-200 px-4 py-2 flex items-center justify-between">
+              <span className="text-[10px] font-semibold uppercase tracking-widest text-orange-600">At-Risk Categories</span>
+              <span className="text-[10px] text-orange-400">{atRisk.length} contested</span>
+            </div>
+            <div className="px-4 py-3 space-y-2">
+              {atRisk.map((c) => (
+                <div key={c.cat} className="flex items-center gap-3">
+                  <span className={`w-12 text-[12px] font-bold ${
+                    c.result === "WIN" ? "text-emerald-600" : "text-red-600"
+                  }`}>{c.cat}</span>
+                  <span className={`text-[10px] font-semibold ${
+                    c.result === "WIN" ? "text-emerald-600" : "text-red-600"
+                  }`}>{c.result}</span>
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 text-[11px]">
+                      <span className="font-mono tabular-nums text-slate-700">
+                        {fmtCat(c.cat, c.myValue)} vs {fmtCat(c.cat, c.oppValue)}
+                      </span>
+                      <span className={`font-semibold ${c.gap > 0 ? "text-emerald-600" : "text-red-600"}`}>
+                        ({c.gap > 0 ? "+" : ""}{c.cat === "AVG" || c.cat === "ERA" || c.cat === "WHIP" ? c.gap.toFixed(3) : Math.round(c.gap)})
+                      </span>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <span className={`text-[11px] font-bold tabular-nums ${
+                      c.prob > 55 ? "text-emerald-600" : c.prob < 45 ? "text-red-600" : "text-orange-600"
+                    }`}>{c.prob}% win</span>
+                  </div>
+                  {c.proj?.willFlip && (
+                    <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded ${
+                      c.proj.projResult === "WIN" ? "bg-emerald-100 text-emerald-700" : "bg-red-100 text-red-700"
+                    }`}>FLIP</span>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+      })()}
 
       {/* Category scoreboard — donut charts */}
       <div className="mb-6 space-y-3">

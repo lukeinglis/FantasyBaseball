@@ -5,6 +5,7 @@ function isOnIL(status: string): boolean { return IL_INJURY_STATUSES.has(status)
 
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { computePercentile, trendDirection, safeNum } from "@/lib/roster-utils";
+import { EspnAuthRequired } from "@/components/EspnAuthRequired";
 
 interface RosterPlayer {
   name: string;
@@ -392,27 +393,6 @@ function GmAdvisor() {
 }
 
 
-function EspnSetupCard() {
-  return (
-    <div className="mx-auto max-w-lg rounded-xl border border-border bg-surface px-8 py-10 text-center">
-      <div className="text-[11px] font-semibold uppercase tracking-widest text-orange-600/60">Setup Required</div>
-      <div className="mt-3 text-xl font-bold text-gray-900">Connect ESPN Credentials</div>
-      <div className="mt-3 text-[13px] text-slate-500">
-        The Roster view pulls live data from your private ESPN league. Add these environment variables to Vercel.
-      </div>
-      <div className="mt-5 rounded-lg border border-border bg-background px-4 py-4 text-left text-[12px]">
-        <div className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-slate-600">
-          Vercel → Settings → Environment Variables
-        </div>
-        <div className="space-y-2 font-mono">
-          <div><span className="text-orange-600">ESPN_S2</span> <span className="text-slate-600">=</span> <span className="text-slate-500">AE...</span></div>
-          <div><span className="text-orange-600">ESPN_SWID</span> <span className="text-slate-600">=</span> <span className="text-slate-500">{"{XXXX-...}"}</span></div>
-          <div><span className="text-orange-600">MY_ESPN_TEAM_ID</span> <span className="text-slate-600">=</span> <span className="text-slate-500">9</span></div>
-        </div>
-      </div>
-    </div>
-  );
-}
 
 export default function RosterPage() {
   const [teams, setTeams] = useState<EspnTeam[]>([]);
@@ -500,7 +480,7 @@ export default function RosterPage() {
 
   if (loading) return <div className="flex h-64 items-center justify-center text-slate-500">Loading roster...</div>;
   if (error === "ESPN_CREDS_MISSING") {
-    return <div className="flex min-h-[70vh] items-center justify-center px-4"><EspnSetupCard /></div>;
+    return <div className="flex min-h-[70vh] items-center justify-center px-4"><EspnAuthRequired /></div>;
   }
   if (error || !resolvedTeam) {
     return (
