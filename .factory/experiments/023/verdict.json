@@ -1,0 +1,15 @@
+{
+  "id": 23,
+  "timestamp": "2026-05-07 12:10:24.682069",
+  "hypothesis": "Fix 11 improvement areas: nav cleanup, shared components, power analytics, GM dashboard, code consolidation",
+  "change_summary": "Created shared EspnAuthRequired component (replaced 14 inline copies), sanitize.ts utility, category-compare.ts. Added GM dashboard, league nav cleanup (History/Owners/Scouting visible), removed duplicate re-exports, Draft moved under GM. Fixed Draft Results path. 190 tests, 15 new.",
+  "issue_number": 57,
+  "pr_number": 70,
+  "score_before": null,
+  "score_after": null,
+  "delta": null,
+  "verdict": "keep",
+  "cost_usd": null,
+  "notes": "ceo:keep score_delta=na precheck=skipped agents_spawned=R,S,B pr_status=open_for_review hypothesis_type=mixed e2e=pass backlog_cleared=yes",
+  "research_citations": []
+}

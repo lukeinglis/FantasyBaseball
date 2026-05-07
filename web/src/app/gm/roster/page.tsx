@@ -6,6 +6,7 @@ function isOnIL(status: string): boolean { return IL_INJURY_STATUSES.has(status)
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { computePercentile, trendDirection, safeNum } from "@/lib/roster-utils";
 import { EspnAuthRequired } from "@/components/EspnAuthRequired";
+import { HIGH_IMPACT_CATS, LOWER_IS_BETTER as LIB_LOWER_IS_BETTER } from "@/lib/category-weights";
 
 interface RosterPlayer {
   name: string;
@@ -74,6 +75,49 @@ const PITCHER_Z_CATS = ["K", "QS", "W", "SV", "HD", "ERA", "WHIP", "L"];
 const BATTER_TREND_CATS = ["HR", "RBI", "R", "SB"];
 const PITCHER_TREND_CATS = ["W", "K", "ERA", "WHIP"];
 const INVERT_TREND_CATS = new Set(["ERA", "WHIP"]);
+const HOT_COLD_BAT_CATS = ["HR", "RBI", "R", "TB", "AVG"];
+const HOT_COLD_PIT_CATS = ["K", "ERA", "WHIP", "QS"];
+
+function getHotCold(stats: PlayerSeasonStats | undefined): { status: "hot" | "cold" | "neutral"; cats: string[] } {
+  if (!stats) return { status: "neutral", cats: [] };
+  const isPitcher = stats.pos === "SP" || stats.pos === "RP";
+  const cats = isPitcher ? HOT_COLD_PIT_CATS : HOT_COLD_BAT_CATS;
+  let hotCount = 0;
+  let coldCount = 0;
+  const hotCats: string[] = [];
+  const coldCats: string[] = [];
+  for (const cat of cats) {
+    const season = safeNum(stats.seasonStats[cat]);
+    const last7 = stats.last7Stats?.[cat];
+    if (last7 === undefined || last7 === null) continue;
+    const recent = safeNum(last7);
+    if (season === 0 && recent === 0) continue;
+    const lower = LIB_LOWER_IS_BETTER.has(cat);
+    const isRate = cat === "AVG" || cat === "ERA" || cat === "WHIP";
+    let threshold: number;
+    if (isRate) {
+      threshold = cat === "AVG" ? 0.030 : cat === "ERA" ? 1.0 : 0.15;
+      const diff = recent - season;
+      const better = lower ? diff < -threshold : diff > threshold;
+      const worse = lower ? diff > threshold : diff < -threshold;
+      if (better) { hotCount++; hotCats.push(cat); }
+      if (worse) { coldCount++; coldCats.push(cat); }
+    } else {
+      const ratio = season > 0 ? recent / season : (recent > 0 ? 2 : 1);
+      if (!Number.isFinite(ratio)) continue;
+      if (lower) {
+        if (ratio < 0.7) { hotCount++; hotCats.push(cat); }
+        if (ratio > 1.3) { coldCount++; coldCats.push(cat); }
+      } else {
+        if (ratio > 1.3) { hotCount++; hotCats.push(cat); }
+        if (ratio < 0.7) { coldCount++; coldCats.push(cat); }
+      }
+    }
+  }
+  if (hotCount >= 2) return { status: "hot", cats: hotCats };
+  if (coldCount >= 2) return { status: "cold", cats: coldCats };
+  return { status: "neutral", cats: [] };
+}
 
 // Slot IDs
 const BATTER_SLOT_IDS = new Set([0, 1, 2, 3, 4, 5, 6, 7, 8, 12]);
@@ -222,6 +266,16 @@ function PlayerRow({
           <span className="w-7 shrink-0 text-[10px] font-bold text-slate-600">{player.slotLabel}</span>
           <span className={`min-w-0 w-[140px] truncate text-[12px] ${isInjured ? "text-slate-500" : "text-slate-700"}`}>
             {player.name}
+            {(() => {
+              const hc = getHotCold(stats);
+              if (hc.status === "hot") return (
+                <span className="ml-1 text-[9px] font-bold text-emerald-600" title={`Hot: ${hc.cats.join(", ")}`}>&#9650;</span>
+              );
+              if (hc.status === "cold") return (
+                <span className="ml-1 text-[9px] font-bold text-red-600" title={`Cold: ${hc.cats.join(", ")}`}>&#9660;</span>
+              );
+              return null;
+            })()}
           </span>
           <span className="w-6 shrink-0 text-[10px] text-slate-500">{player.pos}</span>
           <span className="w-7 shrink-0 text-[10px] text-slate-500">{player.proTeam}</span>

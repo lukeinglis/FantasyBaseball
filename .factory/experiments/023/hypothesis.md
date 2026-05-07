@@ -1,0 +1,1 @@
+Fix 11 improvement areas: nav cleanup, shared components, power analytics, GM dashboard, code consolidation (#60-#69)
