@@ -7,7 +7,7 @@ import { useState, useEffect, useMemo, useCallback } from "react";
 import { DataFreshness } from "@/components/DataFreshness";
 import { EspnAuthRequired } from "@/components/EspnAuthRequired";
 import { simulateCategoryWinProb } from "@/lib/monte-carlo";
-import { isPunt, isHighImpact, categoryTierClass, CATEGORY_WEIGHTS, LOWER_IS_BETTER } from "@/lib/category-weights";
+import { isPunt, isHighImpact, categoryTierClass, CATEGORY_WEIGHTS, LOWER_IS_BETTER, categoryTier } from "@/lib/category-weights";
 
 interface MatchupCat {
   cat: string;
@@ -306,6 +306,18 @@ export default function MatchupPage() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [selectedCat, setSelectedCat] = useState<string | null>(null);
+  const [h2hData, setH2hData] = useState<{
+    opponents: Record<number, {
+      teamName: string;
+      totalWins: number;
+      totalLosses: number;
+      totalTies: number;
+      catWins: Record<string, number>;
+      catLosses: Record<string, number>;
+      matchupsPlayed: number;
+    }>;
+  } | null>(null);
+  const [oppLeagueRanks, setOppLeagueRanks] = useState<Record<string, number> | null>(null);
 
   const fetchData = useCallback(() => {
     fetch("/api/espn/matchup")
@@ -338,6 +350,20 @@ export default function MatchupPage() {
   }, []);
 
   useEffect(() => { fetchData(); }, [fetchData]);
+
+  useEffect(() => {
+    if (!data) return;
+    Promise.all([
+      fetch("/api/espn/h2h").then((r) => r.json()).catch(() => null),
+      fetch("/api/espn/league-stats?scope=season").then((r) => r.json()).catch(() => null),
+    ]).then(([h2h, leagueStats]) => {
+      if (h2h && !h2h.error) setH2hData({ opponents: h2h.opponents });
+      if (leagueStats && !leagueStats.error && leagueStats.teams) {
+        const oppTeam = leagueStats.teams.find((t: { teamId: number }) => t.teamId === data.oppTeamId);
+        if (oppTeam) setOppLeagueRanks(oppTeam.ranks);
+      }
+    });
+  }, [data]);
 
   // Calculate days remaining in matchup
   const daysLeft = useMemo(() => {
@@ -829,6 +855,94 @@ export default function MatchupPage() {
           </div>
         ))}
       </div>
+
+      {/* Opponent Scouting */}
+      {data && (h2hData || oppLeagueRanks) && (() => {
+        const oppH2H = h2hData?.opponents[data.oppTeamId];
+        const allCats = [...BAT_CATS, ...PIT_CATS];
+        return (
+          <div className="mb-6 rounded-lg border border-border bg-surface">
+            <div className="border-b border-border px-4 py-2 flex items-center justify-between">
+              <div>
+                <span className="text-[10px] font-semibold uppercase tracking-widest text-slate-500">Opponent Scouting</span>
+                <span className="ml-2 text-[11px] text-slate-400">{data.oppTeamName}</span>
+              </div>
+              {oppH2H && (
+                <span className="text-[11px] font-mono tabular-nums text-slate-500">
+                  {oppH2H.matchupsPlayed} matchup{oppH2H.matchupsPlayed !== 1 ? "s" : ""} this season
+                </span>
+              )}
+            </div>
+            <div className="px-4 py-3">
+              {/* Historical category record vs this opponent */}
+              {oppH2H && oppH2H.matchupsPlayed > 0 && (
+                <div className="mb-3">
+                  <div className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider mb-2">
+                    Category record vs {data.oppTeamName}
+                  </div>
+                  <div className="flex flex-wrap gap-1.5">
+                    {allCats.map((cat) => {
+                      const wins = oppH2H.catWins[cat] ?? 0;
+                      const losses = oppH2H.catLosses[cat] ?? 0;
+                      const ties = oppH2H.matchupsPlayed - wins - losses;
+                      const dominant = wins > losses;
+                      const weak = losses > wins;
+                      return (
+                        <div key={cat} className={`rounded px-2 py-1 text-center min-w-[48px] border ${
+                          dominant ? "bg-emerald-50 border-emerald-200" :
+                          weak ? "bg-red-50 border-red-200" :
+                          "bg-slate-50 border-border"
+                        } ${isPunt(cat) ? "opacity-50" : ""}`}>
+                          <div className="text-[9px] font-bold text-slate-600">{cat}</div>
+                          <div className={`text-[11px] font-bold font-mono tabular-nums ${
+                            dominant ? "text-emerald-600" : weak ? "text-red-600" : "text-slate-500"
+                          }`}>
+                            {wins}-{losses}{ties > 0 ? `-${ties}` : ""}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {/* Opponent league-wide category rankings */}
+              {oppLeagueRanks && (
+                <div>
+                  <div className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider mb-2">
+                    Opponent league rankings (season)
+                  </div>
+                  <div className="flex flex-wrap gap-1.5">
+                    {allCats.map((cat) => {
+                      const rank = oppLeagueRanks[cat] ?? 0;
+                      const isStrength = rank <= 3;
+                      const isWeakness = rank >= 9;
+                      return (
+                        <div key={cat} className={`rounded px-2 py-1 text-center min-w-[40px] border ${
+                          isWeakness ? "bg-emerald-50 border-emerald-200" :
+                          isStrength ? "bg-red-50 border-red-200" :
+                          "bg-slate-50 border-border"
+                        } ${isPunt(cat) ? "opacity-50" : ""}`}>
+                          <div className="text-[9px] font-bold text-slate-600">{cat}</div>
+                          <div className={`text-[11px] font-bold tabular-nums ${
+                            isWeakness ? "text-emerald-600" :
+                            isStrength ? "text-red-600" : "text-slate-500"
+                          }`}>
+                            #{rank}
+                          </div>
+                          <div className="text-[7px] text-slate-400">
+                            {isWeakness ? "weak" : isStrength ? "strong" : ""}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        );
+      })()}
 
       {/* Column legend */}
       <div className="mb-2 flex items-center justify-between">

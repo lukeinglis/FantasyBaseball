@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo } from "react";
 import { EspnAuthRequired } from "@/components/EspnAuthRequired";
-import { ALL_CATS_BY_WEIGHT, isPunt, categoryTierHeaderClass } from "@/lib/category-weights";
+import { ALL_CATS_BY_WEIGHT, isPunt, isHighImpact, categoryTierHeaderClass, CATEGORY_WEIGHTS, categoryTier } from "@/lib/category-weights";
 
 interface TeamCategoryStats {
   teamId: number;
@@ -81,6 +81,37 @@ export default function CategoryBreakdownPage() {
     if (!data) return null;
     return data.teams.find((t) => t.teamId === data.myTeamId) ?? null;
   }, [data]);
+
+  const cliffAnalysis = useMemo(() => {
+    if (!data || !myTeam) return [];
+    const teams = data.teams;
+    return CATS_ORDER.map((cat) => {
+      const lower = LOWER_IS_BETTER.has(cat);
+      const sorted = [...teams].sort((a, b) => {
+        const aVal = a.categories[cat] ?? 0;
+        const bVal = b.categories[cat] ?? 0;
+        return lower ? aVal - bVal : bVal - aVal;
+      });
+      const myIdx = sorted.findIndex((t) => t.teamId === data.myTeamId);
+      if (myIdx < 0) return { cat, myRank: 0, gapAbove: null, gapBelow: null, teamAbove: null, teamBelow: null, weight: CATEGORY_WEIGHTS[cat] ?? 0 };
+      const myVal = myTeam.categories[cat] ?? 0;
+      const above = myIdx > 0 ? sorted[myIdx - 1] : null;
+      const below = myIdx < sorted.length - 1 ? sorted[myIdx + 1] : null;
+      const aboveVal = above ? (above.categories[cat] ?? 0) : null;
+      const belowVal = below ? (below.categories[cat] ?? 0) : null;
+      const gapAbove = aboveVal !== null ? Math.abs(aboveVal - myVal) : null;
+      const gapBelow = belowVal !== null ? Math.abs(myVal - belowVal) : null;
+      return {
+        cat,
+        myRank: myIdx + 1,
+        gapAbove: gapAbove !== null && Number.isFinite(gapAbove) ? gapAbove : null,
+        gapBelow: gapBelow !== null && Number.isFinite(gapBelow) ? gapBelow : null,
+        teamAbove: above?.teamName ?? null,
+        teamBelow: below?.teamName ?? null,
+        weight: CATEGORY_WEIGHTS[cat] ?? 0,
+      };
+    });
+  }, [data, myTeam]);
 
   const summary = useMemo(() => {
     if (!myTeam) return { dominant: [] as string[], critical: [] as string[] };
@@ -258,6 +289,103 @@ export default function CategoryBreakdownPage() {
           )}
         </table>
       </div>
+
+      {/* Margin to Flip */}
+      {myTeam && cliffAnalysis.length > 0 && (
+        <div className="mt-6">
+          <h2 className="text-[14px] font-bold text-gray-900 mb-1">Margin to Flip</h2>
+          <p className="text-[11px] text-slate-500 mb-3">
+            How close you are to moving up or down a rank in each category. Weighted by category importance.
+          </p>
+          <div className="grid grid-cols-4 gap-2 sm:grid-cols-8">
+            {cliffAnalysis.map((c) => {
+              const isRate = RATE_STATS.has(c.cat);
+              const fmtGap = (g: number | null) => {
+                if (g === null) return "-";
+                if (isRate) return g.toFixed(3);
+                return g < 10 ? g.toFixed(1) : String(Math.round(g));
+              };
+              const gapColor = (g: number | null, isAbove: boolean) => {
+                if (g === null) return "text-slate-400";
+                const threshold = isRate ? (c.cat === "AVG" ? 0.005 : 0.15) : 3;
+                if (g < threshold) return isAbove ? "text-emerald-600" : "text-red-600";
+                const medThreshold = isRate ? (c.cat === "AVG" ? 0.015 : 0.5) : 10;
+                if (g < medThreshold) return "text-orange-600";
+                return "text-slate-500";
+              };
+              const tier = categoryTier(c.cat);
+              const bgClass = tier === "high" ? "border-amber-300 bg-amber-50/50" :
+                tier === "punt" ? "border-slate-200 bg-slate-50 opacity-50" :
+                "border-border bg-surface";
+              return (
+                <div key={c.cat} className={`rounded-lg border px-2 py-2 text-center ${bgClass}`}>
+                  <div className="text-[10px] font-bold text-slate-600">{c.cat}</div>
+                  <div className="text-[9px] text-slate-400">#{c.myRank}</div>
+                  <div className="mt-1.5">
+                    <div className="text-[8px] text-slate-400">to move up</div>
+                    <div className={`text-[12px] font-bold font-mono tabular-nums ${gapColor(c.gapAbove, true)}`}>
+                      {fmtGap(c.gapAbove)}
+                    </div>
+                    {c.teamAbove && (
+                      <div className="text-[7px] text-slate-400 truncate" title={c.teamAbove}>{c.teamAbove.split(" ").pop()}</div>
+                    )}
+                  </div>
+                  <div className="mt-1">
+                    <div className="text-[8px] text-slate-400">margin held</div>
+                    <div className={`text-[12px] font-bold font-mono tabular-nums ${gapColor(c.gapBelow, false)}`}>
+                      {fmtGap(c.gapBelow)}
+                    </div>
+                    {c.teamBelow && (
+                      <div className="text-[7px] text-slate-400 truncate" title={c.teamBelow}>{c.teamBelow.split(" ").pop()}</div>
+                    )}
+                  </div>
+                  {isHighImpact(c.cat) && <div className="mt-0.5 text-[7px] text-amber-600 font-bold">KEY</div>}
+                </div>
+              );
+            })}
+          </div>
+
+          {(() => {
+            const invest = cliffAnalysis
+              .filter((c) => c.gapAbove !== null && !isPunt(c.cat))
+              .sort((a, b) => {
+                const scoreA = (a.weight / Math.max(0.01, a.gapAbove ?? 999));
+                const scoreB = (b.weight / Math.max(0.01, b.gapAbove ?? 999));
+                return scoreB - scoreA;
+              })
+              .slice(0, 4);
+            const protect = cliffAnalysis
+              .filter((c) => c.gapBelow !== null && !isPunt(c.cat))
+              .filter((c) => {
+                const isRate = RATE_STATS.has(c.cat);
+                const threshold = isRate ? (c.cat === "AVG" ? 0.01 : 0.3) : 5;
+                return (c.gapBelow ?? 999) < threshold;
+              })
+              .sort((a, b) => (b.weight - a.weight));
+            if (invest.length === 0 && protect.length === 0) return null;
+            return (
+              <div className="mt-3 rounded-lg border border-border bg-surface px-4 py-3 text-[11px]">
+                {invest.length > 0 && (
+                  <div className="mb-1">
+                    <span className="font-semibold text-emerald-700">Best investment:</span>{" "}
+                    <span className="text-emerald-600">
+                      {invest.map((c) => `${c.cat} (${RATE_STATS.has(c.cat) ? (c.gapAbove ?? 0).toFixed(2) : Math.round(c.gapAbove ?? 0)} to move up)`).join(", ")}
+                    </span>
+                  </div>
+                )}
+                {protect.length > 0 && (
+                  <div>
+                    <span className="font-semibold text-red-700">Protect:</span>{" "}
+                    <span className="text-red-600">
+                      {protect.map((c) => `${c.cat} (${RATE_STATS.has(c.cat) ? (c.gapBelow ?? 0).toFixed(2) : Math.round(c.gapBelow ?? 0)} margin)`).join(", ")}
+                    </span>
+                  </div>
+                )}
+              </div>
+            );
+          })()}
+        </div>
+      )}
     </div>
   );
 }

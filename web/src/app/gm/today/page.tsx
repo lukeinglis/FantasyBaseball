@@ -91,6 +91,13 @@ import { CATEGORY_WEIGHTS, LOWER_IS_BETTER, isPunt } from "@/lib/category-weight
 import { sanitizeNum } from "@/lib/sanitize";
 export { sanitizeNum };
 
+interface PlayerPeriodStats {
+  name: string;
+  pos: string;
+  seasonStats: Record<string, number>;
+  last7Stats: Record<string, number>;
+}
+
 export function scoreActionItem(
   stats: Record<string, number>,
   atRiskCats: string[],
@@ -126,6 +133,7 @@ export default function TodayPage() {
   const [matchupSnapshot, setMatchupSnapshot] = useState<MatchupSnapshot | null>(null);
   const [myTeamId, setMyTeamId] = useState<number | null>(null);
   const [matchupRoster, setMatchupRoster] = useState<MatchupPlayerLocal[]>([]);
+  const [playerPeriodStats, setPlayerPeriodStats] = useState<Map<string, PlayerPeriodStats>>(new Map());
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -181,11 +189,21 @@ export default function TodayPage() {
       .finally(() => setLoading(false));
   }, [matchupEndDate]);
 
-  // Fetch advisor recommendations
+  // Fetch advisor recommendations and player period stats
   useEffect(() => {
     fetch("/api/analysis/advisor")
       .then((r) => r.json())
       .then((d) => { if (d.recommendations) setAdvisorRecs(d.recommendations); })
+      .catch(() => {});
+    fetch("/api/espn/player-stats")
+      .then((r) => r.json())
+      .then((d) => {
+        if (d.players) {
+          const m = new Map<string, PlayerPeriodStats>();
+          for (const p of d.players) m.set(p.name, p);
+          setPlayerPeriodStats(m);
+        }
+      })
       .catch(() => {});
   }, []);
 
@@ -275,6 +293,37 @@ export default function TodayPage() {
     );
   }
 
+  function getTrend(name: string): "hot" | "cold" | null {
+    const ps = playerPeriodStats.get(name);
+    if (!ps || !ps.last7Stats) return null;
+    const isPit = ps.pos === "SP" || ps.pos === "RP";
+    const cats = isPit ? ["K", "ERA", "WHIP", "QS"] : ["HR", "RBI", "R", "TB", "AVG"];
+    let hot = 0, cold = 0;
+    for (const cat of cats) {
+      const season = sanitizeNum(ps.seasonStats[cat]);
+      const recent = sanitizeNum(ps.last7Stats[cat]);
+      if (season === 0 && recent === 0) continue;
+      const lower = LOWER_IS_BETTER.has(cat);
+      const isRate = cat === "AVG" || cat === "ERA" || cat === "WHIP";
+      if (isRate) {
+        const threshold = cat === "AVG" ? 0.030 : cat === "ERA" ? 1.0 : 0.15;
+        const diff = recent - season;
+        if (!lower && diff > threshold) hot++;
+        if (!lower && diff < -threshold) cold++;
+        if (lower && diff < -threshold) hot++;
+        if (lower && diff > threshold) cold++;
+      } else {
+        const ratio = season > 0 ? recent / season : (recent > 0 ? 2 : 1);
+        if (!Number.isFinite(ratio)) continue;
+        if (lower) { if (ratio < 0.7) hot++; if (ratio > 1.3) cold++; }
+        else { if (ratio > 1.3) hot++; if (ratio < 0.7) cold++; }
+      }
+    }
+    if (hot >= 2) return "hot";
+    if (cold >= 2) return "cold";
+    return null;
+  }
+
   const GamePlayerRow = ({ player, showBenchAlert }: { player: RosterPlayer; showBenchAlert?: boolean }) => {
     const game = getGame(player);
     const hasGame = !!game?.todayOpponent;
@@ -289,6 +338,12 @@ export default function TodayPage() {
           <div className="min-w-0 w-[150px]">
             <span className={`text-[13px] font-medium ${isInjured ? "text-slate-400" : "text-slate-700"}`}>
               {player.name}
+              {(() => {
+                const t = getTrend(player.name);
+                if (t === "hot") return <span className="ml-1 text-[9px] font-bold text-emerald-600" title="Hot in high-impact categories">&#9650;</span>;
+                if (t === "cold") return <span className="ml-1 text-[9px] font-bold text-red-600" title="Cold in high-impact categories">&#9660;</span>;
+                return null;
+              })()}
             </span>
             <div className="text-[10px] text-slate-500">{player.pos} · {player.proTeam}</div>
           </div>

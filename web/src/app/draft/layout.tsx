@@ -9,6 +9,7 @@ const SUB_LINKS = [
   { href: "/draft/strategy", label: "Strategy" },
   { href: "/draft/mock-draft", label: "Mock Draft" },
   { href: "/draft/results", label: "Draft Results" },
+  { href: "/draft/pick-value", label: "Pick Value" },
 ];
 
 export default function DraftLayout({ children }: { children: React.ReactNode }) {

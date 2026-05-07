@@ -330,6 +330,9 @@ export default function BullpenPage() {
   const [playerStats, setPlayerStats] = useState<PlayerStatsEntry[]>([]);
   const [sortColumn, setSortColumn] = useState<string>("ERA");
   const [sortAsc, setSortAsc] = useState<boolean>(true);
+  const [zScoreData, setZScoreData] = useState<{
+    players: { name: string; pos: string; proTeam: string; onTeamId: number; zScores: Record<string, number>; far: number; seasonStats: Record<string, number> }[];
+  } | null>(null);
   const [matchupCats, setMatchupCats] = useState<{ cat: string; myValue: number | null; oppValue: number | null; result: string }[] | null>(null);
   const [matchupOpp, setMatchupOpp] = useState<string | null>(null);
   const [matchupScore, setMatchupScore] = useState<{ w: number; l: number; t: number } | null>(null);
@@ -350,7 +353,8 @@ export default function BullpenPage() {
       fetch(`/api/mlb/probable-pitchers?startDate=${today}&endDate=${endDate}`).then((r) => r.json()).catch(() => null),
       fetch("/api/espn/starts").then((r) => r.json()).catch(() => null),
       fetch("/api/espn/player-stats").then((r) => r.json()).catch(() => null),
-    ]).then(([rosterData, matchupData, scheduleData, probableData, startsData, playerStatsData]) => {
+      fetch("/api/analysis/z-scores").then((r) => r.json()).catch(() => null),
+    ]).then(([rosterData, matchupData, scheduleData, probableData, startsData, playerStatsData, zData]) => {
       if (rosterData.error) { setError(rosterData.error); setLoading(false); return; }
       setTeams(rosterData);
       if (matchupData.myTeamId) setMyTeamId(matchupData.myTeamId);
@@ -380,6 +384,7 @@ export default function BullpenPage() {
       if (playerStatsData && !playerStatsData.error && playerStatsData.players) {
         setPlayerStats(playerStatsData.players.filter((p: PlayerStatsEntry) => p.pos === "SP" || p.pos === "RP"));
       }
+      if (zData && !zData.error) setZScoreData(zData);
 
       // Fetch probable pitchers and full schedule grid for the matchup period + next week
       const mStart = matchupData.matchupStartDate;
@@ -732,6 +737,16 @@ export default function BullpenPage() {
         />
       )}
 
+      {/* Streaming ROI (z-score weighted) */}
+      {view === "SP" && (
+        <StreamingROISection
+          matchupProbables={matchupProbables}
+          rosteredPitchers={startsApiData?.rosteredPitchers ?? []}
+          currentDates={startsApiData?.currentDates ?? null}
+          zScoreData={zScoreData}
+        />
+      )}
+
       {/* Pitcher lists */}
       <div className="space-y-4">
         <BullpenPitcherSection label="Active" players={active} borderColor="border-emerald-300" {...pitcherSectionProps} />
@@ -801,6 +816,170 @@ export default function BullpenPage() {
         myPitchers={starters}
         pitcherStarts={pitcherStarts}
       />
+    </div>
+  );
+}
+
+// --- Streaming ROI Section ---
+
+import { CATEGORY_WEIGHTS, isHighImpact } from "@/lib/category-weights";
+
+const STREAMING_UPSIDE_CATS = ["K", "QS", "W"];
+const STREAMING_RISK_CATS = ["ERA", "WHIP"];
+
+interface StreamingROITarget {
+  name: string;
+  proTeam: string;
+  starts: number;
+  isDouble: boolean;
+  streamScore: number;
+  kZ: number;
+  qsZ: number;
+  eraZ: number;
+  whipZ: number;
+  era: number;
+  whip: number;
+  k: number;
+  ip: number;
+}
+
+function StreamingROISection({
+  matchupProbables,
+  rosteredPitchers,
+  currentDates,
+  zScoreData,
+}: {
+  matchupProbables: ProbablePitchersData | null;
+  rosteredPitchers: string[];
+  currentDates: { start: string; end: string } | null;
+  zScoreData: { players: { name: string; pos: string; proTeam: string; onTeamId: number; zScores: Record<string, number>; far: number; seasonStats: Record<string, number> }[] } | null;
+}) {
+  const rosteredSet = useMemo(() => new Set(rosteredPitchers), [rosteredPitchers]);
+
+  const targets = useMemo((): StreamingROITarget[] => {
+    if (!matchupProbables || !currentDates || !zScoreData) return [];
+
+    const pitcherStarts = Object.entries(matchupProbables.byPitcher)
+      .map(([name, allStarts]) => {
+        const periodStarts = allStarts.filter(
+          (s) => s.date >= currentDates.start && s.date <= currentDates.end
+        );
+        return { name, team: periodStarts[0]?.team ?? allStarts[0]?.team ?? "", starts: periodStarts.length };
+      })
+      .filter((t) => t.starts > 0 && !rosteredSet.has(t.name));
+
+    const zMap = new Map<string, typeof zScoreData.players[0]>();
+    for (const p of zScoreData.players) {
+      if (p.pos === "SP" || p.pos === "RP") zMap.set(p.name, p);
+    }
+
+    return pitcherStarts
+      .map((ps) => {
+        const zp = zMap.get(ps.name);
+        if (!zp) return null;
+        const kZ = zp.zScores.K ?? 0;
+        const qsZ = zp.zScores.QS ?? 0;
+        const wZ = zp.zScores.W ?? 0;
+        const eraZ = zp.zScores.ERA ?? 0;
+        const whipZ = zp.zScores.WHIP ?? 0;
+        const upside = (kZ * (CATEGORY_WEIGHTS.K ?? 0.07)) + (qsZ * (CATEGORY_WEIGHTS.QS ?? 0.06)) + (wZ * (CATEGORY_WEIGHTS.W ?? 0.07));
+        const risk = (eraZ * (CATEGORY_WEIGHTS.ERA ?? 0.057)) + (whipZ * (CATEGORY_WEIGHTS.WHIP ?? 0.062));
+        const streamScore = (upside + risk) * ps.starts;
+        const era = zp.seasonStats.ERA ?? 0;
+        const whip = zp.seasonStats.WHIP ?? 0;
+        const k = zp.seasonStats.K ?? 0;
+        const ip = zp.seasonStats.IP ?? 0;
+        if (!Number.isFinite(streamScore)) return null;
+        return {
+          name: ps.name,
+          proTeam: ps.team,
+          starts: ps.starts,
+          isDouble: ps.starts >= 2,
+          streamScore,
+          kZ, qsZ, eraZ, whipZ,
+          era, whip, k, ip,
+        };
+      })
+      .filter((t): t is StreamingROITarget => t !== null)
+      .sort((a, b) => b.streamScore - a.streamScore);
+  }, [matchupProbables, currentDates, rosteredSet, zScoreData]);
+
+  if (!matchupProbables || !currentDates || !zScoreData || targets.length === 0) return null;
+
+  return (
+    <div className="mb-4 rounded-lg border border-violet-300 bg-surface">
+      <div className="border-b border-violet-300 px-3 py-2 flex items-center justify-between">
+        <div>
+          <span className="text-[10px] font-semibold uppercase tracking-wider text-violet-600">
+            Streaming ROI
+          </span>
+          <span className="ml-2 text-[10px] text-slate-500">
+            SP targets ranked by K+QS upside vs ERA/WHIP risk
+          </span>
+        </div>
+        <span className="text-[13px] font-bold tabular-nums text-violet-600">
+          {targets.length}
+        </span>
+      </div>
+      <div className="overflow-x-auto">
+        <table className="w-full text-[11px]">
+          <thead>
+            <tr className="border-b border-border bg-surface text-[9px] uppercase tracking-wider text-slate-500">
+              <th className="px-3 py-1.5 text-left">Pitcher</th>
+              <th className="px-1 py-1.5 text-center">Starts</th>
+              <th className="px-1 py-1.5 text-center">Score</th>
+              <th className="px-1 py-1.5 text-center">ERA</th>
+              <th className="px-1 py-1.5 text-center">WHIP</th>
+              <th className="px-1 py-1.5 text-center">K</th>
+              <th className="px-1 py-1.5 text-center">IP</th>
+              <th className="px-1 py-1.5 text-center">K z</th>
+              <th className="px-1 py-1.5 text-center">QS z</th>
+              <th className="px-1 py-1.5 text-center">ERA z</th>
+            </tr>
+          </thead>
+          <tbody>
+            {targets.slice(0, 15).map((t, i) => (
+              <tr key={i} className={`border-b border-border last:border-b-0 ${
+                t.isDouble ? "bg-violet-50" : i % 2 === 0 ? "" : "bg-surface/50"
+              }`}>
+                <td className="px-3 py-1.5">
+                  <span className="text-[11px] font-medium text-slate-700">{t.name}</span>
+                  <span className="ml-1 text-[9px] text-slate-400">{t.proTeam}</span>
+                  {t.isDouble && <span className="ml-1 text-[8px] font-bold text-violet-600">2x</span>}
+                </td>
+                <td className={`px-1 py-1.5 text-center font-bold tabular-nums ${
+                  t.starts >= 2 ? "text-violet-600" : "text-slate-600"
+                }`}>{t.starts}</td>
+                <td className={`px-1 py-1.5 text-center font-bold font-mono tabular-nums ${
+                  t.streamScore > 0 ? "text-emerald-600" : "text-red-600"
+                }`}>{t.streamScore > 0 ? "+" : ""}{t.streamScore.toFixed(2)}</td>
+                <td className={`px-1 py-1.5 text-center font-mono tabular-nums ${
+                  t.era < 3.5 ? "text-emerald-600" : t.era > 4.5 ? "text-red-600" : ""
+                }`}>{Number.isFinite(t.era) ? t.era.toFixed(2) : "-"}</td>
+                <td className={`px-1 py-1.5 text-center font-mono tabular-nums ${
+                  t.whip < 1.2 ? "text-emerald-600" : t.whip > 1.4 ? "text-red-600" : ""
+                }`}>{Number.isFinite(t.whip) ? t.whip.toFixed(2) : "-"}</td>
+                <td className="px-1 py-1.5 text-center font-mono tabular-nums">{Math.round(t.k)}</td>
+                <td className="px-1 py-1.5 text-center font-mono tabular-nums">{Number.isFinite(t.ip) ? t.ip.toFixed(1) : "-"}</td>
+                <td className={`px-1 py-1.5 text-center font-mono tabular-nums text-[10px] ${
+                  t.kZ > 0.5 ? "text-emerald-600" : t.kZ < -0.5 ? "text-red-600" : "text-slate-500"
+                }`}>{t.kZ >= 0 ? "+" : ""}{t.kZ.toFixed(1)}</td>
+                <td className={`px-1 py-1.5 text-center font-mono tabular-nums text-[10px] ${
+                  t.qsZ > 0.5 ? "text-emerald-600" : t.qsZ < -0.5 ? "text-red-600" : "text-slate-500"
+                }`}>{t.qsZ >= 0 ? "+" : ""}{t.qsZ.toFixed(1)}</td>
+                <td className={`px-1 py-1.5 text-center font-mono tabular-nums text-[10px] ${
+                  t.eraZ > 0.5 ? "text-emerald-600" : t.eraZ < -0.5 ? "text-red-600" : "text-slate-500"
+                }`}>{t.eraZ >= 0 ? "+" : ""}{t.eraZ.toFixed(1)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      {targets.length > 15 && (
+        <div className="px-3 py-2 text-[10px] text-slate-400 text-center border-t border-border">
+          +{targets.length - 15} more
+        </div>
+      )}
     </div>
   );
 }

@@ -10,8 +10,11 @@ const SUB_LINKS = [
   { href: "/league/schedule", label: "Schedule" },
   { href: "/league/history", label: "History" },
   { href: "/league/owners", label: "Owners" },
+  { href: "/league/owner-tendencies", label: "Owner Tendencies" },
   { href: "/league/scouting", label: "Scouting" },
   { href: "/league/draft-history", label: "Draft History" },
+  { href: "/league/waiver-activity", label: "Waiver Activity" },
+  { href: "/league/acquisition-patterns", label: "Acquisitions" },
 ];
 
 export default function LeagueLayout({ children }: { children: React.ReactNode }) {
