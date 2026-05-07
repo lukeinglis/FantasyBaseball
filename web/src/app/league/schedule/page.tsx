@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { mean, stddev } from "@/lib/z-scores";
 import { CATEGORY_WEIGHTS } from "@/lib/category-weights";
+import { EspnAuthRequired } from "@/components/EspnAuthRequired";
 
 interface MatchupWeek {
   period: number;
@@ -86,15 +87,6 @@ function fmtDateRange(start: string, end: string): string {
   return `${s} – ${e}`;
 }
 
-function EspnSetupCard() {
-  return (
-    <div className="mx-auto max-w-lg rounded-xl border border-border bg-surface px-8 py-10 text-center">
-      <div className="text-[11px] font-semibold uppercase tracking-widest text-orange-600/60">Setup Required</div>
-      <div className="mt-3 text-xl font-bold text-gray-900">Connect ESPN Credentials</div>
-    </div>
-  );
-}
-
 export default function SchedulePage() {
   const [data, setData] = useState<ScheduleData | null>(null);
   const [teamRanks, setTeamRanks] = useState<Record<number, TeamRankInfo>>({});
@@ -144,7 +136,7 @@ export default function SchedulePage() {
 
   if (loading) return <div className="flex h-64 items-center justify-center text-slate-500">Loading schedule...</div>;
   if (error === "ESPN_CREDS_MISSING" || error === "MY_ESPN_TEAM_ID_MISSING") {
-    return <div className="flex min-h-[70vh] items-center justify-center px-4"><EspnSetupCard /></div>;
+    return <div className="flex min-h-[70vh] items-center justify-center px-4"><EspnAuthRequired /></div>;
   }
   if (error || !data) {
     return (

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
+import { EspnAuthRequired } from "@/components/EspnAuthRequired";
 
 interface TeamCategoryStats {
   teamId: number;
@@ -78,23 +79,6 @@ function TrendArrow({ delta }: { delta: number | undefined }) {
   return <span className="text-red-500 text-[10px] font-bold">{"▼"}{Math.abs(delta)}</span>;
 }
 
-function EspnSetupCard() {
-  return (
-    <div className="mx-auto max-w-lg rounded-xl border border-border bg-surface px-8 py-10 text-center">
-      <div className="text-[11px] font-semibold uppercase tracking-widest text-orange-600/60">Setup Required</div>
-      <div className="mt-3 text-xl font-bold text-gray-900">Connect ESPN Credentials</div>
-      <div className="mt-3 text-[13px] text-slate-500">
-        Category Rank pulls live data from your private ESPN league. Add environment variables to Vercel.
-      </div>
-      <div className="mt-5 rounded-lg border border-border bg-background px-4 py-4 text-left text-[12px]">
-        <div className="space-y-2 font-mono">
-          <div><span className="text-orange-600">ESPN_S2</span> · <span className="text-orange-600">ESPN_SWID</span> · <span className="text-orange-600">MY_ESPN_TEAM_ID</span></div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
 export default function CategoryRankPage() {
   const [data, setData] = useState<LeagueStatsData | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -156,7 +140,7 @@ export default function CategoryRankPage() {
 
   if (loading) return <div className="flex h-64 items-center justify-center text-slate-500">Loading category rankings...</div>;
   if (error === "ESPN_CREDS_MISSING" || error === "MY_ESPN_TEAM_ID_MISSING") {
-    return <div className="flex min-h-[70vh] items-center justify-center px-4"><EspnSetupCard /></div>;
+    return <div className="flex min-h-[70vh] items-center justify-center px-4"><EspnAuthRequired /></div>;
   }
   if (error || !data || !myTeam) {
     return (
