@@ -1,0 +1,1 @@
+Add 8 analytics insights: streaming ROI, hot/cold splits, category cliffs, opponent scouting, owner tendencies, draft pick value, waiver activity, acquisition patterns (#71-#78)

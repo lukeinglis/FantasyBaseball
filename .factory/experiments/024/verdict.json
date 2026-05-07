@@ -1,0 +1,15 @@
+{
+  "id": 24,
+  "timestamp": "2026-05-07 12:33:14.057045",
+  "hypothesis": "Add 8 analytics insights: streaming ROI, hot/cold splits, category cliffs, opponent scouting, owner tendencies, draft pick value, waiver activity, acquisition patterns",
+  "change_summary": "Added 1,373 lines: category cliff analysis, opponent scouting preview, streaming ROI tracker, hot/cold player splits, owner tendencies dashboard, draft pick value analysis, waiver activity feed, acquisition patterns. 4 new pages, 5 enhanced pages.",
+  "issue_number": null,
+  "pr_number": 79,
+  "score_before": null,
+  "score_after": null,
+  "delta": null,
+  "verdict": "keep",
+  "cost_usd": null,
+  "notes": "ceo:keep score_delta=na precheck=skipped agents_spawned=B pr_status=open_for_review hypothesis_type=code e2e=pass backlog_cleared=yes",
+  "research_citations": []
+}
