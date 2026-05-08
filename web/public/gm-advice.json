@@ -1,23 +1,23 @@
 {
   "week": [
-    "Attack SMB's pitching weakness hard: they rank 10th in ERA (1.346) and 9th in QS (16). You rank 1st in QS (31) and your starters Lugo (2.68 ERA), Wacha (3.13 ERA), and Weathers (3.03 ERA) should dominate. Stack all active SPs and chase QS/W/ERA wins.",
-    "Concede SB immediately: you are dead last with 15 steals vs SMB's 40 (3rd in league). Do not roster bench players for speed. Use that mental energy on winnable categories.",
-    "Stream pitchers aggressively for K: you have 404 Ks (6th) vs SMB's 397 (8th), a gap of just 7. With Kochanowicz, Gore, and Ober available on your bench, activate at least two to pile up strikeouts and lock down a category win.",
-    "Bench Dustin May (5.15 ERA, 1.53 WHIP) and Spencer Strider (8.10 ERA, 2.70 WHIP): both are actively destroying your ERA. Every inning they throw widens the gap against SMB in a category you can win with your better arms."
+    "Accept this week is lost: you are 1-12-3 vs SMB with 2 days left. The only category you are winning is R (20-19), and that lead is 1 run. Focus remaining starts on protecting R and stealing QS/W ties rather than chasing lost categories.",
+    "Bench Dustin May and Shane Baz for the rest of the week: your team ERA is 6.00 this matchup. May (5.15 season ERA, 1.53 WHIP) and Baz (4.99 ERA, 1.54 WHIP) are the primary culprits. Every inning they throw makes the ERA and WHIP losses worse.",
+    "Start Wacha over any struggling arm: Michael Wacha has a 1.06 WHIP and 3.05 ERA on the season and is sitting on your bench. He should be starting over May, Baz, and Bradish (5.03 ERA, 1.82 WHIP) in every remaining start this week.",
+    "Ryan Weathers is now day-to-day: monitor his status daily. He has your third-best ERA (3.03) and losing him to IL would remove one of your few reliable arms."
   ],
   "month": [
-    "Drop Spencer Strider immediately: 8.10 ERA and 2.70 WHIP in 10 IP is not a recovery, it is a roster spot on fire. Replace him with any streaming SP or a closer from the wire.",
-    "Acquire a closer or you will finish last in SV again: 1 save all season (10th by a mile, league average is 12.9). Trade one of your surplus SPs (you have 11 pitchers with SP eligibility) for any team's closer. Kochanowicz (3.05 ERA, 4 QS) or Ober (3.55 ERA, 3 QS) have real trade value to teams weak in QS.",
-    "Drop or trade Pete Alonso: .214 AVG, 6 HR, 15 RBI in 126 AB from your 1B slot is bottom-tier production. His name still carries trade value. Move him before the market realizes he is cooked.",
-    "Activate Casey Mize when eligible: 2.90 ERA and 1.19 WHIP are your second-best pitching numbers. He is on the 15-Day IL but when he returns, he slots in immediately over May or Strider.",
-    "Monitor Lindor, Suarez, and Holliday IL returns: three infielders on IL means you are running thin at SS and 3B. Lindor (.226 AVG, 2 HR) was not producing before the IL stint either, but his upside is real. Holliday has zero stats and is a speculative hold."
+    "Drop Spencer Strider now: 8.10 ERA and 2.70 WHIP in 10 IP is not a comeback, it is dead weight. That roster spot should be a closer or a streaming pitcher who can actually help.",
+    "Trade for a closer this week, not next week: you have 2 saves all season (10th, league average is 14.4). You are giving away SV every single week. Package Kochanowicz (3.05 ERA, 4 QS) or Ober (4.19 ERA, 3 QS) for any team's closer. DBAB has 27 saves and might deal from surplus.",
+    "Drop or trade Pete Alonso: .225 AVG, 7 HR, 21 RBI in 142 AB is replacement-level 1B production. His name carries more trade value than his bat. Move him before the deadline.",
+    "Activate Casey Mize when he returns from the 15-Day IL: his 2.90 ERA and 1.19 WHIP are elite. He replaces Dustin May in the rotation immediately.",
+    "Your power rank dropped to 10 (dead last): you fell from 9th. Six category ranks slid this week (H, HR, TB, AVG, K, QS). The roster is actively getting worse relative to the league. Incremental moves are not enough."
   ],
   "season": [
-    "Face reality: 30-45-5 record, 8th place, 17.5 games back with 13 weeks left. You need to win roughly 10+ categories per week to climb into playoff contention. That requires fixing saves (1 SV, dead last) and SB (15, dead last) immediately, not gradually.",
-    "Your pitching depth is a tradeable asset, not a bench decoration: you rank 1st in QS (31), 2nd in BB allowed, and 3rd in HD. Teams like SMB (9th QS, 10th ERA) and DC (9th SV, 8th HD) are desperate for pitching. Package Kochanowicz + Ober for a closer and a speed bat.",
-    "Fix the structural imbalance: 11 pitchers with SP eligibility but dead last in W (16) and SV (1) means your pitching volume is not converting to category wins. Trade quantity for targeted quality: one elite closer is worth more than three bench SPs.",
-    "The path to playoffs runs through beating DC (7th), DBAB (9th), and SMB (10th) in head-to-head: you play DBAB week 7, TG week 8, and MSDD week 9. Win 2 of 3 to stay alive. Lose 2 and the season is over by June.",
-    "Stop punting categories by accident: ranking 10th in SB, SV, W, and L means you are giving away 4 categories every week before the matchup starts. Even fixing SV and W through trades would flip 2 automatic losses into competitive categories, a 4-category swing per week."
+    "The math is brutal: 30-45-5, 8th place, 17.5 games back, power rank 10. You are dead last in SV (2), SB (16), W (18), and L (41). That is 4 automatic losses every week before the matchup starts. No amount of pitching depth fixes this without trades.",
+    "Trade pitching depth for category coverage immediately: you rank 2nd in QS (32), 2nd in BB allowed, and 3rd in HD but 10th in W, SV, and L. Teams like CCC (2nd in K/QS/W but 10th in HR/TB/RBI) and DBAB (1st in ERA/SV but 9th in K/QS) need what you have. Make the call.",
+    "Your outfield construction is wrong: Michael Harris II (.296 AVG, 7 HR, 22 RBI) is your best hitter but has zero SB. Schwarber (.216 AVG, 0 SB) and Ward (.278 AVG, 1 SB) are not stealing either. You need to trade one OF for a speed player or you finish 10th in SB for the entire season.",
+    "The next 3 weeks decide everything: DBAB (week 7), TG (week 8), MSDD (week 9). DBAB and TG are beatable matchups. You need 2 wins out of 3 with 9+ categories each to have any playoff path. Losing to DBAB (9th place) next week effectively ends the season.",
+    "Stop starting pitchers with ERAs above 5.00: Bradish (5.03), May (5.15), Gore (5.18), Baz (4.99) are all actively hurting you. You have Wacha (3.05), Lugo (3.21), Weathers (3.03), Kochanowicz (3.05), and Taillon (4.24) who are all better options. Use them."
   ],
-  "generatedAt": "2026-05-04T18:00:00.000Z"
+  "generatedAt": "2026-05-08T12:00:00.000Z"
 }
