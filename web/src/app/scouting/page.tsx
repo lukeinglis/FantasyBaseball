@@ -189,12 +189,54 @@ function generateDraftStyle(
   return `${s1} ${s2}`;
 }
 
+interface LiveTeam {
+  teamId: number;
+  teamName: string;
+  categories: Record<string, number>;
+  ranks: Record<string, number>;
+  powerRank: number;
+}
+
+interface LiveStandingsTeam {
+  teamId: number;
+  teamName: string;
+  wins: number;
+  losses: number;
+  ties: number;
+  rank: number;
+}
+
+interface LiveRosterPlayer {
+  name: string;
+  pos: string;
+  acquisitionType: string;
+}
+
+interface LiveRosterTeam {
+  id: number;
+  name: string;
+  roster: LiveRosterPlayer[];
+}
+
+interface H2hMatchup {
+  week: number;
+  myWins: number;
+  myLosses: number;
+  myTies: number;
+  oppTeamId: number;
+}
+
 export default function ScoutingPage() {
   const [profiles, setProfiles] = useState<DraftProfile[]>([]);
   const [allStandings, setAllStandings] = useState<StandingsRow[]>([]);
   const [allPicks, setAllPicks] = useState<DraftPick[]>([]);
   const [posMap, setPosMap] = useState<Record<string, string>>({});
   const [selectedTeam, setSelectedTeam] = useState<string>("");
+  const [liveTeams, setLiveTeams] = useState<LiveTeam[]>([]);
+  const [liveStandings, setLiveStandings] = useState<LiveStandingsTeam[]>([]);
+  const [liveRosters, setLiveRosters] = useState<LiveRosterTeam[]>([]);
+  const [h2hData, setH2hData] = useState<H2hMatchup[]>([]);
+  const [myTeamId, setMyTeamId] = useState<number | null>(null);
 
   useEffect(() => {
     fetch("/api/profiles").then((r) => r.json()).then((data: DraftProfile[]) => {
@@ -204,6 +246,18 @@ export default function ScoutingPage() {
     fetch("/api/standings").then((r) => r.json()).then(setAllStandings);
     fetch("/api/draft-results").then((r) => r.json()).then(setAllPicks);
     fetch("/api/player-positions").then((r) => r.json()).then(setPosMap);
+    fetch("/api/espn/league-stats?scope=season").then((r) => r.json()).then((d) => {
+      if (!d.error && d.teams) { setLiveTeams(d.teams); setMyTeamId(d.myTeamId); }
+    }).catch(() => {});
+    fetch("/api/espn/standings").then((r) => r.json()).then((d) => {
+      if (!d.error && d.teams) setLiveStandings(d.teams);
+    }).catch(() => {});
+    fetch("/api/espn/roster").then((r) => r.json()).then((d) => {
+      if (!d.error && Array.isArray(d)) setLiveRosters(d);
+    }).catch(() => {});
+    fetch("/api/espn/h2h").then((r) => r.json()).then((d) => {
+      if (d?.matchups) setH2hData(d.matchups);
+    }).catch(() => {});
   }, []);
 
   const selected = useMemo(() => profiles.find((p) => p.team === selectedTeam), [profiles, selectedTeam]);
@@ -342,6 +396,99 @@ export default function ScoutingPage() {
             ))}
           </div>
         </div>
+
+        {/* ── Current Season Profile (Live ESPN Data) ── */}
+        {(() => {
+          const liveTeam = liveTeams.find((t) => teamNamesSet.has(t.teamName));
+          const liveStanding = liveStandings.find((t) => teamNamesSet.has(t.teamName));
+          const liveRoster = liveRosters.find((t) => teamNamesSet.has(t.name));
+          if (!liveTeam && !liveStanding) return null;
+
+          const strongCats = liveTeam ? CAT_KEYS.filter((c) => (liveTeam.ranks[c] ?? 10) <= 3) : [];
+          const weakCats = liveTeam ? CAT_KEYS.filter((c) => (liveTeam.ranks[c] ?? 0) >= 8) : [];
+
+          const recentAdds = liveRoster?.roster.filter((p) => p.acquisitionType === "ADD").length ?? 0;
+          const isActive = recentAdds >= 5;
+
+          const myH2h = h2hData.filter((m) => {
+            if (!liveTeam || !myTeamId) return false;
+            return m.oppTeamId === liveTeam.teamId;
+          });
+          const h2hRecord = myH2h.reduce(
+            (acc, m) => ({ w: acc.w + m.myWins, l: acc.l + m.myLosses, t: acc.t + m.myTies }),
+            { w: 0, l: 0, t: 0 }
+          );
+
+          return (
+            <div className="rounded-lg border border-orange-300 bg-surface">
+              <div className="border-b border-orange-300 px-4 py-2 flex items-center justify-between">
+                <span className="text-[10px] font-semibold uppercase tracking-widest text-orange-600">Current Season</span>
+                {liveStanding && (
+                  <span className="text-[12px] font-bold tabular-nums text-slate-700">
+                    {liveStanding.wins}-{liveStanding.losses}{liveStanding.ties > 0 ? `-${liveStanding.ties}` : ""} (#{liveStanding.rank})
+                  </span>
+                )}
+              </div>
+              <div className="px-4 py-4 space-y-3">
+                {/* Strengths/Weaknesses */}
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <div>
+                    <div className="text-[10px] font-semibold uppercase tracking-wider text-emerald-600 mb-1">Strong (Top 3)</div>
+                    <div className="flex flex-wrap gap-1">
+                      {strongCats.length > 0 ? strongCats.map((c) => (
+                        <span key={c} className="rounded bg-emerald-50 border border-emerald-200 px-2 py-0.5 text-[10px] font-bold text-emerald-700">
+                          {c} #{liveTeam!.ranks[c]}
+                        </span>
+                      )) : <span className="text-[11px] text-slate-400">None</span>}
+                    </div>
+                  </div>
+                  <div>
+                    <div className="text-[10px] font-semibold uppercase tracking-wider text-red-600 mb-1">Weak (Bottom 3)</div>
+                    <div className="flex flex-wrap gap-1">
+                      {weakCats.length > 0 ? weakCats.map((c) => (
+                        <span key={c} className="rounded bg-red-50 border border-red-200 px-2 py-0.5 text-[10px] font-bold text-red-600">
+                          {c} #{liveTeam!.ranks[c]}
+                        </span>
+                      )) : <span className="text-[11px] text-slate-400">None</span>}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Trading tendency */}
+                <div className="flex items-center gap-4 text-[11px]">
+                  <span className="text-slate-500">Roster activity:</span>
+                  <span className={`font-bold ${isActive ? "text-orange-600" : "text-slate-500"}`}>
+                    {recentAdds} FA adds
+                  </span>
+                  <span className={`text-[9px] font-bold rounded px-1.5 py-0.5 ${
+                    isActive ? "bg-orange-100 text-orange-700" : "bg-slate-100 text-slate-600"
+                  }`}>
+                    {isActive ? "Active" : "Quiet"}
+                  </span>
+                  {liveStanding && liveStanding.rank >= 8 && isActive && (
+                    <span className="text-[9px] font-bold rounded px-1.5 py-0.5 bg-purple-100 text-purple-700">Buyer</span>
+                  )}
+                  {liveStanding && liveStanding.rank >= 8 && !isActive && (
+                    <span className="text-[9px] font-bold rounded px-1.5 py-0.5 bg-red-100 text-red-700">Seller</span>
+                  )}
+                </div>
+
+                {/* H2H record vs this team */}
+                {myTeamId && (h2hRecord.w > 0 || h2hRecord.l > 0) && (
+                  <div className="flex items-center gap-3 text-[11px]">
+                    <span className="text-slate-500">Your H2H record:</span>
+                    <span className={`font-bold tabular-nums ${
+                      h2hRecord.w > h2hRecord.l ? "text-emerald-600" :
+                      h2hRecord.l > h2hRecord.w ? "text-red-600" : "text-slate-600"
+                    }`}>
+                      {h2hRecord.w}-{h2hRecord.l}{h2hRecord.t > 0 ? `-${h2hRecord.t}` : ""} cat wins
+                    </span>
+                  </div>
+                )}
+              </div>
+            </div>
+          );
+        })()}
 
         {/* ── Draft DNA + Recent Picks ── */}
         <div className="grid gap-4 lg:grid-cols-2">

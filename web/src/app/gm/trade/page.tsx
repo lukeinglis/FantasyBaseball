@@ -66,6 +66,12 @@ interface StandingsTeam {
   rank: number;
 }
 
+interface LiveTeam {
+  teamId: number;
+  teamName: string;
+  ranks: Record<string, number>;
+}
+
 interface TradeTarget {
   player: ZScorePlayer;
   teamName: string;
@@ -98,6 +104,7 @@ export default function TradeRoomPage() {
   const [zScorePlayers, setZScorePlayers] = useState<ZScorePlayer[]>([]);
   const [standings, setStandings] = useState<StandingsTeam[]>([]);
   const [myTeamId, setMyTeamId] = useState<number | null>(null);
+  const [liveTeams, setLiveTeams] = useState<LiveTeam[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -116,13 +123,15 @@ export default function TradeRoomPage() {
       fetch("/api/espn/matchup").then((r) => r.json()).catch(() => ({})),
       fetch("/api/analysis/z-scores").then((r) => r.json()).catch(() => ({ players: [] })),
       fetch("/api/espn/standings").then((r) => r.json()).catch(() => ({ teams: [] })),
-    ]).then(([rosterData, statsData, matchupData, zData, standingsData]) => {
+      fetch("/api/espn/league-stats?scope=season").then((r) => r.json()).catch(() => ({ teams: [] })),
+    ]).then(([rosterData, statsData, matchupData, zData, standingsData, leagueData]) => {
       if (rosterData.error) { setError(rosterData.error); return; }
       setTeams(rosterData);
       if (statsData.players) setPlayerStats(statsData.players);
       if (matchupData.myTeamId) setMyTeamId(matchupData.myTeamId);
       setZScorePlayers(zData.players ?? []);
       setStandings(standingsData.teams ?? []);
+      if (leagueData.teams) setLiveTeams(leagueData.teams);
     })
     .catch(() => setError("FETCH_FAILED"))
     .finally(() => setLoading(false));
@@ -605,6 +614,91 @@ export default function TradeRoomPage() {
                 )}
               </div>
             ))}
+          </div>
+        </div>
+      )}
+
+      {/* Buyer/Seller Board */}
+      {standings.length > 0 && (
+        <div className="mb-4 rounded-lg border border-slate-300 bg-surface">
+          <div className="border-b border-border px-4 py-2.5">
+            <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-600">Buyer/Seller Board</span>
+            <span className="ml-2 text-[10px] text-slate-400">Teams classified by standings and roster activity</span>
+          </div>
+          <div className="grid gap-0 sm:grid-cols-2">
+            {/* Sellers */}
+            <div className="border-r border-border">
+              <div className="px-3 py-2 border-b border-border bg-red-50/50">
+                <span className="text-[10px] font-semibold uppercase tracking-wider text-red-600">Sellers</span>
+                <span className="ml-1 text-[10px] text-slate-400">(bottom half, potential trade targets)</span>
+              </div>
+              <div className="divide-y divide-border">
+                {standings.filter((t) => t.rank > Math.ceil(standings.length / 2) && t.teamId !== myTeamId)
+                  .sort((a, b) => b.rank - a.rank)
+                  .map((t) => {
+                    const roster = teams.find((r) => r.id === t.teamId);
+                    const topPlayers = zScorePlayers
+                      .filter((p) => p.onTeamId === t.teamId && p.far >= 2.0)
+                      .sort((a, b) => b.far - a.far)
+                      .slice(0, 3);
+                    return (
+                      <div key={t.teamId} className="px-3 py-2">
+                        <div className="flex items-center justify-between">
+                          <span className="text-[12px] font-medium text-slate-700">{t.teamName}</span>
+                          <span className="text-[11px] font-mono tabular-nums text-slate-500">
+                            {t.wins}-{t.losses} (#{t.rank})
+                          </span>
+                        </div>
+                        {topPlayers.length > 0 && (
+                          <div className="mt-1 flex flex-wrap gap-1">
+                            {topPlayers.map((p) => (
+                              <span key={p.name} className="text-[9px] rounded bg-slate-100 px-1.5 py-0.5 text-slate-600">
+                                {p.name} <span className="text-emerald-600">FAR {p.far.toFixed(1)}</span>
+                              </span>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+              </div>
+            </div>
+            {/* Buyers */}
+            <div>
+              <div className="px-3 py-2 border-b border-border bg-emerald-50/50">
+                <span className="text-[10px] font-semibold uppercase tracking-wider text-emerald-600">Buyers</span>
+                <span className="ml-1 text-[10px] text-slate-400">(top half, competing for assets)</span>
+              </div>
+              <div className="divide-y divide-border">
+                {standings.filter((t) => t.rank <= Math.ceil(standings.length / 2) && t.teamId !== myTeamId)
+                  .sort((a, b) => a.rank - b.rank)
+                  .map((t) => {
+                    const weakCats = (() => {
+                      const lt = liveTeams.find((lt: LiveTeam) => lt.teamId === t.teamId);
+                      if (!lt) return [];
+                      return Object.entries(lt.ranks)
+                        .filter(([, r]) => r >= 8)
+                        .map(([cat]) => cat)
+                        .slice(0, 3);
+                    })();
+                    return (
+                      <div key={t.teamId} className="px-3 py-2">
+                        <div className="flex items-center justify-between">
+                          <span className="text-[12px] font-medium text-slate-700">{t.teamName}</span>
+                          <span className="text-[11px] font-mono tabular-nums text-slate-500">
+                            {t.wins}-{t.losses} (#{t.rank})
+                          </span>
+                        </div>
+                        {weakCats.length > 0 && (
+                          <div className="mt-1 text-[10px] text-slate-500">
+                            Needs: <span className="text-red-600">{weakCats.join(", ")}</span>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+              </div>
+            </div>
           </div>
         </div>
       )}

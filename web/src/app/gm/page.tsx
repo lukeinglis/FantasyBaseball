@@ -40,12 +40,49 @@ interface LeagueStatsData {
   averages: Record<string, number>;
 }
 
-const POWER_CATS = ["TB", "HR", "R", "RBI"];
+interface CategoryRanking {
+  cat: string;
+  weight: number;
+  rank: number;
+  value: number;
+  leaderValue: number;
+  gap: number;
+  tier: string;
+  tierLabel: string;
+  isPunt: boolean;
+}
+
+interface ActionItem {
+  priority: "HIGH" | "MEDIUM" | "LOW";
+  type: string;
+  message: string;
+}
+
+interface DiagnosisData {
+  teamName: string;
+  categoryRankings: CategoryRanking[];
+  actionItems: ActionItem[];
+}
+
+const ALL_CATS = ["TB", "HR", "R", "RBI", "H", "W", "K", "WHIP", "QS", "ERA", "SB", "BB", "AVG", "L", "HD", "SV"];
 const IL_STATUSES = new Set(["SEVEN_DAY_DL", "TEN_DAY_DL", "FIFTEEN_DAY_DL", "SIXTY_DAY_DL", "OUT"]);
+
+function rankColor(rank: number): string {
+  if (rank <= 3) return "bg-emerald-500 text-white";
+  if (rank <= 6) return "bg-yellow-400 text-yellow-900";
+  return "bg-red-500 text-white";
+}
+
+function rankBorderColor(rank: number): string {
+  if (rank <= 3) return "border-emerald-300";
+  if (rank <= 6) return "border-yellow-300";
+  return "border-red-300";
+}
 
 export default function GmDashboard() {
   const [matchup, setMatchup] = useState<MatchupData | null>(null);
   const [leagueStats, setLeagueStats] = useState<LeagueStatsData | null>(null);
+  const [diagnosis, setDiagnosis] = useState<DiagnosisData | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -53,11 +90,13 @@ export default function GmDashboard() {
     Promise.all([
       fetch("/api/espn/matchup").then((r) => r.json()).catch(() => ({})),
       fetch("/api/espn/league-stats").then((r) => r.json()).catch(() => ({})),
+      fetch("/api/analysis/roster-diagnosis").then((r) => r.json()).catch(() => ({})),
     ])
-      .then(([m, ls]) => {
+      .then(([m, ls, diag]) => {
         if (m.error) { setError(m.error); return; }
         if (!m.error) setMatchup(m);
         if (!ls.error) setLeagueStats(ls);
+        if (!diag.error && diag.actionItems) setDiagnosis(diag);
       })
       .catch(() => setError("FETCH_FAILED"))
       .finally(() => setLoading(false));
@@ -95,17 +134,25 @@ export default function GmDashboard() {
     return { winning, losing, close };
   }, [matchup]);
 
-  const powerProfile = useMemo(() => {
-    if (!myTeam || !leagueStats) return null;
-    return POWER_CATS.map((cat) => {
-      const myVal = sanitizeNum(myTeam.categories[cat]);
-      const avg = sanitizeNum(leagueStats.averages[cat]);
-      const rank = sanitizeNum(myTeam.ranks[cat]);
-      const delta = sanitizeNum(myTeam.deltas[cat]);
-      const pctOfAvg = avg > 0 ? (myVal / avg) * 100 : 100;
-      return { cat, myVal, avg, rank, delta, pctOfAvg, weight: CATEGORY_WEIGHTS[cat] ?? 0 };
-    });
-  }, [myTeam, leagueStats]);
+  const categoryGrid = useMemo(() => {
+    if (!myTeam) return [];
+    return ALL_CATS.map((cat) => ({
+      cat,
+      rank: sanitizeNum(myTeam.ranks[cat], 10),
+      value: sanitizeNum(myTeam.categories[cat]),
+      delta: sanitizeNum(myTeam.deltas[cat]),
+      weight: CATEGORY_WEIGHTS[cat] ?? 0,
+      tier: categoryTier(cat),
+      isPunt: isPunt(cat),
+    }));
+  }, [myTeam]);
+
+  const topActions = useMemo(() => {
+    if (!diagnosis) return [];
+    return diagnosis.actionItems
+      .filter((a) => a.priority === "HIGH")
+      .slice(0, 4);
+  }, [diagnosis]);
 
   if (loading) return <div className="flex h-64 items-center justify-center text-slate-500">Loading dashboard...</div>;
   if (error === "ESPN_CREDS_MISSING" || error === "MY_ESPN_TEAM_ID_MISSING") {
@@ -175,120 +222,132 @@ export default function GmDashboard() {
           </div>
         )}
 
-        {/* Roster Health */}
+        {/* Action Items from Diagnosis */}
         <div className="rounded-lg border border-border bg-surface">
-          <div className="border-b border-border px-4 py-2">
-            <span className="text-[10px] font-semibold uppercase tracking-widest text-slate-500">Roster Health</span>
+          <div className="border-b border-border px-4 py-2 flex items-center justify-between">
+            <span className="text-[10px] font-semibold uppercase tracking-widest text-slate-500">Action Items</span>
+            {topActions.length > 0 && (
+              <a href="/gm/diagnosis" className="text-[10px] text-orange-600 hover:text-orange-700">View all</a>
+            )}
           </div>
-          <div className="px-4 py-4">
-            {injuredPlayers.length === 0 ? (
-              <div className="flex items-center gap-2">
-                <span className="text-[13px] text-emerald-600 font-semibold">All healthy</span>
-                <span className="text-[11px] text-slate-400">No players on IL</span>
+          <div className="px-4 py-3">
+            {topActions.length > 0 ? (
+              <div className="space-y-2">
+                {topActions.map((action, i) => (
+                  <div key={i} className="flex items-start gap-2">
+                    <span className={`shrink-0 mt-0.5 text-[9px] font-bold rounded px-1.5 py-0.5 ${
+                      action.type === "DROP" ? "bg-red-100 text-red-700" :
+                      action.type === "STREAM" ? "bg-blue-100 text-blue-700" :
+                      action.type === "TRADE" ? "bg-purple-100 text-purple-700" :
+                      action.type === "IMPROVE" ? "bg-orange-100 text-orange-700" :
+                      "bg-slate-100 text-slate-600"
+                    }`}>{action.type}</span>
+                    <span className="text-[12px] text-slate-700 leading-snug">{action.message}</span>
+                  </div>
+                ))}
               </div>
             ) : (
-              <div>
-                <div className="text-[11px] text-red-600 font-semibold mb-2">{injuredPlayers.length} on IL</div>
-                <div className="space-y-1">
-                  {injuredPlayers.map((p, i) => (
-                    <div key={i} className="flex items-center gap-2 text-[11px]">
-                      <span className="text-slate-700">{p.name}</span>
-                      <span className="text-slate-400">{p.pos}</span>
-                      <span className="text-red-500 text-[10px] font-bold">IL</span>
-                    </div>
-                  ))}
-                </div>
+              <div className="space-y-2">
+                {categoryInsights.losing.length > 0 && (
+                  <a href="/gm/matchup" className="flex items-center gap-2 text-[12px] text-red-600 hover:text-red-700">
+                    <span className="font-semibold">Losing {categoryInsights.losing.length} non-punt categories</span>
+                    <span className="text-slate-400">({categoryInsights.losing.map((c) => c.cat).join(", ")})</span>
+                  </a>
+                )}
+                {injuredPlayers.length > 0 && (
+                  <a href="/gm/roster" className="flex items-center gap-2 text-[12px] text-orange-600 hover:text-orange-700">
+                    <span className="font-semibold">{injuredPlayers.length} players on IL</span>
+                    <span className="text-slate-400">Check roster for streaming slots</span>
+                  </a>
+                )}
+                <a href="/gm/today" className="flex items-center gap-2 text-[12px] text-slate-600 hover:text-slate-700">
+                  <span className="font-semibold">View today&apos;s games and lineup</span>
+                </a>
+                <a href="/gm/free-agents" className="flex items-center gap-2 text-[12px] text-slate-600 hover:text-slate-700">
+                  <span className="font-semibold">Browse free agent recommendations</span>
+                </a>
               </div>
             )}
           </div>
         </div>
 
-        {/* Power Profile (Issue #64) */}
-        {powerProfile && (
+        {/* Category Health Grid */}
+        {categoryGrid.length > 0 && (
           <div className="rounded-lg border border-border bg-surface lg:col-span-2">
             <div className="border-b border-border px-4 py-2 flex items-center justify-between">
-              <span className="text-[10px] font-semibold uppercase tracking-widest text-slate-500">Power Profile</span>
-              <span className="text-[9px] text-slate-400">TB, HR, R, RBI: highest-weight categories</span>
+              <span className="text-[10px] font-semibold uppercase tracking-widest text-slate-500">Category Health</span>
+              <span className="text-[9px] text-slate-400">All 16 categories, sorted by weight</span>
             </div>
             <div className="px-4 py-4">
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                {powerProfile.map((p) => {
-                  const barWidth = Math.min(100, Math.max(0, p.pctOfAvg));
-                  const isAbove = p.delta > 0;
-                  return (
-                    <div key={p.cat} className="space-y-1">
-                      <div className="flex items-baseline justify-between">
-                        <span className="text-[12px] font-bold text-slate-700">{p.cat}</span>
-                        <span className="text-[10px] text-slate-400">wt: {(p.weight * 100).toFixed(1)}%</span>
-                      </div>
-                      <div className="flex items-baseline gap-2">
-                        <span className="text-[18px] font-bold tabular-nums text-slate-800">{Math.round(p.myVal)}</span>
-                        <span className={`text-[11px] font-semibold ${isAbove ? "text-emerald-600" : "text-red-600"}`}>
-                          {isAbove ? "+" : ""}{Math.round(p.delta)} vs avg
-                        </span>
-                      </div>
-                      {/* Bar chart vs league average */}
-                      <div className="h-2 rounded-full bg-slate-200 overflow-hidden">
-                        <div
-                          className={`h-full rounded-full transition-all ${isAbove ? "bg-emerald-500" : "bg-red-400"}`}
-                          style={{ width: `${barWidth}%` }}
-                        />
-                      </div>
-                      <div className="flex items-center justify-between text-[9px] text-slate-400">
-                        <span>Avg: {Math.round(p.avg)}</span>
-                        <span>Rank: #{p.rank}</span>
-                      </div>
+              <div className="grid grid-cols-4 sm:grid-cols-8 gap-2">
+                {categoryGrid.map((c) => (
+                  <div key={c.cat} className={`rounded-lg border p-2 text-center ${rankBorderColor(c.rank)} ${c.isPunt ? "opacity-50" : ""}`}>
+                    <div className="text-[10px] font-bold text-slate-600">{c.cat}</div>
+                    <div className={`mt-1 inline-flex items-center justify-center w-7 h-7 rounded-full text-[12px] font-bold ${rankColor(c.rank)}`}>
+                      {c.rank}
                     </div>
-                  );
-                })}
-              </div>
-
-              {/* Power surplus/deficit summary */}
-              <div className="mt-4 pt-3 border-t border-border flex flex-wrap gap-3 text-[10px]">
-                {powerProfile.filter((p) => p.delta > 0).length > 0 && (
-                  <span className="text-emerald-600 font-semibold">
-                    Surplus: {powerProfile.filter((p) => p.delta > 0).map((p) => p.cat).join(", ")}
-                  </span>
-                )}
-                {powerProfile.filter((p) => p.delta < 0).length > 0 && (
-                  <span className="text-red-600 font-semibold">
-                    Deficit: {powerProfile.filter((p) => p.delta < 0).map((p) => p.cat).join(", ")}
-                  </span>
-                )}
+                    <div className={`mt-1 text-[10px] font-semibold ${c.delta > 0 ? "text-emerald-600" : c.delta < 0 ? "text-red-600" : "text-slate-400"}`}>
+                      {c.delta > 0 ? "+" : ""}{LOWER_IS_BETTER.has(c.cat)
+                        ? c.delta.toFixed(c.cat === "AVG" ? 3 : 2)
+                        : Math.round(c.delta)
+                      }
+                    </div>
+                    <div className="text-[8px] text-slate-400 mt-0.5">
+                      {c.tier === "high" ? "HIGH" : c.tier === "medium" ? "MED" : c.tier === "low" ? "LOW" : "PUNT"}
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
           </div>
         )}
 
-        {/* Action Items */}
+        {/* Roster Alerts */}
         <div className="rounded-lg border border-border bg-surface lg:col-span-2">
           <div className="border-b border-border px-4 py-2">
-            <span className="text-[10px] font-semibold uppercase tracking-widest text-slate-500">Quick Actions</span>
+            <span className="text-[10px] font-semibold uppercase tracking-widest text-slate-500">Roster Alerts</span>
           </div>
-          <div className="px-4 py-3 space-y-2">
-            {categoryInsights.losing.length > 0 && (
-              <a href="/gm/matchup" className="flex items-center gap-2 text-[12px] text-red-600 hover:text-red-700">
-                <span className="font-semibold">Losing {categoryInsights.losing.length} non-punt categories</span>
-                <span className="text-slate-400">({categoryInsights.losing.map((c) => c.cat).join(", ")})</span>
-              </a>
-            )}
-            {injuredPlayers.length > 0 && (
-              <a href="/gm/roster" className="flex items-center gap-2 text-[12px] text-orange-600 hover:text-orange-700">
-                <span className="font-semibold">{injuredPlayers.length} players on IL</span>
-                <span className="text-slate-400">Check roster for streaming slots</span>
-              </a>
-            )}
-            <a href="/gm/today" className="flex items-center gap-2 text-[12px] text-slate-600 hover:text-slate-700">
-              <span className="font-semibold">View today&apos;s games and lineup</span>
-            </a>
-            <a href="/gm/free-agents" className="flex items-center gap-2 text-[12px] text-slate-600 hover:text-slate-700">
-              <span className="font-semibold">Browse free agent recommendations</span>
-            </a>
-            {powerProfile && powerProfile.some((p) => p.delta < 0) && (
-              <a href="/gm/trade" className="flex items-center gap-2 text-[12px] text-slate-600 hover:text-slate-700">
-                <span className="font-semibold">Explore trade targets for power deficits</span>
-              </a>
-            )}
+          <div className="px-4 py-3">
+            <div className="flex flex-wrap gap-4">
+              {/* IL alert */}
+              {injuredPlayers.length > 0 ? (
+                <div className="flex-1 min-w-[200px]">
+                  <div className="text-[11px] text-red-600 font-semibold mb-2">{injuredPlayers.length} on IL</div>
+                  <div className="space-y-1">
+                    {injuredPlayers.map((p, i) => (
+                      <div key={i} className="flex items-center gap-2 text-[11px]">
+                        <span className="text-red-500 text-[10px] font-bold">IL</span>
+                        <span className="text-slate-700">{p.name}</span>
+                        <span className="text-slate-400">{p.pos}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                <div className="flex-1 min-w-[200px]">
+                  <div className="flex items-center gap-2">
+                    <span className="text-[13px] text-emerald-600 font-semibold">All healthy</span>
+                    <span className="text-[11px] text-slate-400">No players on IL</span>
+                  </div>
+                </div>
+              )}
+
+              {/* Quick links */}
+              <div className="flex-1 min-w-[200px] space-y-1.5">
+                <a href="/gm/bullpen" className="block text-[12px] text-slate-600 hover:text-slate-700 font-medium">
+                  Check pitching starts this week
+                </a>
+                <a href="/gm/free-agents" className="block text-[12px] text-slate-600 hover:text-slate-700 font-medium">
+                  Browse streaming targets
+                </a>
+                <a href="/gm/trade" className="block text-[12px] text-slate-600 hover:text-slate-700 font-medium">
+                  Explore trade opportunities
+                </a>
+                <a href="/league/schedule" className="block text-[12px] text-slate-600 hover:text-slate-700 font-medium">
+                  View remaining schedule
+                </a>
+              </div>
+            </div>
           </div>
         </div>
       </div>

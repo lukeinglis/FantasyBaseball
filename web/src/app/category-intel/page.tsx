@@ -4,6 +4,7 @@ import { useState, useEffect, useMemo } from "react";
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell,
 } from "recharts";
+import { LOWER_IS_BETTER } from "@/lib/category-weights";
 
 interface CategoryWeights {
   weights: Record<string, number>;
@@ -13,13 +14,30 @@ interface CategoryWeights {
   sample_sizes: Record<string, number>;
 }
 
+interface LiveTeam {
+  teamId: number;
+  teamName: string;
+  categories: Record<string, number>;
+  ranks: Record<string, number>;
+}
+
+interface LiveStatsData {
+  myTeamId: number;
+  teams: LiveTeam[];
+}
+
 export default function CategoryIntelPage() {
   const [data, setData] = useState<CategoryWeights | null>(null);
+  const [liveData, setLiveData] = useState<LiveStatsData | null>(null);
 
   useEffect(() => {
     fetch("/api/weights")
       .then((r) => r.json())
       .then((d) => { if (!d.error) setData(d); });
+    fetch("/api/espn/league-stats?scope=season")
+      .then((r) => r.json())
+      .then((d) => { if (!d.error && d.teams) setLiveData(d); })
+      .catch(() => {});
   }, []);
 
   const chartData = useMemo(() => {
@@ -83,6 +101,85 @@ export default function CategoryIntelPage() {
           </span>
         </div>
       </div>
+
+      {/* In-Season Category Standings */}
+      {liveData && data && (
+        <div className="mb-6 rounded-lg border border-border bg-surface">
+          <div className="border-b border-border px-4 py-2 flex items-center justify-between">
+            <span className="text-[10px] font-semibold uppercase tracking-widest text-slate-500">
+              In-Season Category Standings
+            </span>
+            <span className="text-[9px] text-slate-400">Your rank in each category, colored by weight tier</span>
+          </div>
+          <div className="px-4 py-4">
+            {(() => {
+              const myTeam = liveData.teams.find((t) => t.teamId === liveData.myTeamId);
+              if (!myTeam) return <div className="text-[11px] text-slate-500">No data</div>;
+
+              const catEntries = sorted.map((d) => {
+                const rank = myTeam.ranks[d.category] ?? 0;
+                const value = myTeam.categories[d.category] ?? 0;
+                return { ...d, rank, value };
+              });
+
+              return (
+                <div className="space-y-4">
+                  <div className="grid grid-cols-4 sm:grid-cols-8 gap-2">
+                    {catEntries.map((c) => {
+                      const rankColor =
+                        c.rank <= 3 ? "bg-emerald-500 text-white" :
+                        c.rank <= 6 ? "bg-yellow-400 text-yellow-900" :
+                        "bg-red-500 text-white";
+                      const tierBorder =
+                        Math.abs(c.weight) >= 0.09 ? "border-orange-300" :
+                        Math.abs(c.weight) >= 0.05 ? "border-blue-300" :
+                        "border-slate-200";
+                      const fmtVal = LOWER_IS_BETTER.has(c.category)
+                        ? c.value.toFixed(c.category === "L" ? 0 : 2)
+                        : c.category === "AVG" ? c.value.toFixed(3)
+                        : String(Math.round(c.value));
+                      return (
+                        <div key={c.category} className={`rounded-lg border p-2 text-center ${tierBorder}`}>
+                          <div className="text-[10px] font-bold text-slate-600">{c.category}</div>
+                          <div className={`mt-1 inline-flex items-center justify-center w-7 h-7 rounded-full text-[12px] font-bold ${rankColor}`}>
+                            {c.rank}
+                          </div>
+                          <div className="mt-1 text-[10px] font-mono tabular-nums text-slate-600">{fmtVal}</div>
+                          <div className="text-[8px] text-slate-400">
+                            wt: {(Math.abs(c.weight) * 100).toFixed(1)}%
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  {/* Weighted strength summary */}
+                  {(() => {
+                    const strong = catEntries.filter((c) => c.rank <= 3 && Math.abs(c.weight) >= 0.05);
+                    const weak = catEntries.filter((c) => c.rank >= 8 && Math.abs(c.weight) >= 0.05);
+                    return (
+                      <div className="flex flex-wrap gap-4 pt-2 border-t border-border text-[11px]">
+                        {strong.length > 0 && (
+                          <div>
+                            <span className="text-emerald-600 font-semibold">Strong in high-weight: </span>
+                            <span className="text-slate-600">{strong.map((c) => c.category).join(", ")}</span>
+                          </div>
+                        )}
+                        {weak.length > 0 && (
+                          <div>
+                            <span className="text-red-600 font-semibold">Weak in high-weight: </span>
+                            <span className="text-slate-600">{weak.map((c) => c.category).join(", ")}</span>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })()}
+                </div>
+              );
+            })()}
+          </div>
+        </div>
+      )}
 
       <div className="grid gap-4 lg:grid-cols-2">
         {/* All Weights */}

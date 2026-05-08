@@ -51,15 +51,41 @@ function urgencyColor(round: number) {
 
 const POSITIONS = ["C", "1B", "2B", "3B", "SS", "OF", "SP", "RP"] as const;
 
+interface DraftResult {
+  year: number;
+  round: number;
+  pick: number;
+  team: string;
+  playerName: string;
+  keeper: boolean;
+}
+
+interface ZScorePlayer {
+  name: string;
+  pos: string;
+  proTeam: string;
+  zTotal: number;
+  far: number;
+  onTeamId: number;
+}
+
+function safeNum(val: number): number {
+  return Number.isFinite(val) ? val : 0;
+}
+
 export default function StrategyPage() {
   const [players, setPlayers] = useState<Player[]>([]);
   const [profiles, setProfiles] = useState<DraftProfile[]>([]);
   const [espnData, setEspnData] = useState<Record<string, { adp: number | null; primaryPos: string | null }>>({});
+  const [draftResults, setDraftResults] = useState<DraftResult[]>([]);
+  const [zScorePlayers, setZScorePlayers] = useState<ZScorePlayer[]>([]);
 
   useEffect(() => {
     fetch("/api/rankings").then((r) => r.json()).then(setPlayers);
     fetch("/api/profiles").then((r) => r.json()).then(setProfiles);
     fetch("/api/espn-adp").then((r) => r.json()).then((d) => { if (!d.error) setEspnData(d); });
+    fetch("/api/draft-results").then((r) => r.json()).then((d) => { if (Array.isArray(d)) setDraftResults(d); }).catch(() => {});
+    fetch("/api/analysis/z-scores").then((r) => r.json()).then((d) => { if (d.players) setZScorePlayers(d.players); }).catch(() => {});
   }, []);
 
   // Deduplicate
@@ -405,6 +431,125 @@ export default function StrategyPage() {
 
         </div>
       </div>
+
+      {/* ── Draft Grade (Post-Draft) ── */}
+      {(() => {
+        const currentYear = new Date().getFullYear();
+        const myDraftPicks = draftResults.filter((p) => p.year === currentYear && p.team === MY_NAME);
+        if (myDraftPicks.length === 0 || zScorePlayers.length === 0) return null;
+
+        const zByName = new Map<string, ZScorePlayer>();
+        for (const z of zScorePlayers) zByName.set(z.name, z);
+
+        const graded = myDraftPicks
+          .sort((a, b) => a.round - b.round)
+          .map((pick) => {
+            const zp = zByName.get(pick.playerName);
+            const adpEntry = espnData[pick.playerName];
+            const adp = adpEntry?.adp;
+            const overallPick = pick.pick;
+            const farValue = zp ? safeNum(zp.far) : 0;
+            const adpDiff = adp != null ? Math.round(adp - overallPick) : null;
+            let grade: string;
+            let gradeColor: string;
+            if (farValue >= 5) { grade = "A+"; gradeColor = "text-emerald-600"; }
+            else if (farValue >= 3) { grade = "A"; gradeColor = "text-emerald-600"; }
+            else if (farValue >= 1.5) { grade = "B"; gradeColor = "text-blue-600"; }
+            else if (farValue >= 0.5) { grade = "C"; gradeColor = "text-slate-600"; }
+            else if (farValue >= -0.5) { grade = "D"; gradeColor = "text-orange-600"; }
+            else { grade = "F"; gradeColor = "text-red-600"; }
+
+            const isSteal = adpDiff !== null && adpDiff > 15;
+            const isBust = farValue < -0.5 && pick.round <= 10;
+
+            return { ...pick, zp, adp, adpDiff, farValue, grade, gradeColor, isSteal, isBust };
+          });
+
+        const steals = graded.filter((p) => p.isSteal);
+        const busts = graded.filter((p) => p.isBust);
+
+        return (
+          <div className="mt-6 space-y-4">
+            <h2 className="text-lg font-bold text-gray-900">Draft Grade ({currentYear})</h2>
+
+            {/* Steals and Busts */}
+            {(steals.length > 0 || busts.length > 0) && (
+              <div className="grid gap-4 sm:grid-cols-2">
+                {steals.length > 0 && (
+                  <div className="rounded-lg border border-emerald-300 bg-emerald-50/50 px-4 py-3">
+                    <div className="text-[10px] font-semibold uppercase tracking-wider text-emerald-700 mb-2">Steals</div>
+                    {steals.map((p) => (
+                      <div key={p.playerName} className="flex items-center justify-between py-1 border-b border-emerald-200/50 last:border-0">
+                        <div>
+                          <span className="text-[12px] font-medium text-slate-700">{p.playerName}</span>
+                          <span className="text-[10px] text-slate-500 ml-1">Rd {p.round}</span>
+                        </div>
+                        <div className="text-right">
+                          <span className="text-[10px] font-mono text-emerald-600">ADP +{p.adpDiff}</span>
+                          <span className="text-[10px] font-mono text-slate-500 ml-2">FAR {p.farValue.toFixed(1)}</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                {busts.length > 0 && (
+                  <div className="rounded-lg border border-red-300 bg-red-50/50 px-4 py-3">
+                    <div className="text-[10px] font-semibold uppercase tracking-wider text-red-700 mb-2">Underperforming</div>
+                    {busts.map((p) => (
+                      <div key={p.playerName} className="flex items-center justify-between py-1 border-b border-red-200/50 last:border-0">
+                        <div>
+                          <span className="text-[12px] font-medium text-slate-700">{p.playerName}</span>
+                          <span className="text-[10px] text-slate-500 ml-1">Rd {p.round}</span>
+                        </div>
+                        <span className="text-[10px] font-mono text-red-600">FAR {p.farValue.toFixed(1)}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Full draft card */}
+            <div className="rounded-lg border border-border overflow-x-auto">
+              <table className="w-full text-[12px]">
+                <thead>
+                  <tr className="border-b border-border bg-surface text-[10px] uppercase tracking-wider text-slate-500">
+                    <th className="px-3 py-2 text-left">Rd</th>
+                    <th className="px-3 py-2 text-left">Player</th>
+                    <th className="px-2 py-2 text-center">Pick</th>
+                    <th className="px-2 py-2 text-center">ADP</th>
+                    <th className="px-2 py-2 text-center">FAR</th>
+                    <th className="px-2 py-2 text-center">Grade</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {graded.map((p) => (
+                    <tr key={p.playerName} className={`border-b border-border/50 ${p.isSteal ? "bg-emerald-50/50" : p.isBust ? "bg-red-50/50" : ""}`}>
+                      <td className="px-3 py-1.5 font-mono text-slate-500">{p.round}</td>
+                      <td className="px-3 py-1.5">
+                        <span className="font-medium text-slate-700">{p.playerName}</span>
+                        {p.keeper && <span className="text-[9px] text-orange-600 ml-1">K</span>}
+                      </td>
+                      <td className="px-2 py-1.5 text-center font-mono tabular-nums text-slate-500">#{p.pick}</td>
+                      <td className="px-2 py-1.5 text-center font-mono tabular-nums">
+                        {p.adp != null ? (
+                          <span className={p.adpDiff !== null && p.adpDiff > 0 ? "text-emerald-600" : p.adpDiff !== null && p.adpDiff < -10 ? "text-red-600" : "text-slate-500"}>
+                            {p.adp.toFixed(0)}
+                          </span>
+                        ) : <span className="text-slate-400">N/A</span>}
+                      </td>
+                      <td className={`px-2 py-1.5 text-center font-mono tabular-nums font-bold ${
+                        p.farValue >= 2 ? "text-emerald-600" : p.farValue < 0 ? "text-red-600" : "text-slate-600"
+                      }`}>{p.farValue.toFixed(1)}</td>
+                      <td className={`px-2 py-1.5 text-center font-bold ${p.gradeColor}`}>{p.grade}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        );
+      })()}
     </div>
   );
 }
