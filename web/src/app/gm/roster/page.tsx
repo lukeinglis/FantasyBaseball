@@ -39,9 +39,11 @@ interface TeamSchedule {
 
 interface ZScorePlayer {
   name: string;
+  pos: string;
   zScores: Record<string, number>;
   zTotal: number;
   far: number;
+  onTeamId: number;
 }
 
 interface PlayerSeasonStats {
@@ -669,8 +671,128 @@ export default function RosterPage() {
         </div>
       )}
 
+      {/* Position Analysis */}
+      {resolvedTeam && allZScores.length > 0 && (
+        <PositionAnalysis
+          roster={resolvedTeam.roster}
+          zScoreMap={zScoreMap}
+          allZScores={allZScores}
+          myTeamId={resolvedTeam.id}
+        />
+      )}
+
       {/* GM Advisor */}
       <GmAdvisor />
     </div>
   );
 }
+
+const POS_SLOTS: { slot: string; slotIds: number[] }[] = [
+  { slot: "C", slotIds: [0] },
+  { slot: "1B", slotIds: [1] },
+  { slot: "2B", slotIds: [2] },
+  { slot: "3B", slotIds: [3] },
+  { slot: "SS", slotIds: [4] },
+  { slot: "OF", slotIds: [5, 6, 7] },
+  { slot: "UTIL", slotIds: [8, 12] },
+  { slot: "SP", slotIds: [14] },
+  { slot: "RP", slotIds: [15] },
+  { slot: "P", slotIds: [13] },
+];
+
+function PositionAnalysis({
+  roster,
+  zScoreMap,
+  allZScores,
+  myTeamId,
+}: {
+  roster: RosterPlayer[];
+  zScoreMap: Map<string, ZScorePlayer>;
+  allZScores: ZScorePlayer[];
+  myTeamId: number;
+}) {
+  const positionData = useMemo(() => {
+    return POS_SLOTS.map((ps) => {
+      const myPlayers = roster
+        .filter((p) => ps.slotIds.includes(p.slotId))
+        .map((p) => {
+          const zp = zScoreMap.get(p.name);
+          return { name: p.name, pos: p.pos, far: safeNum(zp?.far ?? 0), zTotal: safeNum(zp?.zTotal ?? 0) };
+        })
+        .sort((a, b) => b.far - a.far);
+
+      const bestFAs = allZScores
+        .filter((p) => {
+          if (p.onTeamId !== 0) return false;
+          if (ps.slot === "SP" || ps.slot === "RP" || ps.slot === "P") return p.pos === "SP" || p.pos === "RP";
+          return p.pos === ps.slot || (ps.slot === "OF" && p.pos === "OF") || ps.slot === "UTIL";
+        })
+        .sort((a, b) => b.far - a.far)
+        .slice(0, 2)
+        .map((p) => ({ name: p.name, pos: p.pos, far: safeNum(p.far), zTotal: safeNum(p.zTotal) }));
+
+      const myBestFar = myPlayers.length > 0 ? myPlayers[0].far : 0;
+      const faBestFar = bestFAs.length > 0 ? bestFAs[0].far : 0;
+      const hasUpgrade = faBestFar > myBestFar && myPlayers.length > 0;
+      const tierLabel = myBestFar >= 3 ? "Elite" : myBestFar >= 1.5 ? "Solid" : myBestFar >= 0 ? "Average" : "Weak";
+      const tierColor = myBestFar >= 3 ? "text-emerald-600" : myBestFar >= 1.5 ? "text-blue-600" : myBestFar >= 0 ? "text-slate-600" : "text-red-600";
+
+      return { slot: ps.slot, myPlayers, bestFAs, hasUpgrade, tierLabel, tierColor };
+    }).filter((p) => p.myPlayers.length > 0);
+  }, [roster, zScoreMap, allZScores]);
+
+  if (positionData.length === 0) return null;
+
+  return (
+    <div className="mt-6 rounded-lg border border-border bg-surface">
+      <div className="border-b border-border px-4 py-2 flex items-center justify-between">
+        <span className="text-[10px] font-semibold uppercase tracking-widest text-slate-500">Position Analysis</span>
+        <span className="text-[9px] text-slate-400">Your player vs best available FA by position</span>
+      </div>
+      <div className="divide-y divide-border">
+        {positionData.map((pd) => (
+          <div key={pd.slot} className="px-4 py-2.5">
+            <div className="flex items-center justify-between mb-1">
+              <div className="flex items-center gap-2">
+                <span className="text-[12px] font-bold text-slate-700 w-8">{pd.slot}</span>
+                <span className={`text-[9px] font-bold uppercase ${pd.tierColor}`}>{pd.tierLabel}</span>
+              </div>
+              {pd.hasUpgrade && (
+                <span className="text-[9px] font-bold rounded px-1.5 py-0.5 bg-orange-100 text-orange-700">
+                  Upgrade Available
+                </span>
+              )}
+            </div>
+            <div className="grid gap-2 sm:grid-cols-2">
+              <div>
+                <div className="text-[9px] text-slate-400 mb-0.5">Your roster</div>
+                {pd.myPlayers.map((p) => (
+                  <div key={p.name} className="flex items-center justify-between text-[11px]">
+                    <span className="text-slate-700">{p.name}</span>
+                    <span className={`font-mono tabular-nums ${p.far >= 2 ? "text-emerald-600" : p.far < 0 ? "text-red-600" : "text-slate-500"}`}>
+                      {p.far.toFixed(1)}
+                    </span>
+                  </div>
+                ))}
+              </div>
+              {pd.bestFAs.length > 0 && (
+                <div>
+                  <div className="text-[9px] text-slate-400 mb-0.5">Best FA</div>
+                  {pd.bestFAs.map((p) => (
+                    <div key={p.name} className="flex items-center justify-between text-[11px]">
+                      <span className="text-blue-600">{p.name}</span>
+                      <span className={`font-mono tabular-nums ${p.far >= 2 ? "text-emerald-600" : "text-slate-500"}`}>
+                        {p.far.toFixed(1)}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
