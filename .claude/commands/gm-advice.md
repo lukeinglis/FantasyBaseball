@@ -12,8 +12,19 @@ Use WebFetch to retrieve all of the following in parallel:
 - https://baseball.lukeinglis.me/api/espn/league-stats?scope=season
 - https://baseball.lukeinglis.me/api/espn/standings
 - https://baseball.lukeinglis.me/api/espn/schedule
+- https://baseball.lukeinglis.me/api/analysis/roster-diagnosis
 
 ### 2. Analyze and generate advice
+
+**Use the roster diagnosis data to ground your analysis.** The diagnosis endpoint returns:
+- `categoryRankings`: each category with rank, tier (STRONG/MIDDLE/WEAK), weight, gap to leader
+- `batterAnalysis`: each batter with OPS, verdict (STAR/SOLID/BELOW_AVG/DRAG)
+- `pitcherAnalysis`: each pitcher with ERA, verdict (ACE/SOLID/BELOW_AVG/HURTING), ERA impact vs 3.80 target
+- `marginToFlip`: categories where we're closest to improving a rank (sorted by weighted efficiency)
+- `expectedWinsPerWeek`: probability model for category wins
+- `actionItems`: prioritized DROP/IMPROVE/STREAM/TRADE/PUNT recommendations
+
+Reference specific category ranks (e.g. "TB ranked #2, HR ranked #8") and player verdicts (e.g. "Player X is a DRAG with .612 OPS") in your bullets. Do not give generic advice when structured data is available.
 
 Review all the data. Produce three sections:
 

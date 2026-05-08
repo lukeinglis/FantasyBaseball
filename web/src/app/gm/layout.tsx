@@ -6,6 +6,7 @@ const SUB_LINKS = [
   { href: "/gm/today", label: "Today" },
   { href: "/gm/matchup", label: "Matchup" },
   { href: "/gm/roster", label: "My Roster" },
+  { href: "/gm/diagnosis", label: "Diagnosis" },
   { href: "/gm/bullpen", label: "Bullpen" },
   { href: "/gm/category-breakdown", label: "Category Breakdown" },
   { href: "/gm/h2h", label: "Team H2H" },
