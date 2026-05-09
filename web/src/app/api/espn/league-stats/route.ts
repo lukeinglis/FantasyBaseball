@@ -128,6 +128,23 @@ function buildSeasonStats(
   return stats;
 }
 
+function buildStatsFromValuesByStat(
+  teams: Array<{ id: number; valuesByStat?: Record<string, number> }>,
+): Record<number, Record<string, number>> {
+  const stats: Record<number, Record<string, number>> = {};
+  for (const t of teams) {
+    const vbs = t.valuesByStat ?? {};
+    stats[t.id] = {};
+    for (const [statIdStr, cat] of Object.entries(STAT_ID_MAP)) {
+      const val = vbs[statIdStr];
+      if (val != null && Number.isFinite(val)) {
+        stats[t.id][cat] = val;
+      }
+    }
+  }
+  return stats;
+}
+
 function rankTeams(
   teamStats: Record<number, Record<string, number>>,
 ): {
@@ -247,9 +264,28 @@ export async function GET(request: Request) {
       };
     }
 
-    const teamStats = scope === "season"
-      ? buildSeasonStats(schedule, currentMatchupPeriod)
-      : buildTeamStatsForWeek(schedule, currentMatchupPeriod);
+    let teamStats: Record<number, Record<string, number>>;
+
+    if (scope === "season") {
+      // Prefer valuesByStat from team objects (always populated, pre-calculated by ESPN)
+      // scoreByStat in matchup data may be empty for some leagues
+      const fromTeams = buildStatsFromValuesByStat(data.teams ?? []);
+      const fromSchedule = buildSeasonStats(schedule, currentMatchupPeriod);
+      const hasScheduleData = Object.values(fromSchedule).some(
+        (ts) => Object.keys(ts).length > 0
+      );
+      teamStats = hasScheduleData ? fromSchedule : fromTeams;
+    } else {
+      const weekStats = buildTeamStatsForWeek(schedule, currentMatchupPeriod);
+      const hasWeekData = Object.values(weekStats).some(
+        (ts) => Object.keys(ts).length > 0
+      );
+      if (hasWeekData) {
+        teamStats = weekStats;
+      } else {
+        teamStats = buildStatsFromValuesByStat(data.teams ?? []);
+      }
+    }
 
     const { ranks, averages, deltas, composites, powerRanks } = rankTeams(teamStats);
     const allTeamIds = Object.keys(teamStats).map(Number);
