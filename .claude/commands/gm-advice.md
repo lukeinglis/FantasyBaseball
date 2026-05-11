@@ -68,3 +68,14 @@ git add web/public/gm-advice.json
 git commit -s -m "Update GM advice"
 git push origin main
 ```
+
+## Weekly Auto-Refresh
+
+Run `/gm-advice` at least once per matchup week (Monday or Tuesday) to keep recommendations current. The advice JSON is consumed by the GM dashboard and Daily Actions page, so stale data degrades multiple views.
+
+**Recommended cadence:**
+- Monday morning: full refresh with new matchup opponent data
+- Mid-week (Wednesday/Thursday): refresh if roster moves were made or matchup is close
+- After any trade or significant waiver claim: immediate refresh
+
+The roster-diagnosis API data drives all three sections. If category rankings shift after streaming pickups or trades, re-running `/gm-advice` ensures the week/month/season bullets reflect reality.
