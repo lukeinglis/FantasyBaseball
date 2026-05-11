@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { EspnAuthRequired } from "@/components/EspnAuthRequired";
+import { ALL_CATS_BY_WEIGHT } from "@/lib/category-weights";
 
 interface WeeklyTrendPoint {
   week: number;
@@ -80,7 +81,7 @@ function TrendIndicator({ change }: { change: number | null }) {
   );
 }
 
-function Sparkline({ points, current }: { points: WeeklyTrendPoint[]; current: number }) {
+function Sparkline({ points }: { points: WeeklyTrendPoint[] }) {
   if (points.length < 2) return null;
   const maxRank = 10;
   const w = 80;
@@ -101,7 +102,7 @@ function Sparkline({ points, current }: { points: WeeklyTrendPoint[]; current: n
   );
 }
 
-const CATS_ORDER = ["H", "R", "HR", "TB", "RBI", "BB", "SB", "AVG", "K", "QS", "W", "L", "SV", "HD", "ERA", "WHIP"];
+const CATS_ORDER = ALL_CATS_BY_WEIGHT;
 
 function catRankColor(rank: number): string {
   if (rank <= 2) return "bg-emerald-600 text-white";
@@ -208,7 +209,7 @@ export default function PowerRankingsPage() {
                     <TrendIndicator change={team.rankChange} />
                   </td>
                   <td className="px-3 py-3 text-center">
-                    <Sparkline points={team.weeklyTrend ?? []} current={data.currentWeek} />
+                    <Sparkline points={team.weeklyTrend ?? []} />
                   </td>
                 </tr>
                 {isExpanded && (

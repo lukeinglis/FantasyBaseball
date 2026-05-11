@@ -636,7 +636,6 @@ export default function TradeRoomPage() {
                 {standings.filter((t) => t.rank > Math.ceil(standings.length / 2) && t.teamId !== myTeamId)
                   .sort((a, b) => b.rank - a.rank)
                   .map((t) => {
-                    const roster = teams.find((r) => r.id === t.teamId);
                     const topPlayers = zScorePlayers
                       .filter((p) => p.onTeamId === t.teamId && p.far >= 2.0)
                       .sort((a, b) => b.far - a.far)

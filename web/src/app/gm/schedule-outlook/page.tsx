@@ -4,7 +4,7 @@ import { useState, useEffect, useMemo, useRef } from "react";
 import { mean, stddev } from "@/lib/z-scores";
 import { CATEGORY_WEIGHTS } from "@/lib/category-weights";
 import { EspnAuthRequired } from "@/components/EspnAuthRequired";
-import { sanitizeNum, safeDivide } from "@/lib/sanitize";
+import { safeDivide } from "@/lib/sanitize";
 
 interface MatchupWeek {
   period: number;
@@ -247,14 +247,6 @@ export default function ScheduleOutlookPage() {
 
   const totalWeeks = schedule.weeks.length;
   const pastWeeks = schedule.weeks.filter((w) => w.period < schedule.currentMatchupPeriod);
-  const pastRecord = pastWeeks.reduce(
-    (acc, w) => {
-      const r = h2hMatchups[w.period];
-      if (!r) return acc;
-      return { w: acc.w + r.myWins, l: acc.l + r.myLosses, t: acc.t + r.myTies };
-    },
-    { w: 0, l: 0, t: 0 }
-  );
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-6">

@@ -10,6 +10,7 @@ const SUB_LINKS = [
   { href: "/gm/roster-schedule", label: "Roster Schedule" },
   { href: "/gm/diagnosis", label: "Diagnosis" },
   { href: "/gm/bullpen", label: "Bullpen" },
+  { href: "/gm/starts", label: "Starts" },
   { href: "/gm/sp-scout", label: "SP Scout" },
   { href: "/gm/schedule-outlook", label: "Timeline" },
   { href: "/gm/season-log", label: "Season Log" },

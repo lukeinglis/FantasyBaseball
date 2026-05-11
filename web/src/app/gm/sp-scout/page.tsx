@@ -144,7 +144,6 @@ export default function SPScoutPage() {
         setZScores(zData);
         setStarts(startsData);
 
-        // Fetch probable pitchers for current + next week
         const startDate = startsData.currentDates?.start ?? new Date().toISOString().slice(0, 10);
         const endDate = startsData.nextDates?.end ?? (() => {
           const d = new Date(); d.setDate(d.getDate() + 14); return d.toISOString().slice(0, 10);
@@ -159,13 +158,35 @@ export default function SPScoutPage() {
       .finally(() => setLoading(false));
   }, []);
 
-  useEffect(() => { fetchData(); }, [fetchData]);
+  useEffect(() => {
+    Promise.all([
+      fetch("/api/analysis/z-scores").then((r) => r.json()),
+      fetch("/api/espn/starts").then((r) => r.json()),
+    ])
+      .then(([zData, startsData]) => {
+        if (zData.error) { setError(zData.error); return; }
+        if (startsData.error) { setError(startsData.error); return; }
+        setZScores(zData);
+        setStarts(startsData);
+
+        const startDate = startsData.currentDates?.start ?? new Date().toISOString().slice(0, 10);
+        const endDate = startsData.nextDates?.end ?? (() => {
+          const d = new Date(); d.setDate(d.getDate() + 14); return d.toISOString().slice(0, 10);
+        })();
+        return fetch(`/api/mlb/probable-pitchers?startDate=${startDate}&endDate=${endDate}`)
+          .then((r) => r.json())
+          .then((pData) => {
+            if (!pData.error) setProbables(pData);
+          });
+      })
+      .catch(() => setError("FETCH_FAILED"))
+      .finally(() => setLoading(false));
+  }, []);
 
   const scouts = useMemo((): ScoutEntry[] => {
     if (!zScores || !starts) return [];
 
     const rosteredSet = new Set(starts.rosteredPitchers);
-    const myTeamId = starts.myTeamId;
 
     // Build starts lookup from ESPN data
     const ppLookup: Record<string, { thisWeek: number; nextWeek: number }> = {};

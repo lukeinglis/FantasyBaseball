@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
+import { sanitizeNum } from "@/lib/sanitize";
 
 interface OwnerSeason {
   year: number;
@@ -28,9 +29,6 @@ interface OwnerSummary {
   recentTeamName: string;
 }
 
-function safeNum(val: number): number {
-  return Number.isFinite(val) ? val : 0;
-}
 
 export default function OwnerTendenciesPage() {
   const [data, setData] = useState<OwnerSeason[]>([]);
@@ -63,9 +61,9 @@ export default function OwnerTendenciesPage() {
         const bestFinish = standings.length > 0 ? Math.min(...standings) : 99;
         const worstFinish = standings.length > 0 ? Math.max(...standings) : 0;
         const top3Count = standings.filter((s) => s <= 3).length;
-        const totalWins = seasons.reduce((s, r) => s + safeNum(r.wins), 0);
-        const totalLosses = seasons.reduce((s, r) => s + safeNum(r.losses), 0);
-        const totalTies = seasons.reduce((s, r) => s + safeNum(r.ties), 0);
+        const totalWins = seasons.reduce((s, r) => s + sanitizeNum(r.wins), 0);
+        const totalLosses = seasons.reduce((s, r) => s + sanitizeNum(r.losses), 0);
+        const totalTies = seasons.reduce((s, r) => s + sanitizeNum(r.ties), 0);
         const total = totalWins + totalLosses + totalTies;
         const winPct = total > 0 ? totalWins / total : 0;
         const mean = avgStanding;
@@ -77,15 +75,15 @@ export default function OwnerTendenciesPage() {
         return {
           owner,
           seasons: seasons.length,
-          avgStanding: safeNum(avgStanding),
+          avgStanding: sanitizeNum(avgStanding),
           bestFinish,
           worstFinish,
           top3Count,
           totalWins,
           totalLosses,
           totalTies,
-          winPct: safeNum(winPct),
-          consistency: safeNum(consistency),
+          winPct: sanitizeNum(winPct),
+          consistency: sanitizeNum(consistency),
           years: sorted,
           recentTeamName: sorted[0]?.teamName ?? "",
         };
@@ -139,11 +137,6 @@ export default function OwnerTendenciesPage() {
       {/* Owner cards */}
       <div className="space-y-3">
         {owners.map((o, idx) => {
-          const standingColor = (s: number) =>
-            s === 1 ? "text-amber-500 font-bold" :
-            s <= 3 ? "text-emerald-600 font-bold" :
-            s <= 6 ? "text-slate-600" :
-            s <= 9 ? "text-orange-600" : "text-red-600";
           return (
             <div key={o.owner} className="rounded-lg border border-border bg-surface">
               <div className="border-b border-border px-4 py-3 flex items-center justify-between">

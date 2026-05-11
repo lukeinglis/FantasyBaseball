@@ -162,7 +162,16 @@ export default function SeasonLogPage() {
       .finally(() => setLoading(false));
   }, []);
 
-  useEffect(() => { fetchData(); }, [fetchData]);
+  useEffect(() => {
+    fetch("/api/espn/season-log")
+      .then((r) => r.json())
+      .then((d: SeasonLogData & { error?: string }) => {
+        if (d.error) { setError(d.error); return; }
+        setData(d);
+      })
+      .catch(() => setError("FETCH_FAILED"))
+      .finally(() => setLoading(false));
+  }, []);
 
   // Compute best/worst weeks for each stat
   const { batBest, batWorst, pitBest, pitWorst, batAvg, pitAvg } = useMemo(() => {

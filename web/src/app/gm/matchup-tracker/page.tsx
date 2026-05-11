@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { DataFreshness } from "@/components/DataFreshness";
 import { EspnAuthRequired } from "@/components/EspnAuthRequired";
-import { sanitizeNum, safeDivide, formatStat } from "@/lib/sanitize";
+import { sanitizeNum } from "@/lib/sanitize";
 import { categoryTierClass, LOWER_IS_BETTER } from "@/lib/category-weights";
 
 interface TeamRawStats {
@@ -175,7 +175,16 @@ export default function MatchupTrackerPage() {
       .finally(() => setLoading(false));
   }, []);
 
-  useEffect(() => { fetchData(); }, [fetchData]);
+  useEffect(() => {
+    fetch("/api/espn/matchup-tracker")
+      .then((r) => r.json())
+      .then((d: TrackerData & { error?: string }) => {
+        if (d.error) { setError(d.error); return; }
+        setData(d);
+      })
+      .catch(() => setError("FETCH_FAILED"))
+      .finally(() => setLoading(false));
+  }, []);
 
   const winCount = useMemo(() => data?.catResults.filter((c) => c.result === "WIN").length ?? 0, [data]);
   const lossCount = useMemo(() => data?.catResults.filter((c) => c.result === "LOSS").length ?? 0, [data]);

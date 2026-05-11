@@ -33,7 +33,6 @@ const CATS_ORDER = ["H", "R", "HR", "TB", "RBI", "BB", "SB", "AVG", "K", "QS", "
 const BAT_CATS = ["H", "R", "HR", "TB", "RBI", "BB", "SB", "AVG"];
 const PIT_CATS = ["K", "QS", "W", "L", "SV", "HD", "ERA", "WHIP"];
 const LOWER_IS_BETTER = new Set(["ERA", "WHIP", "L"]);
-const RATE_STATS = new Set(["AVG", "ERA", "WHIP"]);
 
 // Component stat IDs needed to reconstruct rate stats across weeks
 // These are present in ESPN's scoreByStat alongside the scored categories

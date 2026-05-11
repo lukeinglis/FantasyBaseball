@@ -2,6 +2,7 @@ export const dynamic = "force-dynamic";
 import { espnFetch, hasEspnCreds, POS_MAP, SLOT_MAP, INJURY_MAP, STAT_ID_MAP, getProTeam, getMatchupDates, getCurrentMatchupPeriod } from "@/lib/espn";
 import type { EspnLeagueData, EspnRosterEntry, EspnStatBlock, EspnScoreByStat, EspnScheduleRecord } from "@/types/espn";
 import logger from "@/lib/logger";
+import { ALL_CATS_BY_WEIGHT } from "@/lib/category-weights";
 
 export interface MatchupCatResult {
   cat: string;
@@ -42,7 +43,7 @@ export interface MatchupData {
 }
 
 const MY_TEAM_ID = parseInt(process.env.MY_ESPN_TEAM_ID ?? "0");
-const CATS_ORDER = ["H", "R", "HR", "TB", "RBI", "BB", "SB", "AVG", "K", "QS", "W", "L", "SV", "HD", "ERA", "WHIP"];
+const CATS_ORDER = ALL_CATS_BY_WEIGHT;
 
 // Player stat IDs (raw player context — different from scoring stat IDs)
 const PLAYER_STAT_MAP: Record<string, string> = {

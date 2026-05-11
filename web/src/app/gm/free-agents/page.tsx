@@ -79,6 +79,13 @@ const LOWER_IS_BETTER = new Set(["ERA", "WHIP", "L"]);
 const BAT_CATS = ["AVG", "HR", "R", "RBI", "SB", "H", "BB", "TB"];
 const PIT_CATS = ["K", "QS", "W", "SV", "HD", "ERA", "WHIP"];
 
+function getPlayerStats(p: PlayerStats, period: "season" | "last7" | "last15" | "last30"): Record<string, number> {
+  if (period === "last7") return p.last7Stats;
+  if (period === "last15") return p.last15Stats;
+  if (period === "last30") return p.last30Stats;
+  return p.seasonStats;
+}
+
 function fmtStat(cat: string, val: number | undefined): string {
   if (val === undefined || val === null || !Number.isFinite(val)) return "-";
   const v = sanitizeNum(val);
@@ -217,16 +224,11 @@ export default function FreeAgentsPage() {
       .slice(0, 20);
   }, [showStreaming, freeAgents, pitcherStarts, zScoreMap]);
 
-  function getStats(p: PlayerStats): Record<string, number> {
-    if (statPeriod === "last7") return p.last7Stats;
-    if (statPeriod === "last15") return p.last15Stats;
-    if (statPeriod === "last30") return p.last30Stats;
-    return p.seasonStats;
-  }
-
   const isPitcherFilter = posFilter === "SP" || posFilter === "RP";
 
   const filtered = useMemo(() => {
+
+
     let list = freeAgents;
 
     if (posFilter !== "ALL") {
@@ -260,8 +262,8 @@ export default function FreeAgentsPage() {
         return sanitizeNum(bZ?.zScores[weaknessFilter] ?? -999) - sanitizeNum(aZ?.zScores[weaknessFilter] ?? -999);
       }
 
-      const aStats = getStats(a);
-      const bStats = getStats(b);
+      const aStats = getPlayerStats(a, statPeriod);
+      const bStats = getPlayerStats(b, statPeriod);
       const aVal = sanitizeNum(aStats[sortBy] ?? (LOWER_IS_BETTER.has(sortBy) ? 999 : -999));
       const bVal = sanitizeNum(bStats[sortBy] ?? (LOWER_IS_BETTER.has(sortBy) ? 999 : -999));
       return LOWER_IS_BETTER.has(sortBy) ? aVal - bVal : bVal - aVal;
@@ -272,13 +274,14 @@ export default function FreeAgentsPage() {
 
   const sortOptions = isPitcherFilter ? PIT_SORT_OPTIONS : BAT_SORT_OPTIONS;
 
-  useEffect(() => {
-    if (posFilter === "SP" || posFilter === "RP") {
+  function handlePosFilter(pos: string) {
+    setPosFilter(pos);
+    if (pos === "SP" || pos === "RP") {
       if (!PIT_SORT_OPTIONS.find((o) => o.key === sortBy)) setSortBy("FAR");
     } else {
       if (!BAT_SORT_OPTIONS.find((o) => o.key === sortBy)) setSortBy("FAR");
     }
-  }, [posFilter, sortBy]);
+  }
 
   if (loading) return <div className="flex h-64 items-center justify-center text-slate-500">Loading free agents...</div>;
   if (error === "ESPN_CREDS_MISSING") {
@@ -468,7 +471,7 @@ export default function FreeAgentsPage() {
         {/* Position filter */}
         <div className="flex gap-0.5 rounded bg-surface border border-border p-0.5">
           {POSITIONS.map((pos) => (
-            <button key={pos} onClick={() => setPosFilter(pos)}
+            <button key={pos} onClick={() => handlePosFilter(pos)}
               className={`rounded px-2 py-1 text-[10px] font-bold transition-colors ${
                 posFilter === pos ? "bg-black/10 text-gray-900" : "text-slate-500 hover:text-slate-700"
               }`}>
@@ -525,7 +528,7 @@ export default function FreeAgentsPage() {
           </thead>
           <tbody>
             {filtered.map((p, i) => {
-              const stats = getStats(p);
+              const stats = getPlayerStats(p, statPeriod);
               const zPlayer = zScoreMap.get(p.playerId);
               const zTotal = sanitizeNum(zPlayer?.zTotal ?? 0);
               const far = sanitizeNum(zPlayer?.far ?? 0);
