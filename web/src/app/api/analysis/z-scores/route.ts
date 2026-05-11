@@ -24,7 +24,7 @@ const BAT_STAT_IDS: Record<string, string> = {
 // Pitching stat IDs
 const PIT_STAT_IDS: Record<string, string> = {
   "34": "IP", "41": "WHIP", "47": "ERA", "48": "K",
-  "50": "SV", "53": "W", "54": "L", "57": "HD", "63": "QS",
+  "53": "W", "54": "L", "57": "SV", "60": "HD", "63": "QS",
 };
 
 // Categories where lower is better (invert z-score)

@@ -40,6 +40,7 @@ export function simulateCategoryWinProb(
     const u1 = Math.random() || Number.EPSILON;
     const u2 = Math.random();
     const r = Math.sqrt(-2 * Math.log(u1));
+    if (!Number.isFinite(r)) continue;
     const theta = 2 * Math.PI * u2;
     const myFinal = myProj + r * Math.cos(theta) * sd;
     const oppFinal = oppProj + r * Math.sin(theta) * sd;

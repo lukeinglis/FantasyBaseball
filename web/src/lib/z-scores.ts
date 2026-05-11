@@ -6,5 +6,6 @@ export function mean(vals: number[]): number {
 export function stddev(vals: number[], mu: number): number {
   if (vals.length < 2) return 1;
   const variance = vals.reduce((s, v) => s + (v - mu) ** 2, 0) / vals.length;
-  return Math.sqrt(variance) || 1;
+  const sd = Math.sqrt(variance);
+  return Number.isFinite(sd) && sd > 0 ? sd : 1;
 }

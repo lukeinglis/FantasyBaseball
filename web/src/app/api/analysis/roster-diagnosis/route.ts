@@ -21,7 +21,7 @@ const COMPONENT_IDS = { AB: 0, H_BAT: 1, IP: 34, H_PIT: 35, ER: 39, BB_PIT: 38 }
 const TARGET_ERA = 3.80;
 
 type Tier = "STRONG" | "MIDDLE" | "WEAK";
-type BatterVerdict = "STAR" | "SOLID" | "BELOW_AVG" | "DRAG";
+type BatterVerdict = "STAR" | "SOLID" | "BELOW_AVG" | "DRAG" | "SMALL_SAMPLE";
 type PitcherVerdict = "ACE" | "SOLID" | "BELOW_AVG" | "HURTING";
 
 function clean(v: unknown): number {
@@ -268,7 +268,7 @@ function parsePlayerStats(
         name, pos, slotLabel, proTeam, injuryStatus,
         ops: Number.isFinite(ops) ? ops : 0,
         avg, hr, rbi, r, tb, sb, ab,
-        verdict: ab >= 30 ? classifyBatter(ops) : "DRAG",
+        verdict: ab >= 30 ? classifyBatter(ops) : "SMALL_SAMPLE",
       });
     } else if (PITCHER_SLOTS.has(slotId) && (posId === 1 || posId === 11)) {
       const era = clean(raw["47"]);

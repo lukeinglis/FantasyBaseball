@@ -32,7 +32,7 @@ interface BatterAnalysis {
   tb: number;
   sb: number;
   ab: number;
-  verdict: "STAR" | "SOLID" | "BELOW_AVG" | "DRAG";
+  verdict: "STAR" | "SOLID" | "BELOW_AVG" | "DRAG" | "SMALL_SAMPLE";
 }
 
 interface PitcherAnalysis {
@@ -93,11 +93,13 @@ function verdictColor(verdict: string): string {
   if (verdict === "SOLID") return "text-blue-700 bg-blue-50 border-blue-300";
   if (verdict === "BELOW_AVG") return "text-amber-700 bg-amber-50 border-amber-300";
   if (verdict === "DRAG" || verdict === "HURTING") return "text-red-700 bg-red-50 border-red-300";
+  if (verdict === "SMALL_SAMPLE") return "text-slate-500 bg-slate-50 border-slate-300";
   return "text-slate-600 bg-slate-50 border-border";
 }
 
 function verdictLabel(verdict: string): string {
   if (verdict === "BELOW_AVG") return "Below Avg";
+  if (verdict === "SMALL_SAMPLE") return "Small Sample";
   return verdict.charAt(0) + verdict.slice(1).toLowerCase();
 }
 
