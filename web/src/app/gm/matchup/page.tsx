@@ -602,6 +602,68 @@ export default function MatchupPage() {
         </div>
       </div>
 
+      {/* Live Scoreboard */}
+      <div className="mb-4 rounded-xl border border-border bg-surface overflow-hidden">
+        <div className="border-b border-border px-4 py-2.5 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-600">Live Scoreboard</span>
+            <span className="text-[14px] font-bold tabular-nums">
+              <span className={myWinCount > oppWinCount ? "text-emerald-600" : myWinCount < oppWinCount ? "text-red-600" : "text-slate-600"}>
+                {myWinCount > oppWinCount ? "Winning" : myWinCount < oppWinCount ? "Losing" : "Tied"} {myWinCount}-{oppWinCount}{myTieCount > 0 ? `-${myTieCount}` : ""}
+              </span>
+            </span>
+          </div>
+          {winProbs && (() => {
+            const catWinProbs = Object.values(winProbs);
+            const avgWinProb = catWinProbs.length > 0
+              ? Math.round(catWinProbs.reduce((s, v) => s + v, 0) / catWinProbs.length)
+              : 50;
+            return (
+              <span className={`text-[14px] font-bold tabular-nums ${
+                avgWinProb > 55 ? "text-emerald-600" : avgWinProb < 45 ? "text-red-600" : "text-orange-600"
+              }`}>
+                {avgWinProb}% win prob
+              </span>
+            );
+          })()}
+        </div>
+        <div className="px-4 py-3 grid grid-cols-2 sm:grid-cols-4 gap-2">
+          {data.categories.map((c) => {
+            const myVal = c.myValue ?? 0;
+            const oppVal = c.oppValue ?? 0;
+            const lower = LOWER_IS_BETTER.has(c.cat);
+            const gap = lower ? oppVal - myVal : myVal - oppVal;
+            const range = Math.max(Math.abs(myVal), Math.abs(oppVal), 1);
+            const isContested = !isPunt(c.cat) && Math.abs(gap) / range < 0.10;
+            const canPush = !isPunt(c.cat) && c.result === "LOSS" && winProbs && (winProbs[c.cat] ?? 0) > 33;
+            return (
+              <div key={c.cat} className={`rounded-lg px-3 py-2 text-[12px] ${
+                isContested ? "bg-yellow-50 border border-yellow-300" :
+                canPush ? "bg-blue-50 border border-blue-200" :
+                "border border-transparent"
+              }`}>
+                <div className="flex items-center justify-between">
+                  <span className={`font-bold ${catResultColor(c.result)}`}>{c.cat}</span>
+                  <span className={`text-[9px] font-bold ${catResultColor(c.result)}`}>{c.result}</span>
+                </div>
+                <div className="mt-0.5 font-mono tabular-nums">
+                  <span className="text-slate-700">{fmtCat(c.cat, c.myValue)}</span>
+                  <span className="text-slate-400"> vs </span>
+                  <span className="text-slate-500">{fmtCat(c.cat, c.oppValue)}</span>
+                  {c.result !== "PENDING" && (
+                    <span className={`ml-1 text-[10px] font-bold ${gap > 0 ? "text-emerald-600" : gap < 0 ? "text-red-600" : "text-slate-400"}`}>
+                      ({gap > 0 ? "+" : ""}{c.cat === "AVG" || c.cat === "ERA" || c.cat === "WHIP" ? gap.toFixed(3) : Math.round(gap)})
+                    </span>
+                  )}
+                </div>
+                {isContested && <div className="text-[9px] font-bold text-yellow-600 mt-0.5">CONTESTED</div>}
+                {canPush && !isContested && <div className="text-[9px] font-bold text-blue-600 mt-0.5">PUSHABLE</div>}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
       {/* Starts counter bar */}
       {startsCounts && (
         <div className="mb-4 flex items-center justify-center gap-4 rounded-lg border border-border bg-surface px-4 py-2">
