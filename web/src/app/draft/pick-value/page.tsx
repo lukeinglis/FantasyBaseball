@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
+import { sanitizeNum } from "@/lib/sanitize";
 
 interface OwnerSeason {
   year: number;
@@ -12,9 +13,6 @@ interface OwnerSeason {
   ties: number;
 }
 
-function safeNum(val: number): number {
-  return Number.isFinite(val) ? val : 0;
-}
 
 export default function PickValuePage() {
   const [data, setData] = useState<OwnerSeason[]>([]);
@@ -67,10 +65,10 @@ export default function PickValuePage() {
         const yearTeams = byYear[year];
         if (!yearTeams) continue;
         const sorted = [...yearTeams].sort((a, b) => {
-          const totalA = safeNum(a.wins) + safeNum(a.losses) + safeNum(a.ties);
-          const totalB = safeNum(b.wins) + safeNum(b.losses) + safeNum(b.ties);
-          const pctA = totalA > 0 ? safeNum(a.wins) / totalA : 0;
-          const pctB = totalB > 0 ? safeNum(b.wins) / totalB : 0;
+          const totalA = sanitizeNum(a.wins) + sanitizeNum(a.losses) + sanitizeNum(a.ties);
+          const totalB = sanitizeNum(b.wins) + sanitizeNum(b.losses) + sanitizeNum(b.ties);
+          const pctA = totalA > 0 ? sanitizeNum(a.wins) / totalA : 0;
+          const pctB = totalB > 0 ? sanitizeNum(b.wins) / totalB : 0;
           return pctB - pctA;
         });
         if (pick <= sorted.length) {
@@ -81,9 +79,9 @@ export default function PickValuePage() {
       const avg = standings.reduce((a, b) => a + b, 0) / standings.length;
       results.push({
         pick,
-        avgStanding: safeNum(avg),
-        top3Pct: safeNum((standings.filter((s) => s <= 3).length / standings.length) * 100),
-        bottom3Pct: safeNum((standings.filter((s) => s >= leagueSize - 2).length / standings.length) * 100),
+        avgStanding: sanitizeNum(avg),
+        top3Pct: sanitizeNum((standings.filter((s) => s <= 3).length / standings.length) * 100),
+        bottom3Pct: sanitizeNum((standings.filter((s) => s >= leagueSize - 2).length / standings.length) * 100),
         bestFinish: Math.min(...standings),
         worstFinish: Math.max(...standings),
         seasons: standings.length,
@@ -105,9 +103,9 @@ export default function PickValuePage() {
       const yearTeams = byYear[year];
       if (!yearTeams) continue;
       const sorted = [...yearTeams].sort((a, b) => {
-        const totalA = safeNum(a.wins) + safeNum(a.losses) + safeNum(a.ties);
-        const totalB = safeNum(b.wins) + safeNum(b.losses) + safeNum(b.ties);
-        return (totalB > 0 ? safeNum(b.wins) / totalB : 0) - (totalA > 0 ? safeNum(a.wins) / totalA : 0);
+        const totalA = sanitizeNum(a.wins) + sanitizeNum(a.losses) + sanitizeNum(a.ties);
+        const totalB = sanitizeNum(b.wins) + sanitizeNum(b.losses) + sanitizeNum(b.ties);
+        return (totalB > 0 ? sanitizeNum(b.wins) / totalB : 0) - (totalA > 0 ? sanitizeNum(a.wins) / totalA : 0);
       });
       sorted.forEach((s, i) => {
         pairs.push({ pick: i + 1, standing: s.standing, year: s.year, owner: s.owner });

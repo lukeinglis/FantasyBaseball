@@ -2,13 +2,13 @@
 
 import { useState, useEffect, useMemo } from "react";
 import type { Player } from "@/lib/data";
+import { sanitizeNum } from "@/lib/sanitize";
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
 const MY_PICK = 3;   // Luke's draft position (1-indexed)
 const TEAM_COUNT = 10;
 const TOTAL_ROUNDS = 24;
-const DRAFT_ORDER = ["Zach", "Ricky", "Luke", "Roger", "Ethan", "Fitzy", "Dan", "Tim", "JB", "Joel"];
 const MY_NAME = "Luke";
 
 // Category weights (from league history)
@@ -69,9 +69,6 @@ interface ZScorePlayer {
   onTeamId: number;
 }
 
-function safeNum(val: number): number {
-  return Number.isFinite(val) ? val : 0;
-}
 
 export default function StrategyPage() {
   const [players, setPlayers] = useState<Player[]>([]);
@@ -448,7 +445,7 @@ export default function StrategyPage() {
             const adpEntry = espnData[pick.playerName];
             const adp = adpEntry?.adp;
             const overallPick = pick.pick;
-            const farValue = zp ? safeNum(zp.far) : 0;
+            const farValue = zp ? sanitizeNum(zp.far) : 0;
             const adpDiff = adp != null ? Math.round(adp - overallPick) : null;
             let grade: string;
             let gradeColor: string;

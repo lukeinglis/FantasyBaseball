@@ -1,7 +1,7 @@
 import { espnFetch, hasEspnCreds, STAT_ID_MAP, getCurrentMatchupPeriod, getMatchupDates } from "@/lib/espn";
 import type { EspnLeagueData, EspnScoreByStat, EspnScheduleRecord } from "@/types/espn";
 import logger from "@/lib/logger";
-import { isPunt, categoryWeight } from "@/lib/category-weights";
+import { isPunt, categoryWeight, ALL_CATS_BY_WEIGHT } from "@/lib/category-weights";
 
 interface Recommendation {
   type: "score" | "target" | "alert" | "stream" | "sit";
@@ -11,7 +11,7 @@ interface Recommendation {
 }
 
 const MY_TEAM_ID = parseInt(process.env.MY_ESPN_TEAM_ID ?? "0");
-const CATS_ORDER = ["H", "R", "HR", "TB", "RBI", "BB", "SB", "AVG", "K", "QS", "W", "L", "SV", "HD", "ERA", "WHIP"];
+const CATS_ORDER = ALL_CATS_BY_WEIGHT;
 const LOWER_IS_BETTER = new Set(["ERA", "WHIP", "L"]);
 
 export async function GET(req: Request) {

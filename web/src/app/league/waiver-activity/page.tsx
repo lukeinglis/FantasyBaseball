@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
+import { EspnAuthRequired } from "@/components/EspnAuthRequired";
 
 interface RosterPlayer {
   name: string;
@@ -57,14 +58,7 @@ export default function WaiverActivityPage() {
 
   if (loading) return <div className="flex h-64 items-center justify-center text-slate-500">Loading...</div>;
   if (error === "ESPN_CREDS_MISSING" || error === "MY_ESPN_TEAM_ID_MISSING") {
-    return (
-      <div className="flex min-h-[70vh] items-center justify-center px-4">
-        <div className="mx-auto max-w-lg rounded-xl border border-border bg-surface px-8 py-10 text-center">
-          <div className="text-[11px] font-semibold uppercase tracking-widest text-orange-600/60">Setup Required</div>
-          <div className="mt-3 text-xl font-bold text-gray-900">Connect ESPN Credentials</div>
-        </div>
-      </div>
-    );
+    return <div className="flex min-h-[70vh] items-center justify-center px-4"><EspnAuthRequired /></div>;
   }
   if (error) {
     return (
@@ -109,7 +103,7 @@ export default function WaiverActivityPage() {
               </tr>
             </thead>
             <tbody>
-              {teamChurn.map((t, i) => (
+              {teamChurn.map((t) => (
                 <tr key={t.teamId} className="border-b border-border/50">
                   <td className="px-3 py-2">
                     <span className="text-[12px] font-medium text-slate-700">{t.teamName}</span>

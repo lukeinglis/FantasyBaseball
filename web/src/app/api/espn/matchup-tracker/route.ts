@@ -2,6 +2,7 @@ export const dynamic = "force-dynamic";
 import { espnFetch, hasEspnCreds, STAT_ID_MAP, getMatchupDates, getCurrentMatchupPeriod, SEASON_START, dayToDate } from "@/lib/espn";
 import type { EspnLeagueData, EspnScoreByStat, EspnScheduleRecord } from "@/types/espn";
 import logger from "@/lib/logger";
+import { ALL_CATS_BY_WEIGHT } from "@/lib/category-weights";
 
 export interface DailyPoints {
   date: string;
@@ -60,15 +61,7 @@ export interface MatchupTrackerData {
 
 const MY_TEAM_ID = parseInt(process.env.MY_ESPN_TEAM_ID ?? "0");
 
-const CATS_ORDER = ["H", "R", "HR", "TB", "RBI", "BB", "SB", "AVG", "K", "QS", "W", "L", "SV", "HD", "ERA", "WHIP"];
-
-// Raw stat IDs in ESPN matchup scoreByStat (includes component stats)
-const BAT_RAW_IDS: Record<number, string> = {
-  0: "AB", 1: "H", 20: "R", 5: "HR", 8: "TB", 21: "RBI", 10: "BB", 23: "SB",
-};
-const PIT_RAW_IDS: Record<number, string> = {
-  34: "IP", 35: "H", 39: "ER", 38: "BB", 48: "K", 63: "QS", 53: "W", 54: "L", 57: "SV", 60: "HD",
-};
+const CATS_ORDER = ALL_CATS_BY_WEIGHT;
 
 const cleanVal = (v: unknown): number => {
   if (typeof v === "number" && Number.isFinite(v)) return v;

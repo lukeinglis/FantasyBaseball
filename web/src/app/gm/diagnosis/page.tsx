@@ -5,6 +5,7 @@ import {
   categoryTierClass,
   LOWER_IS_BETTER,
 } from "@/lib/category-weights";
+import { EspnAuthRequired } from "@/components/EspnAuthRequired";
 
 interface CategoryRanking {
   cat: string;
@@ -156,16 +157,8 @@ export default function DiagnosisPage() {
     );
   }
 
-  if (error === "ESPN_CREDS_MISSING") {
-    return (
-      <div className="mx-auto max-w-lg px-4 py-16 text-center">
-        <div className="text-[11px] font-semibold uppercase tracking-widest text-orange-600/60">Setup Required</div>
-        <div className="mt-3 text-xl font-bold text-gray-900">Connect ESPN Credentials</div>
-        <div className="mt-3 text-[13px] text-slate-500">
-          Add ESPN_S2, ESPN_SWID, and MY_ESPN_TEAM_ID as environment variables.
-        </div>
-      </div>
-    );
+  if (error === "ESPN_CREDS_MISSING" || error === "MY_ESPN_TEAM_ID_MISSING") {
+    return <div className="flex min-h-[70vh] items-center justify-center px-4"><EspnAuthRequired /></div>;
   }
 
   if (error || !data) {

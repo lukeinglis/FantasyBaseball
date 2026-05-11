@@ -11,6 +11,7 @@ import {
 } from "@/lib/category-weights";
 import type { EspnLeagueData, EspnRosterEntry, EspnStatBlock, EspnScoreByStat, EspnScheduleRecord } from "@/types/espn";
 import logger from "@/lib/logger";
+import { safeDivide } from "@/lib/sanitize";
 
 const MY_TEAM_ID = parseInt(process.env.MY_ESPN_TEAM_ID ?? "9");
 const CATS_ORDER = ALL_CATS_BY_WEIGHT;
@@ -29,11 +30,6 @@ function clean(v: unknown): number {
   return 0;
 }
 
-function safeDivide(a: number, b: number, fallback = 0): number {
-  if (b === 0 || !Number.isFinite(a) || !Number.isFinite(b)) return fallback;
-  const result = a / b;
-  return Number.isFinite(result) ? result : fallback;
-}
 
 // Build season stats from matchup schedule (proven approach from league-stats)
 function buildSeasonStats(

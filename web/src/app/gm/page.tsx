@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { EspnAuthRequired } from "@/components/EspnAuthRequired";
 import { sanitizeNum } from "@/lib/sanitize";
-import { CATEGORY_WEIGHTS, HIGH_IMPACT_CATS, LOWER_IS_BETTER, isPunt, categoryTier } from "@/lib/category-weights";
+import { CATEGORY_WEIGHTS, LOWER_IS_BETTER, isPunt, categoryTier, ALL_CATS_BY_WEIGHT } from "@/lib/category-weights";
 
 interface MatchupCat {
   cat: string;
@@ -64,7 +64,7 @@ interface DiagnosisData {
   actionItems: ActionItem[];
 }
 
-const ALL_CATS = ["TB", "HR", "R", "RBI", "H", "W", "K", "WHIP", "QS", "ERA", "SB", "BB", "AVG", "L", "HD", "SV"];
+const ALL_CATS = ALL_CATS_BY_WEIGHT;
 const IL_STATUSES = new Set(["SEVEN_DAY_DL", "TEN_DAY_DL", "FIFTEEN_DAY_DL", "SIXTY_DAY_DL", "OUT"]);
 
 function rankColor(rank: number): string {

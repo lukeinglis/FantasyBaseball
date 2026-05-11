@@ -32,24 +32,9 @@ interface TeamSchedule {
   isHome: boolean | null;
 }
 
-interface WeatherData {
-  temp: number | null;
-  condition: string | null;
-  rainChance: number | null;
-  icon: string;
-}
-
 const BATTER_SLOTS = new Set([0, 1, 2, 3, 4, 5, 6, 7, 8, 12]);
 const PITCHER_SLOTS = new Set([13, 14, 15]);
 const BENCH_SLOT = 16;
-
-
-function weatherIcon(condition: string | null, rainChance: number | null): { icon: string; color: string; label: string } {
-  if (rainChance !== null && rainChance >= 60) return { icon: "!", color: "text-red-600 bg-red-50 border-red-200", label: `${rainChance}% rain` };
-  if (rainChance !== null && rainChance >= 30) return { icon: "~", color: "text-orange-600 bg-orange-50 border-orange-200", label: `${rainChance}% rain` };
-  return { icon: "", color: "", label: "" };
-}
-
 
 interface BvpStats {
   summary: string;

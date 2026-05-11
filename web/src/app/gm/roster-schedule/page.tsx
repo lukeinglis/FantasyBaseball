@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { DataFreshness } from "@/components/DataFreshness";
 import { EspnAuthRequired } from "@/components/EspnAuthRequired";
-import { sanitizeNum } from "@/lib/sanitize";
+
 
 interface MatchupPlayer {
   name: string;
@@ -185,7 +185,6 @@ export default function RosterSchedulePage() {
         if (d.error) { setError(d.error); return; }
         setMatchup(d);
 
-        // Fetch schedule grid for the matchup period
         const startDate = d.matchupStartDate ?? new Date().toISOString().slice(0, 10);
         const endDate = d.matchupEndDate ?? (() => {
           const e = new Date(); e.setDate(e.getDate() + 7); return e.toISOString().slice(0, 10);
@@ -200,7 +199,26 @@ export default function RosterSchedulePage() {
       .finally(() => setLoading(false));
   }, []);
 
-  useEffect(() => { fetchData(); }, [fetchData]);
+  useEffect(() => {
+    fetch("/api/espn/matchup")
+      .then((r) => r.json())
+      .then((d: MatchupData & { error?: string }) => {
+        if (d.error) { setError(d.error); return; }
+        setMatchup(d);
+
+        const startDate = d.matchupStartDate ?? new Date().toISOString().slice(0, 10);
+        const endDate = d.matchupEndDate ?? (() => {
+          const e = new Date(); e.setDate(e.getDate() + 7); return e.toISOString().slice(0, 10);
+        })();
+        return fetch(`/api/mlb/schedule-grid?startDate=${startDate}&endDate=${endDate}`)
+          .then((r) => r.json())
+          .then((g) => {
+            if (!g.error) setGrid(g);
+          });
+      })
+      .catch(() => setError("FETCH_FAILED"))
+      .finally(() => setLoading(false));
+  }, []);
 
   const days = useMemo(() => {
     if (!matchup?.matchupStartDate || !matchup?.matchupEndDate) return [];

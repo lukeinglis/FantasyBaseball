@@ -359,7 +359,7 @@ export default function BullpenPage() {
       setTeams(rosterData);
       if (matchupData.myTeamId) setMyTeamId(matchupData.myTeamId);
       if (matchupData.categories) {
-        const pitCats = (matchupData.categories as any[]).filter((c: any) =>
+        const pitCats = (matchupData.categories as { cat: string; myValue: number | null; oppValue: number | null; result: string }[]).filter((c) =>
           ["K", "QS", "W", "L", "SV", "HD", "ERA", "WHIP"].includes(c.cat)
         );
         setMatchupCats(pitCats);
