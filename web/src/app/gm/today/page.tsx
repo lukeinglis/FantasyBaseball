@@ -487,34 +487,44 @@ export default function TodayPage() {
               {categoryAlerts.score}
             </span>
           </div>
-          <div className="flex flex-wrap gap-1 px-4 py-3">
-            {matchupSnapshot.categories.map(c => {
-              const margin = c.myValue !== null && c.oppValue !== null
-                ? sanitizeNum(LOWER_IS_BETTER.has(c.cat) ? c.oppValue - c.myValue : c.myValue - c.oppValue)
-                : null;
-              return (
-                <div key={c.cat} className={`flex flex-col items-center rounded px-2 py-1.5 min-w-[52px] ${
-                  c.result === "WIN" ? "bg-emerald-50 border border-emerald-200" :
-                  c.result === "LOSS" ? "bg-red-50 border border-red-200" :
-                  c.result === "TIE" ? "bg-orange-50 border border-orange-200" :
-                  "bg-slate-50 border border-border"
-                }`}>
-                  <span className={`text-[9px] font-bold mb-0.5 ${
-                    c.result === "WIN" ? "text-emerald-600" :
-                    c.result === "LOSS" ? "text-red-600" :
-                    c.result === "TIE" ? "text-orange-600" : "text-slate-400"
-                  }`}>{c.result === "PENDING" ? "-" : c.result}</span>
-                  <span className="text-[10px] font-bold text-slate-700">{c.cat}</span>
-                  <span className="text-[10px] font-mono tabular-nums text-slate-700">{fmtCatVal(c.cat, c.myValue)}</span>
-                  <span className="text-[9px] text-slate-400 font-mono">{fmtCatVal(c.cat, c.oppValue)}</span>
-                  {margin !== null && (
-                    <span className={`text-[9px] font-mono tabular-nums ${margin > 0 ? "text-emerald-600" : margin < 0 ? "text-red-600" : "text-slate-400"}`}>
-                      {margin > 0 ? "+" : ""}{fmtCatVal(c.cat, margin)}
-                    </span>
-                  )}
+          <div className="px-4 py-3 space-y-2">
+            {[
+              { label: "Batting", cats: matchupSnapshot.categories.filter(c => ["H", "R", "HR", "TB", "RBI", "BB", "SB", "AVG"].includes(c.cat)) },
+              { label: "Pitching", cats: matchupSnapshot.categories.filter(c => ["K", "QS", "W", "L", "SV", "HD", "ERA", "WHIP"].includes(c.cat)) },
+            ].map(({ label, cats }) => (
+              <div key={label}>
+                <div className="text-[9px] font-semibold uppercase tracking-wider text-slate-400 mb-1">{label}</div>
+                <div className="grid grid-cols-8 gap-1">
+                  {cats.map(c => {
+                    const margin = c.myValue !== null && c.oppValue !== null
+                      ? sanitizeNum(LOWER_IS_BETTER.has(c.cat) ? c.oppValue - c.myValue : c.myValue - c.oppValue)
+                      : null;
+                    return (
+                      <div key={c.cat} className={`flex flex-col items-center rounded px-1 py-1.5 ${
+                        c.result === "WIN" ? "bg-emerald-50 border border-emerald-200" :
+                        c.result === "LOSS" ? "bg-red-50 border border-red-200" :
+                        c.result === "TIE" ? "bg-orange-50 border border-orange-200" :
+                        "bg-slate-50 border border-border"
+                      }`}>
+                        <span className={`text-[9px] font-bold mb-0.5 ${
+                          c.result === "WIN" ? "text-emerald-600" :
+                          c.result === "LOSS" ? "text-red-600" :
+                          c.result === "TIE" ? "text-orange-600" : "text-slate-400"
+                        }`}>{c.result === "PENDING" ? "-" : c.result}</span>
+                        <span className="text-[10px] font-bold text-slate-700">{c.cat}</span>
+                        <span className="text-[10px] font-mono tabular-nums text-slate-700">{fmtCatVal(c.cat, c.myValue)}</span>
+                        <span className="text-[9px] text-slate-400 font-mono">{fmtCatVal(c.cat, c.oppValue)}</span>
+                        {margin !== null && (
+                          <span className={`text-[9px] font-mono tabular-nums ${margin > 0 ? "text-emerald-600" : margin < 0 ? "text-red-600" : "text-slate-400"}`}>
+                            {margin > 0 ? "+" : ""}{fmtCatVal(c.cat, margin)}
+                          </span>
+                        )}
+                      </div>
+                    );
+                  })}
                 </div>
-              );
-            })}
+              </div>
+            ))}
           </div>
           {(categoryAlerts.atRisk.length > 0 || categoryAlerts.targets.length > 0) && (
             <div className="border-t border-border px-4 py-2 flex gap-3 text-[10px]">

@@ -277,6 +277,22 @@ export default function SchedulePage() {
           );
         })}
       </div>
+
+      {/* Flags legend */}
+      <div className="mt-4 rounded-lg border border-border bg-surface px-4 py-3">
+        <div className="text-[10px] font-semibold uppercase tracking-wider text-slate-400 mb-2">Schedule Flags</div>
+        <div className="flex flex-wrap gap-x-6 gap-y-1 text-[11px] text-slate-500">
+          <span><span className="inline-block rounded px-1.5 py-0.5 text-[9px] font-bold text-red-600 bg-red-50 border border-red-200 mr-1">Hard</span> Opponent ranked #1 or #2</span>
+          <span><span className="inline-block rounded px-1.5 py-0.5 text-[9px] font-bold text-orange-600 bg-orange-50 border border-orange-200 mr-1">Tough</span> Opponent ranked #3 or #4</span>
+          <span><span className="inline-block rounded px-1.5 py-0.5 text-[9px] font-bold text-slate-500 bg-slate-50 border border-slate-200 mr-1">Even</span> Opponent ranked #5 to #7</span>
+          <span><span className="inline-block rounded px-1.5 py-0.5 text-[9px] font-bold text-emerald-600 bg-emerald-50 border border-emerald-200 mr-1">Easy</span> Opponent ranked #8 to #10</span>
+        </div>
+        <div className="flex flex-wrap gap-x-6 gap-y-1 text-[11px] text-slate-500 mt-2">
+          <span><span className="inline-block rounded px-1.5 py-0.5 text-[9px] font-bold text-emerald-600 bg-emerald-50 border border-emerald-200 mr-1">Favorable</span> Category z-scores favor you</span>
+          <span><span className="inline-block rounded px-1.5 py-0.5 text-[9px] font-bold text-red-600 bg-red-50 border border-red-200 mr-1">Tough</span> Category z-scores favor opponent</span>
+          <span><span className="inline-block rounded px-1.5 py-0.5 text-[9px] font-bold text-yellow-600 bg-yellow-50 border border-yellow-200 mr-1">Even</span> Evenly matched on category z-scores</span>
+        </div>
+      </div>
     </div>
   );
 }

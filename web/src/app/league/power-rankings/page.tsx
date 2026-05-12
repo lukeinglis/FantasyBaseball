@@ -117,6 +117,7 @@ export default function PowerRankingsPage() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [expanded, setExpanded] = useState<number | null>(null);
+  const [activeView, setActiveView] = useState<"rankings" | "categories">("rankings");
 
   useEffect(() => {
     fetch("/api/espn/power-rankings")
@@ -145,15 +146,89 @@ export default function PowerRankingsPage() {
   return (
     <div className="mx-auto max-w-5xl px-4 py-6">
       {/* Header */}
-      <div className="mb-5">
-        <h1 className="text-lg font-bold text-gray-900">Power Rankings</h1>
-        <span className="text-[12px] text-slate-500">
-          Season cumulative through Week {data.currentWeek} &middot; Composite ranking across all 16 categories
-        </span>
+      <div className="mb-5 flex flex-wrap items-start justify-between gap-4">
+        <div>
+          <h1 className="text-lg font-bold text-gray-900">Power Rankings</h1>
+          <span className="text-[12px] text-slate-500">
+            Season cumulative through Week {data.currentWeek} &middot; Composite ranking across all 16 categories
+          </span>
+        </div>
+        <div className="flex rounded-lg border border-border overflow-hidden text-[11px] font-semibold">
+          <button onClick={() => setActiveView("rankings")}
+            className={`px-3 py-1.5 transition-colors ${activeView === "rankings" ? "bg-orange-600 text-white" : "bg-surface text-slate-600 hover:bg-slate-100"}`}>
+            Rankings
+          </button>
+          <button onClick={() => setActiveView("categories")}
+            className={`px-3 py-1.5 transition-colors ${activeView === "categories" ? "bg-orange-600 text-white" : "bg-surface text-slate-600 hover:bg-slate-100"}`}>
+            Category Breakdown
+          </button>
+        </div>
       </div>
 
+      {/* Category Breakdown View */}
+      {activeView === "categories" && (
+        <div className="space-y-6">
+          {[
+            { label: "Batting", cats: CATS_ORDER.filter(c => ["H", "R", "HR", "TB", "RBI", "BB", "SB", "AVG"].includes(c)) },
+            { label: "Pitching", cats: CATS_ORDER.filter(c => ["K", "QS", "W", "L", "SV", "HD", "ERA", "WHIP"].includes(c)) },
+          ].map(({ label, cats }) => (
+            <div key={label}>
+              <div className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-slate-400">{label}</div>
+              <div className="overflow-x-auto rounded-lg border border-border">
+                <table className="w-full text-left text-[12px]">
+                  <thead className="border-b border-border bg-surface text-[10px] uppercase tracking-wider text-slate-500">
+                    <tr>
+                      <th className="px-3 py-2.5 sticky left-0 bg-surface z-10">#</th>
+                      <th className="px-3 py-2.5 sticky left-8 bg-surface z-10">Team</th>
+                      {cats.map((cat) => (
+                        <th key={cat} className="px-2 py-2.5 text-right w-14">{cat}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {data.teams.map((team, i) => {
+                      const isMe = team.teamId === data.myTeamId;
+                      return (
+                        <tr key={team.teamId}
+                          className={`border-b border-border/50 ${isMe ? "bg-orange-50" : i % 2 === 0 ? "" : "bg-black/[0.02]"}`}>
+                          <td className={`px-3 py-2 sticky left-0 z-10 text-[11px] font-bold ${isMe ? "bg-orange-50" : i % 2 === 0 ? "bg-background" : "bg-black/[0.02]"} ${rankColor(team.powerRank)}`}>
+                            {team.powerRank}
+                          </td>
+                          <td className={`px-3 py-2 sticky left-8 z-10 truncate max-w-[120px] ${isMe ? "text-orange-600 font-semibold bg-orange-50" : i % 2 === 0 ? "text-slate-600 bg-background" : "text-slate-600 bg-black/[0.02]"}`}>
+                            {team.teamName}
+                          </td>
+                          {cats.map((cat) => {
+                            const rank = team.categoryRanks?.[cat] ?? 5;
+                            const val = team.categoryValues?.[cat];
+                            const fmtVal = val != null ? (
+                              cat === "AVG" ? val.toFixed(3) :
+                              cat === "ERA" || cat === "WHIP" ? val.toFixed(2) :
+                              String(Math.round(val))
+                            ) : "-";
+                            return (
+                              <td key={cat} className="px-2 py-2 text-right">
+                                <div className={`font-mono tabular-nums text-[11px] ${catRankColor(rank)} rounded px-1 py-0.5 inline-block`}>
+                                  #{rank}
+                                </div>
+                                <div className="text-[10px] font-mono tabular-nums text-slate-500 mt-0.5">
+                                  {fmtVal}
+                                </div>
+                              </td>
+                            );
+                          })}
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
       {/* Rankings table */}
-      <div className="overflow-x-auto rounded-lg border border-border">
+      {activeView === "rankings" && <div className="overflow-x-auto rounded-lg border border-border">
         <table className="w-full text-left text-[13px]">
           <thead className="border-b border-border bg-surface text-[10px] uppercase tracking-wider text-slate-500">
             <tr>
@@ -242,15 +317,17 @@ export default function PowerRankingsPage() {
             })}
           </tbody>
         </table>
-      </div>
+      </div>}
 
       {/* Legend */}
-      <div className="mt-4 flex flex-wrap gap-4 text-[10px] text-slate-400">
-        <span><strong>Avg Rank</strong> — Mean of all 16 category ranks (lower = better)</span>
-        <span><strong>Raw</strong> — Sum of stat deltas from league average</span>
-        <span><strong>Wtd</strong> — Category-weighted quality score (adjusted for what wins matchups)</span>
-        <span><strong>BAT/PIT</strong> — Batting and pitching avg ranks</span>
-      </div>
+      {activeView === "rankings" && (
+        <div className="mt-4 flex flex-wrap gap-4 text-[10px] text-slate-400">
+          <span><strong>Avg Rank</strong> — Mean of all 16 category ranks (lower = better)</span>
+          <span><strong>Raw</strong> — Sum of stat deltas from league average</span>
+          <span><strong>Wtd</strong> — Category-weighted quality score (adjusted for what wins matchups)</span>
+          <span><strong>BAT/PIT</strong> — Batting and pitching avg ranks</span>
+        </div>
+      )}
     </div>
   );
 }

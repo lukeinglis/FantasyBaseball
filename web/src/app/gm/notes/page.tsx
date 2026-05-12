@@ -41,16 +41,12 @@ function fmtTimestamp(iso: string): string {
 }
 
 export default function NotesPage() {
-  const [notes, setNotes] = useState<Note[]>([]);
+  const [notes, setNotes] = useState<Note[]>(() => loadNotes());
   const [newText, setNewText] = useState("");
   const [newTags, setNewTags] = useState("");
   const [newSection, setNewSection] = useState<Note["section"]>("strategy");
   const [filterTag, setFilterTag] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
-
-  useEffect(() => {
-    setNotes(loadNotes());
-  }, []);
 
   const persist = useCallback((updated: Note[]) => {
     setNotes(updated);
