@@ -71,7 +71,7 @@ function deltaColor(delta: number | undefined): string {
 
 function TrendArrow({ delta }: { delta: number | undefined }) {
   if (delta === undefined || !Number.isFinite(delta) || delta === 0) {
-    return <span className="text-slate-300 text-[10px]">&mdash;</span>;
+    return <span className="text-slate-300 text-[10px]">-</span>;
   }
   if (delta > 0) {
     return <span className="text-emerald-600 text-[10px] font-bold">{"▲"}{delta}</span>;

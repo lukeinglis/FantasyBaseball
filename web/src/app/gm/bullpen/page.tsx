@@ -747,6 +747,80 @@ export default function BullpenPage() {
         />
       )}
 
+      {/* SP vs SP Matchup */}
+      {view === "SP" && matchupApiData && startsApiData && matchupProbables && (() => {
+        const myTeamData = startsApiData.teams.find((t) => t.teamId === matchupApiData.myTeamId);
+        const oppTeamData = startsApiData.teams.find((t) => t.teamId === matchupApiData.oppTeamId);
+        if (!myTeamData || !oppTeamData) return null;
+
+        function getStartCount(pitcher: StartsPitcher): number { return pitcher.ppCount ?? 0; }
+
+        const mySPs = myTeamData.pitchers.filter((p) => p.pos === "SP" && !p.onIL).sort((a, b) => getStartCount(b) - getStartCount(a));
+        const oppSPs = oppTeamData.pitchers.filter((p) => p.pos === "SP" && !p.onIL).sort((a, b) => getStartCount(b) - getStartCount(a));
+        const myTotalStarts = mySPs.reduce((s, p) => s + getStartCount(p), 0);
+        const oppTotalStarts = oppSPs.reduce((s, p) => s + getStartCount(p), 0);
+
+        function getPlayerStats(name: string) {
+          return playerStats.find((p) => p.name === name);
+        }
+
+        function fmtPitStat(col: string, val: number | undefined): string {
+          if (val === undefined || !Number.isFinite(val)) return "-";
+          if (col === "ERA" || col === "WHIP") return val.toFixed(2);
+          if (col === "IP") return val.toFixed(1);
+          return String(Math.round(val));
+        }
+
+        return (
+          <div className="mb-4 rounded-lg border border-border bg-surface overflow-hidden">
+            <div className="border-b border-border px-4 py-2.5 flex items-center justify-between">
+              <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-500">SP vs SP Matchup</span>
+              <div className="flex items-center gap-3 text-[12px]">
+                <span className={`font-bold tabular-nums ${myTotalStarts > oppTotalStarts ? "text-emerald-600" : myTotalStarts < oppTotalStarts ? "text-red-600" : "text-slate-600"}`}>
+                  You {myTotalStarts}
+                </span>
+                <span className="text-slate-400">|</span>
+                <span className={`font-bold tabular-nums ${oppTotalStarts > myTotalStarts ? "text-emerald-600" : "text-slate-600"}`}>
+                  Opp {oppTotalStarts}
+                </span>
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-0 divide-x divide-border">
+              {[
+                { label: myTeamData.teamName, sps: mySPs, isMine: true },
+                { label: oppTeamData.teamName, sps: oppSPs, isMine: false },
+              ].map(({ label, sps, isMine }) => (
+                <div key={label}>
+                  <div className={`px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider border-b border-border ${isMine ? "text-orange-600" : "text-slate-500"}`}>{label}</div>
+                  {sps.map((sp) => {
+                    const stats = getPlayerStats(sp.name);
+                    return (
+                      <div key={sp.name} className="px-3 py-1.5 border-b border-border/50 last:border-0">
+                        <div className="flex items-center justify-between">
+                          <span className="text-[12px] font-medium text-slate-700">{sp.name}</span>
+                          <span className={`text-[11px] font-bold tabular-nums ${getStartCount(sp) >= 2 ? "text-emerald-600" : "text-slate-500"}`}>
+                            {getStartCount(sp)}S
+                          </span>
+                        </div>
+                        {stats && (
+                          <div className="flex gap-2 text-[9px] font-mono tabular-nums text-slate-500 mt-0.5">
+                            <span>ERA {fmtPitStat("ERA", stats.seasonStats.ERA)}</span>
+                            <span>WHIP {fmtPitStat("WHIP", stats.seasonStats.WHIP)}</span>
+                            <span>K {fmtPitStat("K", stats.seasonStats.K)}</span>
+                            <span>IP {fmtPitStat("IP", stats.seasonStats.IP)}</span>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                  {sps.length === 0 && <div className="px-3 py-3 text-[11px] text-slate-400 text-center">No SPs</div>}
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+      })()}
+
       {/* Pitcher lists */}
       <div className="space-y-4">
         <BullpenPitcherSection label="Active" players={active} borderColor="border-emerald-300" {...pitcherSectionProps} />

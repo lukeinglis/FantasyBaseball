@@ -104,6 +104,7 @@ interface CategoryRankingsGridProps {
 }
 
 function CategoryRankingsGrid({ matchups, myTeamId }: CategoryRankingsGridProps) {
+  const [showValues, setShowValues] = useState(true);
   const teams = buildTeamCatValues(matchups);
   if (teams.length === 0) return null;
 
@@ -117,7 +118,19 @@ function CategoryRankingsGrid({ matchups, myTeamId }: CategoryRankingsGridProps)
 
   return (
     <div className="mt-6">
-      <h2 className="mb-2 text-[13px] font-semibold text-slate-700">Category Rankings</h2>
+      <div className="mb-2 flex items-center justify-between">
+        <h2 className="text-[13px] font-semibold text-slate-700">League Category Scores</h2>
+        <div className="flex rounded-lg border border-border overflow-hidden text-[10px] font-semibold">
+          <button onClick={() => setShowValues(true)}
+            className={`px-2.5 py-1 transition-colors ${showValues ? "bg-orange-600 text-white" : "bg-surface text-slate-600 hover:bg-slate-100"}`}>
+            Values
+          </button>
+          <button onClick={() => setShowValues(false)}
+            className={`px-2.5 py-1 transition-colors ${!showValues ? "bg-orange-600 text-white" : "bg-surface text-slate-600 hover:bg-slate-100"}`}>
+            Ranks
+          </button>
+        </div>
+      </div>
       <div className="overflow-x-auto rounded-lg border border-border bg-surface">
         <table className="w-full text-[11px]">
           <thead>
@@ -144,11 +157,21 @@ function CategoryRankingsGrid({ matchups, myTeamId }: CategoryRankingsGridProps)
                   </td>
                   {cats.map((cat) => {
                     const rank = rankMaps[cat]?.[team.teamId] ?? 0;
+                    const val = sanitizeCatVal(team.values[cat]);
                     return (
                       <td key={cat} className={`px-1 py-1.5 text-center${isPunt(cat) ? " opacity-50" : ""}`}>
-                        <span className={`inline-block min-w-[22px] rounded px-1 py-0.5 font-mono tabular-nums font-semibold ${rankColor(rank)}`}>
-                          {rank}
-                        </span>
+                        {showValues ? (
+                          <div>
+                            <span className={`font-mono tabular-nums text-[11px] ${
+                              rank <= 3 ? "text-emerald-700 font-bold" : rank >= 8 ? "text-red-600" : "text-slate-600"
+                            }`}>{fmtCatVal(cat, val)}</span>
+                            <div className={`text-[8px] font-bold ${rankColor(rank)} rounded px-0.5 inline-block mt-0.5`}>#{rank}</div>
+                          </div>
+                        ) : (
+                          <span className={`inline-block min-w-[22px] rounded px-1 py-0.5 font-mono tabular-nums font-semibold ${rankColor(rank)}`}>
+                            {rank}
+                          </span>
+                        )}
                       </td>
                     );
                   })}

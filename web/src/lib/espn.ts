@@ -65,14 +65,14 @@ export const STAT_ID_MAP: Record<number, string> = {
   57: "SV", 60: "HD", 47: "ERA", 41: "WHIP",
 };
 
-// ESPN proTeamId → team abbreviation
+// ESPN proTeamId → team abbreviation (2026 mapping)
 export const PRO_TEAM_MAP: Record<number, string> = {
-  0: "FA", 1: "ATL", 2: "BAL", 3: "BOS", 4: "CHC", 5: "CWS",
-  6: "CIN", 7: "CLE", 8: "COL", 9: "DET", 10: "HOU",
-  11: "KC", 12: "LAA", 13: "LAD", 14: "MIA", 15: "MIL",
-  16: "MIN", 17: "NYM", 18: "NYY", 19: "OAK", 20: "PHI",
-  21: "PIT", 22: "SD", 23: "SEA", 24: "SF", 25: "STL",
-  26: "TB", 27: "TEX", 28: "TOR", 29: "WSH", 30: "ARI",
+  0: "FA", 1: "BAL", 2: "BOS", 3: "LAA", 4: "CWS", 5: "CLE",
+  6: "DET", 7: "KC", 8: "MIL", 9: "MIN", 10: "NYY",
+  11: "OAK", 12: "SEA", 13: "TEX", 14: "TOR", 15: "ATL",
+  16: "CHC", 17: "CIN", 18: "HOU", 19: "LAD", 20: "WSH",
+  21: "NYM", 22: "PHI", 23: "PIT", 24: "STL", 25: "SD",
+  26: "SF", 27: "COL", 28: "MIA", 29: "ARI", 30: "TB",
 };
 
 export function getProTeam(player: { proTeamId?: number; proTeamAbbrev?: string }): string {

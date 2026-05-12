@@ -11,8 +11,8 @@ import {
 
 describe("getProTeam", () => {
   it("returns team abbreviation from proTeamId", () => {
-    expect(getProTeam({ proTeamId: 18 })).toBe("NYY");
-    expect(getProTeam({ proTeamId: 13 })).toBe("LAD");
+    expect(getProTeam({ proTeamId: 18 })).toBe("HOU");
+    expect(getProTeam({ proTeamId: 13 })).toBe("TEX");
   });
 
   it("returns empty string for unknown proTeamId without fallback", () => {

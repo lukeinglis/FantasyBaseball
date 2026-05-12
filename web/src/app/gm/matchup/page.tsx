@@ -8,6 +8,7 @@ import { DataFreshness } from "@/components/DataFreshness";
 import { EspnAuthRequired } from "@/components/EspnAuthRequired";
 import { simulateCategoryWinProb } from "@/lib/monte-carlo";
 import { isPunt, isHighImpact, categoryTierClass, CATEGORY_WEIGHTS, LOWER_IS_BETTER, categoryTier } from "@/lib/category-weights";
+import { sanitizeNum } from "@/lib/sanitize";
 
 interface MatchupCat {
   cat: string;
@@ -74,6 +75,62 @@ interface ProbableStart {
 
 interface ProbablePitchersData {
   byPitcher: Record<string, ProbableStart[]>;
+}
+
+interface TrackerTeamRawStats {
+  H: number; AB: number; R: number; HR: number;
+  TB: number; RBI: number; BB: number; SB: number; AVG: number;
+}
+
+interface TrackerTeamPitchingRaw {
+  IP: number; H: number; ER: number; BB: number;
+  K: number; QS: number; W: number; L: number;
+  SV: number; HD: number; ERA: number; WHIP: number;
+}
+
+interface DailyPoints {
+  date: string; dayLabel: string; myPts: number; oppPts: number;
+}
+
+interface TrackerCatResult {
+  cat: string; myValue: number; oppValue: number;
+  result: "WIN" | "LOSS" | "TIE" | "PENDING";
+}
+
+interface TrackerData {
+  week: number;
+  startDate: string;
+  endDate: string;
+  daysElapsed: number;
+  totalDays: number;
+  myTeam: { id: number; name: string };
+  oppTeam: { id: number; name: string };
+  batting: { my: TrackerTeamRawStats; opp: TrackerTeamRawStats };
+  pitching: { my: TrackerTeamPitchingRaw; opp: TrackerTeamPitchingRaw };
+  dailyPoints: DailyPoints[];
+  catResults: TrackerCatResult[];
+}
+
+const TRACKER_BAT_COLS = ["H", "AB", "R", "HR", "TB", "RBI", "BB", "SB", "AVG"] as const;
+const TRACKER_PIT_COLS = ["IP", "H", "ER", "BB", "K", "QS", "W", "L", "SV", "HD", "ERA", "WHIP"] as const;
+
+function fmtTrackerVal(cat: string, val: number): string {
+  if (!Number.isFinite(val)) return "-";
+  if (cat === "AVG") return val.toFixed(3);
+  if (cat === "ERA" || cat === "WHIP") return val.toFixed(2);
+  if (cat === "IP") return val.toFixed(1);
+  return String(Math.round(val));
+}
+
+function compareCat(cat: string, myVal: number, oppVal: number): "WIN" | "LOSS" | "TIE" {
+  if (LOWER_IS_BETTER.has(cat)) {
+    if (myVal < oppVal) return "WIN";
+    if (myVal > oppVal) return "LOSS";
+    return "TIE";
+  }
+  if (myVal > oppVal) return "WIN";
+  if (myVal < oppVal) return "LOSS";
+  return "TIE";
 }
 
 // Slot IDs
@@ -306,6 +363,9 @@ export default function MatchupPage() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [selectedCat, setSelectedCat] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<"matchup" | "tracker" | "next-week">("matchup");
+  const [trackerData, setTrackerData] = useState<TrackerData | null>(null);
+  const [trackerLoading, setTrackerLoading] = useState(false);
   const [h2hData, setH2hData] = useState<{
     opponents: Record<number, {
       teamName: string;
@@ -350,6 +410,25 @@ export default function MatchupPage() {
   }, []);
 
   useEffect(() => { fetchData(); }, [fetchData]);
+
+  useEffect(() => {
+    if (activeTab !== "tracker" || trackerData) return;
+    let cancelled = false;
+    const loadTracker = async () => {
+      try {
+        const r = await fetch("/api/espn/matchup-tracker");
+        const d = (await r.json()) as TrackerData & { error?: string };
+        if (!cancelled && !d.error) setTrackerData(d);
+      } catch {
+        // ignore
+      } finally {
+        if (!cancelled) setTrackerLoading(false);
+      }
+    };
+    setTrackerLoading(true);
+    loadTracker();
+    return () => { cancelled = true; };
+  }, [activeTab, trackerData]);
 
   useEffect(() => {
     if (!data) return;
@@ -601,6 +680,36 @@ export default function MatchupPage() {
           )}
         </div>
       </div>
+
+      {/* Tab bar */}
+      <div className="mb-4 flex gap-1 border-b border-border">
+        {(["matchup", "tracker", "next-week"] as const).map((tab) => (
+          <button
+            key={tab}
+            onClick={() => setActiveTab(tab)}
+            className={`px-4 py-2 text-[12px] font-semibold border-b-2 transition-colors ${
+              activeTab === tab
+                ? "border-orange-500 text-orange-600"
+                : "border-transparent text-slate-500 hover:text-slate-700"
+            }`}
+          >
+            {tab === "matchup" ? "Matchup" : tab === "tracker" ? "Daily Tracker" : "Next Week"}
+          </button>
+        ))}
+      </div>
+
+      {/* Daily Tracker Tab */}
+      {activeTab === "tracker" && (
+        <DailyTrackerSection data={trackerData} loading={trackerLoading} />
+      )}
+
+      {/* Next Week Tab */}
+      {activeTab === "next-week" && (
+        <NextWeekSection />
+      )}
+
+      {/* Main Matchup Tab */}
+      {activeTab === "matchup" && <>
 
       {/* Live Scoreboard */}
       <div className="mb-4 rounded-xl border border-border bg-surface overflow-hidden">
@@ -1042,6 +1151,347 @@ export default function MatchupPage() {
           probables={probables}
           selectedCat={selectedCat}
         />
+      </div>
+      </>}
+    </div>
+  );
+}
+
+function TrackerStatTable({ label, myStats, oppStats, cols, myTeamName, oppTeamName }: {
+  label: string;
+  myStats: Record<string, number>;
+  oppStats: Record<string, number>;
+  cols: readonly string[];
+  myTeamName: string;
+  oppTeamName: string;
+}) {
+  return (
+    <div className="rounded-lg border border-border bg-surface overflow-x-auto">
+      <div className="border-b border-border px-4 py-2">
+        <span className="text-[10px] font-semibold uppercase tracking-widest text-slate-500">{label}</span>
+      </div>
+      <table className="w-full text-[11px]">
+        <thead>
+          <tr className="border-b border-border bg-black/[0.02]">
+            <th className="px-3 py-1.5 text-left font-semibold text-slate-500 w-28">Team</th>
+            {cols.map((col) => {
+              const result = compareCat(col, sanitizeNum(myStats[col]), sanitizeNum(oppStats[col]));
+              return (
+                <th key={col} className={`px-2 py-1.5 text-right font-semibold tabular-nums ${
+                  result === "WIN" ? "text-emerald-600" : result === "LOSS" ? "text-red-600" : result === "TIE" ? "text-orange-600" : "text-slate-500"
+                }`}>{col}</th>
+              );
+            })}
+          </tr>
+        </thead>
+        <tbody>
+          <tr className="border-b border-border">
+            <td className="px-3 py-1.5 font-semibold text-orange-600 truncate max-w-[120px]">{myTeamName}</td>
+            {cols.map((col) => {
+              const result = compareCat(col, sanitizeNum(myStats[col]), sanitizeNum(oppStats[col]));
+              return (
+                <td key={col} className={`px-2 py-1.5 text-right font-mono tabular-nums font-bold ${
+                  result === "WIN" ? "bg-emerald-50 text-emerald-600" : result === "LOSS" ? "bg-red-50 text-red-600" : result === "TIE" ? "bg-orange-50 text-orange-600" : ""
+                }`}>{fmtTrackerVal(col, sanitizeNum(myStats[col]))}</td>
+              );
+            })}
+          </tr>
+          <tr className="border-b border-border">
+            <td className="px-3 py-1.5 font-semibold text-slate-500 truncate max-w-[120px]">{oppTeamName}</td>
+            {cols.map((col) => {
+              const result = compareCat(col, sanitizeNum(myStats[col]), sanitizeNum(oppStats[col]));
+              const oppResult = result === "WIN" ? "LOSS" : result === "LOSS" ? "WIN" : "TIE";
+              return (
+                <td key={col} className={`px-2 py-1.5 text-right font-mono tabular-nums ${
+                  oppResult === "WIN" ? "bg-emerald-50 text-emerald-600" : oppResult === "LOSS" ? "bg-red-50 text-red-600" : oppResult === "TIE" ? "bg-orange-50 text-orange-600" : ""
+                }`}>{fmtTrackerVal(col, sanitizeNum(oppStats[col]))}</td>
+              );
+            })}
+          </tr>
+          <tr className="bg-black/[0.02]">
+            <td className="px-3 py-1.5 text-[10px] font-semibold text-slate-400 uppercase">Diff</td>
+            {cols.map((col) => {
+              const myVal = sanitizeNum(myStats[col]);
+              const oppVal = sanitizeNum(oppStats[col]);
+              const diff = LOWER_IS_BETTER.has(col) ? oppVal - myVal : myVal - oppVal;
+              const isRate = ["AVG", "ERA", "WHIP"].includes(col);
+              return (
+                <td key={col} className={`px-2 py-1.5 text-right font-mono tabular-nums text-[10px] font-bold ${
+                  diff > 0 ? "text-emerald-600" : diff < 0 ? "text-red-600" : "text-slate-400"
+                }`}>{diff > 0 ? "+" : ""}{isRate ? diff.toFixed(3) : col === "IP" ? diff.toFixed(1) : Math.round(diff)}</td>
+              );
+            })}
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+function DailyTrackerSection({ data, loading }: { data: TrackerData | null; loading: boolean }) {
+  if (loading) return <div className="flex h-32 items-center justify-center text-slate-500">Loading tracker...</div>;
+  if (!data) return <div className="text-center text-slate-400 py-8">Tracker data unavailable</div>;
+
+  const winCount = data.catResults.filter((c) => c.result === "WIN").length;
+  const lossCount = data.catResults.filter((c) => c.result === "LOSS").length;
+  const tieCount = data.catResults.filter((c) => c.result === "TIE").length;
+  const maxDailyPts = Math.max(1, ...data.dailyPoints.map((d) => Math.max(d.myPts, d.oppPts)));
+  const hasDailyData = data.dailyPoints.some((d) => d.myPts > 0 || d.oppPts > 0);
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center gap-4">
+        <div className="flex items-center gap-2">
+          <span className="text-2xl font-bold tabular-nums text-emerald-600">{winCount}</span>
+          <span className="text-[10px] text-slate-500">W</span>
+          <span className="text-slate-400">-</span>
+          <span className="text-2xl font-bold tabular-nums text-red-600">{lossCount}</span>
+          <span className="text-[10px] text-slate-500">L</span>
+          {tieCount > 0 && (<>
+            <span className="text-slate-400">-</span>
+            <span className="text-2xl font-bold tabular-nums text-orange-600">{tieCount}</span>
+            <span className="text-[10px] text-slate-500">T</span>
+          </>)}
+        </div>
+        <span className="text-[11px] text-slate-400">Day {data.daysElapsed} of {data.totalDays}</span>
+      </div>
+
+      <div className="flex flex-wrap gap-1.5">
+        {data.catResults.map((c) => (
+          <div key={c.cat} className={`rounded px-2.5 py-1.5 text-center min-w-[52px] border ${
+            c.result === "WIN" ? "bg-emerald-50 border-emerald-200" :
+            c.result === "LOSS" ? "bg-red-50 border-red-200" :
+            c.result === "TIE" ? "bg-orange-50 border-orange-200" :
+            "bg-slate-50 border-border"
+          }`}>
+            <div className={`text-[9px] font-bold ${categoryTierClass(c.cat)}`}>{c.cat}</div>
+            <div className={`text-[12px] font-bold font-mono tabular-nums ${
+              c.result === "WIN" ? "text-emerald-600" : c.result === "LOSS" ? "text-red-600" : c.result === "TIE" ? "text-orange-600" : "text-slate-500"
+            }`}>{fmtTrackerVal(c.cat, c.myValue)}</div>
+            <div className="text-[10px] font-mono tabular-nums text-slate-400">{fmtTrackerVal(c.cat, c.oppValue)}</div>
+          </div>
+        ))}
+      </div>
+
+      <TrackerStatTable
+        label="Batting"
+        myStats={data.batting.my as unknown as Record<string, number>}
+        oppStats={data.batting.opp as unknown as Record<string, number>}
+        cols={TRACKER_BAT_COLS}
+        myTeamName={data.myTeam.name}
+        oppTeamName={data.oppTeam.name}
+      />
+
+      <TrackerStatTable
+        label="Pitching"
+        myStats={data.pitching.my as unknown as Record<string, number>}
+        oppStats={data.pitching.opp as unknown as Record<string, number>}
+        cols={TRACKER_PIT_COLS}
+        myTeamName={data.myTeam.name}
+        oppTeamName={data.oppTeam.name}
+      />
+
+      {hasDailyData && (
+        <div className="rounded-lg border border-border bg-surface">
+          <div className="border-b border-border px-4 py-2">
+            <span className="text-[10px] font-semibold uppercase tracking-widest text-slate-500">Daily Fantasy Points</span>
+          </div>
+          <div className="px-4 py-3 space-y-2">
+            {data.dailyPoints.map((d, i) => {
+              const isPast = i < data.daysElapsed;
+              const isToday = i === data.daysElapsed - 1;
+              const myW = Math.max(0, (d.myPts / maxDailyPts) * 100);
+              const oppW = Math.max(0, (d.oppPts / maxDailyPts) * 100);
+              return (
+                <div key={d.date} className={`flex items-center gap-2 ${!isPast && !isToday ? "opacity-30" : ""}`}>
+                  <span className={`w-12 text-[10px] font-bold ${isToday ? "text-orange-600" : "text-slate-500"}`}>{d.dayLabel}</span>
+                  <div className="flex-1 flex gap-1">
+                    <div className="flex-1 flex items-center gap-1">
+                      <div className="h-3 rounded bg-orange-400" style={{ width: `${myW}%`, minWidth: d.myPts > 0 ? "4px" : "0px" }} />
+                      <span className="text-[10px] font-mono tabular-nums text-slate-600">{d.myPts > 0 ? d.myPts.toFixed(1) : ""}</span>
+                    </div>
+                    <div className="flex-1 flex items-center gap-1">
+                      <div className="h-3 rounded bg-slate-300" style={{ width: `${oppW}%`, minWidth: d.oppPts > 0 ? "4px" : "0px" }} />
+                      <span className="text-[10px] font-mono tabular-nums text-slate-400">{d.oppPts > 0 ? d.oppPts.toFixed(1) : ""}</span>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function NextWeekSection() {
+  const [probables, setProbables] = useState<{ byPitcher: Record<string, { date: string; pitcherName: string; team: string; opponent: string }[]>; allStarts: { date: string; pitcherName: string; team: string; opponent: string }[] } | null>(null);
+  const [startsData, setStartsData] = useState<{ myTeamId: number; nextDates: { start: string; end: string } | null; teams: { teamId: number; teamName: string; pitchers: { name: string; pos: string; proTeam: string; onIL: boolean }[] }[]; rosteredPitchers: string[] } | null>(null);
+  const [leagueTeams, setLeagueTeams] = useState<{ teamId: number; teamName: string; ranks: Record<string, number> }[]>([]);
+  const [nextOppId, setNextOppId] = useState<number | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch("/api/espn/starts")
+      .then((r) => r.json())
+      .then((data: { error?: string; nextDates?: { start: string; end: string }; myTeamId?: number; teams?: { teamId: number; teamName: string; pitchers: { name: string; pos: string; proTeam: string; onIL: boolean }[] }[]; rosteredPitchers?: string[] }) => {
+        if (data.error) { setLoading(false); return; }
+        setStartsData(data as typeof startsData);
+
+        const fetches: Promise<unknown>[] = [];
+        if (data.nextDates) {
+          fetches.push(fetch(`/api/mlb/probable-pitchers?startDate=${data.nextDates.start}&endDate=${data.nextDates.end}`).then((r) => r.json()).catch(() => null));
+        } else {
+          fetches.push(Promise.resolve(null));
+        }
+        fetches.push(fetch("/api/espn/league-stats?scope=season").then((r) => r.json()).catch(() => ({ teams: [] })));
+        fetches.push(fetch("/api/espn/schedule").then((r) => r.json()).catch(() => null));
+
+        return Promise.all(fetches).then(([pp, league, sched]) => {
+          const p = pp as (typeof probables & { error?: string }) | null;
+          const l = league as { teams?: typeof leagueTeams; error?: string };
+          if (p && !(p as { error?: string }).error) setProbables(p as typeof probables);
+          if (l.teams) setLeagueTeams(l.teams);
+          const schedData = sched as { error?: string; nextOpponent?: { teamId: number } } | null;
+          if (schedData && !schedData.error && schedData.nextOpponent) setNextOppId(schedData.nextOpponent.teamId);
+        });
+      })
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, []);
+
+  if (loading) return <div className="flex h-32 items-center justify-center text-slate-500">Loading next week...</div>;
+  if (!startsData) return <div className="text-center text-slate-400 py-8">Next week data unavailable</div>;
+
+  const nextDates = startsData.nextDates;
+  const oppTeam = nextOppId ? leagueTeams.find((t) => t.teamId === nextOppId) : null;
+  const oppWeakCats = oppTeam ? Object.entries(oppTeam.ranks).filter(([, r]) => r >= 8).sort(([, a], [, b]) => b - a).map(([cat, rank]) => ({ cat, rank })) : [];
+  const oppStrongCats = oppTeam ? Object.entries(oppTeam.ranks).filter(([, r]) => r <= 3).sort(([, a], [, b]) => a - b).map(([cat, rank]) => ({ cat, rank })) : [];
+
+  const myTeam = startsData.teams.find((t) => t.teamId === startsData.myTeamId);
+  const rosteredSet = new Set(startsData.rosteredPitchers ?? []);
+
+  function findPitcherStarts(pitcherName: string) {
+    if (!probables) return [];
+    if (probables.byPitcher[pitcherName]) return probables.byPitcher[pitcherName];
+    const lower = pitcherName.toLowerCase();
+    for (const [name, starts] of Object.entries(probables.byPitcher)) {
+      if (name.toLowerCase() === lower) return starts;
+    }
+    return [];
+  }
+
+  const myDoubleStarters = myTeam ? myTeam.pitchers
+    .filter((p) => p.pos === "SP" && !p.onIL)
+    .map((p) => ({ ...p, starts: findPitcherStarts(p.name), startCount: findPitcherStarts(p.name).length }))
+    .filter((p) => p.startCount >= 2)
+    .sort((a, b) => b.startCount - a.startCount) : [];
+
+  const faDoubleStarters = probables ? Object.entries(probables.byPitcher)
+    .filter(([, starts]) => starts.length >= 2)
+    .filter(([name]) => !rosteredSet.has(name))
+    .map(([name, starts]) => ({ name, starts, team: starts[0]?.team ?? "" }))
+    .sort((a, b) => b.starts.length - a.starts.length) : [];
+
+  const fmtD = (d: string) => new Date(d + "T12:00:00").toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" });
+  const fmtRange = (s: string, e: string) => `${new Date(s + "T12:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric" })} to ${new Date(e + "T12:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric" })}`;
+
+  return (
+    <div className="space-y-4">
+      {nextDates && <div className="text-[12px] text-slate-500">{fmtRange(nextDates.start, nextDates.end)}</div>}
+
+      {oppTeam && (
+        <div className="rounded-lg border border-border bg-surface overflow-hidden">
+          <div className="border-b border-border px-4 py-2.5">
+            <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-600">Next Opponent </span>
+            <span className="text-[14px] font-bold text-slate-700">{oppTeam.teamName}</span>
+          </div>
+          <div className="px-4 py-3 grid gap-4 sm:grid-cols-2">
+            {oppWeakCats.length > 0 && (
+              <div>
+                <div className="text-[10px] font-semibold text-emerald-600 uppercase tracking-wider mb-2">Their Weaknesses</div>
+                <div className="flex flex-wrap gap-1.5">
+                  {oppWeakCats.map(({ cat, rank }) => (
+                    <span key={cat} className="rounded bg-emerald-50 border border-emerald-200 px-2 py-1 text-[11px]">
+                      <span className="font-bold text-emerald-700">{cat}</span>
+                      <span className="ml-1 text-slate-500">#{rank}</span>
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+            {oppStrongCats.length > 0 && (
+              <div>
+                <div className="text-[10px] font-semibold text-red-600 uppercase tracking-wider mb-2">Their Strengths</div>
+                <div className="flex flex-wrap gap-1.5">
+                  {oppStrongCats.map(({ cat, rank }) => (
+                    <span key={cat} className="rounded bg-red-50 border border-red-200 px-2 py-1 text-[11px]">
+                      <span className="font-bold text-red-700">{cat}</span>
+                      <span className="ml-1 text-slate-500">#{rank}</span>
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {myDoubleStarters.length > 0 && (
+        <div className="rounded-lg border border-orange-300 bg-surface overflow-hidden">
+          <div className="border-b border-orange-300 px-4 py-2.5 flex items-center justify-between">
+            <span className="text-[10px] font-semibold uppercase tracking-wider text-orange-600">Your Double Starters</span>
+            <span className="text-[14px] font-bold tabular-nums text-orange-600">{myDoubleStarters.length}</span>
+          </div>
+          <div className="divide-y divide-border">
+            {myDoubleStarters.map((p) => (
+              <div key={p.name} className="px-4 py-2.5">
+                <div className="flex items-center justify-between">
+                  <span className="text-[13px] font-semibold text-emerald-700">{p.name} <span className="text-[10px] text-slate-500">{p.proTeam}</span></span>
+                  <span className="text-[14px] font-bold tabular-nums text-emerald-600">{p.startCount} starts</span>
+                </div>
+                <div className="mt-1 flex flex-wrap gap-1.5">
+                  {p.starts.map((s, i) => (
+                    <span key={i} className="rounded px-2 py-0.5 text-[10px] bg-orange-50 border border-orange-200 text-orange-700">
+                      <span className="font-semibold">{fmtD(s.date)}</span> <span className="text-orange-600">{s.opponent}</span>
+                    </span>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      <div className="rounded-lg border border-emerald-300 bg-surface overflow-hidden">
+        <div className="border-b border-emerald-300 px-4 py-2.5 flex items-center justify-between">
+          <span className="text-[10px] font-semibold uppercase tracking-wider text-emerald-600">FA Double Starters</span>
+          <span className="text-[14px] font-bold tabular-nums text-emerald-600">{faDoubleStarters.length}</span>
+        </div>
+        {faDoubleStarters.length > 0 ? (
+          <div className="divide-y divide-border">
+            {faDoubleStarters.map((fa) => (
+              <div key={fa.name} className="px-4 py-2.5">
+                <div className="flex items-center justify-between">
+                  <span className="text-[13px] font-semibold text-emerald-700">{fa.name} <span className="text-[10px] text-slate-500">{fa.team}</span></span>
+                  <span className="text-[14px] font-bold tabular-nums text-emerald-600">{fa.starts.length} starts</span>
+                </div>
+                <div className="mt-1 flex flex-wrap gap-1.5">
+                  {fa.starts.map((s, i) => (
+                    <span key={i} className="rounded px-2 py-0.5 text-[10px] bg-emerald-50 border border-emerald-200 text-emerald-700">
+                      <span className="font-semibold">{fmtD(s.date)}</span> <span className="text-emerald-600">{s.opponent}</span>
+                    </span>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="px-4 py-6 text-center text-[12px] text-slate-500">
+            {!probables ? "Probable pitchers not yet available for next week." : "No unrostered double starters found."}
+          </div>
+        )}
       </div>
     </div>
   );

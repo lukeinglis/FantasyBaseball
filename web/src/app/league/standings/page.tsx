@@ -113,7 +113,7 @@ export default function StandingsPage() {
               <th className="px-3 py-2.5 text-center">T</th>
               <th className="px-3 py-2.5 text-center">PCT</th>
               <th className="px-3 py-2.5 text-center">GB</th>
-              <th className="px-3 py-2.5 text-center">STRK</th>
+              <th className="px-3 py-2.5 text-center">CHG</th>
             </tr>
           </thead>
           <tbody>
@@ -138,11 +138,15 @@ export default function StandingsPage() {
                   <td className="px-3 py-2.5 text-center tabular-nums text-slate-500">
                     {team.gamesBack === 0 ? "-" : team.gamesBack.toFixed(1)}
                   </td>
-                  <td className={`px-3 py-2.5 text-center text-[11px] font-bold ${
-                    team.streak.startsWith("W") ? "text-emerald-600" :
-                    team.streak.startsWith("L") ? "text-red-600" : "text-slate-400"
-                  }`}>
-                    {team.streak}
+                  <td className="px-3 py-2.5 text-center text-[11px] font-bold">
+                    {(() => {
+                      if (!team.streak || team.streak === "-") return <span className="text-slate-400">-</span>;
+                      const isWin = team.streak.startsWith("W");
+                      const len = parseInt(team.streak.slice(1), 10) || 0;
+                      if (len === 0) return <span className="text-slate-400">-</span>;
+                      if (isWin) return <span className="text-emerald-600 tabular-nums">+{len}</span>;
+                      return <span className="text-red-600 tabular-nums">{-len}</span>;
+                    })()}
                   </td>
                 </tr>
               );

@@ -1,5 +1,5 @@
 export const dynamic = "force-dynamic";
-import { hasEspnCreds, getProTeam } from "@/lib/espn";
+import { hasEspnCreds, getProTeam, POS_MAP } from "@/lib/espn";
 import type { EspnStatBlock, EspnPlayerStatsResponse } from "@/types/espn";
 import logger from "@/lib/logger";
 
@@ -78,21 +78,7 @@ export async function GET(req: Request) {
     const data = await res.json() as EspnPlayerStatsResponse;
     const players: PlayerStats[] = [];
 
-    // ESPN position ID map
-    const posMap: Record<number, string> = {
-      1: "SP", 2: "C", 3: "1B", 4: "2B", 5: "3B",
-      6: "SS", 7: "OF", 8: "OF", 9: "OF", 10: "DH", 11: "RP",
-    };
-
-    // ESPN proTeam ID → abbreviation
-    const proTeamMap: Record<number, string> = {
-      1: "ATL", 2: "BAL", 3: "BOS", 4: "CHC", 5: "CWS",
-      6: "CIN", 7: "CLE", 8: "COL", 9: "DET", 10: "HOU",
-      11: "KC", 12: "LAA", 13: "LAD", 14: "MIA", 15: "MIL",
-      16: "MIN", 17: "NYM", 18: "NYY", 19: "OAK", 20: "PHI",
-      21: "PIT", 22: "SD", 23: "SEA", 24: "SF", 25: "STL",
-      26: "TB", 27: "TEX", 28: "TOR", 29: "WSH", 30: "ARI",
-    };
+    const posMap = POS_MAP;
 
     for (const entry of data.players ?? []) {
       const player = entry.player ?? {};
